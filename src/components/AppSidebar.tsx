@@ -4,7 +4,6 @@ import {
   FolderOpen,
   Lock,
   FileText,
-  Church,
   Search,
   Settings,
   Users,
@@ -20,11 +19,13 @@ import {
   Facebook,
   Youtube,
   MessageCircle,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
+import { MordusLogo } from "@/components/MordusLogo";
 import {
   Sidebar,
   SidebarContent,
@@ -47,16 +48,25 @@ const tesourariaItems = [
   { title: "Relatórios", url: "/relatorios", icon: FileText },
 ];
 
-const secretariaItems = [
+const secretariaGeral = [
   { title: "Painel Secretaria", url: "/secretaria", icon: LayoutDashboard },
+];
+
+const secretariaPessoas = [
   { title: "Membros", url: "/membros", icon: Users },
   { title: "Liderança", url: "/lideranca", icon: Crown },
+  { title: "Departamentos", url: "/departamentos", icon: UsersRound },
+];
+
+const secretariaAdm = [
   { title: "Patrimônio", url: "/patrimonio", icon: Building2 },
   { title: "Documentos", url: "/documentos", icon: File },
   { title: "Congregações", url: "/congregacoes", icon: Home },
-  { title: "Departamentos", url: "/departamentos", icon: UsersRound },
-  { title: "Serviço Social", url: "/servico-social", icon: Heart },
+];
+
+const secretariaSocial = [
   { title: "Calendário", url: "/calendario", icon: CalendarDays },
+  { title: "Serviço Social", url: "/servico-social", icon: Heart },
   { title: "Parceiros", url: "/parceiros", icon: Handshake },
 ];
 
@@ -69,7 +79,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-  const { settings } = useChurch();
+  const { settings, user, signOut } = useChurch();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
@@ -114,14 +124,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shrink-0">
-            <Church className="h-4 w-4 text-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <span className="text-sm font-semibold text-sidebar-foreground tracking-tight truncate">
-              {settings.displayName || "Mordus"}
-            </span>
-          )}
+          <MordusLogo
+            variant={collapsed ? "icon" : "full"}
+            className={`${collapsed ? "h-8 w-8" : "w-[100px] h-auto"} transition-all duration-300 text-sidebar-foreground`}
+          />
         </div>
         {!collapsed && (
           <div className="relative mt-3">
@@ -136,11 +142,26 @@ export function AppSidebar() {
 
       <SidebarContent>
         {renderGroup("Tesouraria", tesourariaItems)}
-        {renderGroup("Secretaria", secretariaItems)}
+        {renderGroup("Secretaria", secretariaGeral)}
+        {renderGroup("Membros & Liderança", secretariaPessoas)}
+        {renderGroup("Administrativo", secretariaAdm)}
+        {renderGroup("Comunitário & Social", secretariaSocial)}
         {renderGroup("Sistema", configItems)}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
+      <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => signOut()}
+              className="text-sidebar-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span>Sair do Sistema</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
         {activeSocials.length > 0 && (
           <div className={`flex ${collapsed ? "flex-col" : ""} items-center gap-2 ${collapsed ? "" : "justify-center"}`}>
             {activeSocials.map((s) => (

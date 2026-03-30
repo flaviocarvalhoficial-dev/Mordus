@@ -55,6 +55,7 @@
     --sidebar-border: 240 5% 88%;
     --sidebar-ring: 38 80% 50%;
     --sidebar-muted: 240 5% 55%;
+    --logo-text: #0C0C12;
   }
 
   .dark {
@@ -101,6 +102,7 @@
     --sidebar-border: 240 12% 18%;
     --sidebar-ring: 38 80% 55%;
     --sidebar-muted: 240 5% 40%;
+    --logo-text: #ffffff;
   }
 }
 
@@ -114,7 +116,9 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-heading);
   }
 }

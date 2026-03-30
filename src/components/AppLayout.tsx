@@ -51,7 +51,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
-  const { settings } = useChurch();
+  const { settings, profile } = useChurch();
   const route = routeMap[location.pathname] || { name: "Página", section: "sistema" as const, icon: Home };
   const greeting = useMemo(() => getGreeting(), []);
   const SectionIcon = route.icon;
@@ -79,8 +79,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
               </button>
               <Link to="/configuracoes" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border overflow-hidden">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="User Avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               </Link>
             </div>

@@ -1,0 +1,17 @@
+{
+    "name": "Mordus — Gestão de Igrejas",
+    "short_name": "Mordus",
+    "description": "Sistema completo para gestão financeira e administrativa de igrejas.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#BC5D0B",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

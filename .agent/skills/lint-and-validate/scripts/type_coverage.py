@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+.svg#!/usr/bin/env python3
 """
 Type Coverage Checker - Measures TypeScript/Python type coverage.
 Identifies untyped functions, any usage, and type safety issues.

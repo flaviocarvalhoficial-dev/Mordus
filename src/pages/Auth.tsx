@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Church, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { MordusLogo } from "@/components/MordusLogo";
 
 export default function Auth() {
     const [loading, setLoading] = useState(false);
@@ -44,12 +45,17 @@ export default function Auth() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <Card className="w-full max-w-md bg-card border-border shadow-xl">
-                <CardHeader className="text-center">
-                    <div className="mx-auto h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                        <Church className="h-6 w-6 text-primary" />
+                <CardHeader className="flex flex-col items-center pt-12 pb-10">
+                    <div className="mb-4">
+                        <MordusLogo
+                            variant="full"
+                            className="w-[140px] h-auto"
+                        />
                     </div>
-                    <CardTitle className="text-2xl font-bold">Mordus</CardTitle>
-                    <CardDescription>
+                    <p className="text-sm font-normal text-muted-foreground mb-6">
+                        Gestão completa da igreja em um só lugar.
+                    </p>
+                    <CardDescription className="text-center italic">
                         {isSignUp ? "Crie sua conta para gerenciar sua igreja" : "Entre com sua conta para acessar o painel"}
                     </CardDescription>
                 </CardHeader>

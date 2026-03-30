@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Church, Shield, Bell, Share2, Loader2 } from "lucide-react";
+import { User, Church, Shield, Bell, Share2, Loader2, Camera } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useChurch } from "@/contexts/ChurchContext";
 import { supabase } from "@/lib/supabase";
@@ -17,6 +17,7 @@ export default function Settings() {
   const { organization, profile, user } = useChurch();
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form states for Organization
   const [orgForm, setOrgForm] = useState({
@@ -65,7 +66,7 @@ export default function Settings() {
     if (!organization?.id) return;
     setIsSavingOrg(true);
     try {
-      const { error } = await supabase.from("organizations").update(orgForm).eq("id", organization.id);
+      const { error } = await (supabase.from("organizations") as any).update(orgForm).eq("id", organization.id);
       if (error) throw error;
       toast.success("Dados da igreja atualizados");
     } catch (err) {
@@ -79,13 +80,48 @@ export default function Settings() {
     if (!user?.id) return;
     setIsSavingUser(true);
     try {
-      const { error } = await supabase.from("profiles").update(profileForm).eq("id", user.id);
+      const { error } = await (supabase.from("profiles") as any).update(profileForm).eq("id", user.id);
       if (error) throw error;
       toast.success("Perfil atualizado");
     } catch (err) {
       toast.error("Erro ao atualizar perfil");
     } finally {
       setIsSavingUser(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await (supabase.storage
+        .from('avatars') as any)
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = (supabase.storage
+        .from('avatars') as any)
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await (supabase
+        .from('profiles') as any)
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Foto de perfil atualizada!");
+      window.location.reload(); // Quick way to refresh context data
+    } catch (error: any) {
+      toast.error("Erro ao enviar foto: " + error.message);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -104,9 +140,31 @@ export default function Settings() {
           <CardHeader><CardTitle className="text-sm font-semibold flex items-center gap-2"><User className="h-4 w-4" />Perfil do Usuário</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border-2 border-border">
-                <User className="h-8 w-8 text-muted-foreground" />
+              <div
+                className="relative h-20 w-20 rounded-full bg-secondary flex items-center justify-center border-2 border-border overflow-hidden cursor-pointer group"
+                onClick={() => document.getElementById("avatar-upload")?.click()}
+              >
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-10 w-10 text-muted-foreground" />
+                )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="h-6 w-6 text-white" />
+                </div>
+                {isUploading && (
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                )}
               </div>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
               <div>
                 <p className="text-[14px] font-bold text-foreground">{profile.full_name || "Membro"}</p>
                 <p className="text-[11px] text-muted-foreground">{user?.email}</p>

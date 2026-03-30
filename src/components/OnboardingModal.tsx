@@ -77,6 +77,23 @@ export function OnboardingModal() {
 
         if (profileError) throw profileError;
 
+        // 3. Inserir categorias padrão
+        const defaultCategories = [
+          { name: "Oferta", type: "income", color: "#10b981", organization_id: org.id },
+          { name: "Dízimo", type: "income", color: "#10b981", organization_id: org.id },
+          { name: "Doação", type: "income", color: "#10b981", organization_id: org.id },
+          { name: "Venda", type: "income", color: "#10b981", organization_id: org.id },
+          { name: "Água", type: "expense", color: "#f43f5e", organization_id: org.id },
+          { name: "Energia", type: "expense", color: "#f43f5e", organization_id: org.id },
+          { name: "Internet", type: "expense", color: "#f43f5e", organization_id: org.id },
+        ];
+
+        const { error: catError } = await (supabase
+          .from("categories") as any)
+          .insert(defaultCategories);
+
+        if (catError) throw catError;
+
         setHasSeenOnboarding(true);
         toast.success("Igreja configurada com sucesso!");
         setTimeout(() => window.location.reload(), 100);
