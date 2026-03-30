@@ -1,0 +1,199 @@
+import { useState, useEffect } from "react";
+import { AppLayout } from "@/components/AppLayout";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, Crown, Pencil, Loader2, Phone } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useChurch } from "@/contexts/ChurchContext";
+import type { Database } from "@/types/database.types";
+
+type Leader = Database["public"]["Tables"]["leaders"]["Row"];
+
+const roleLabels: Record<string, { label: string; color: string }> = {
+  pastor_presidente: { label: "Pastor Presidente", color: "bg-primary/15 text-primary" },
+  pastor_auxiliar: { label: "Pastor Auxiliar", color: "bg-chart-blue/15 text-chart-blue" },
+  pastor_interino: { label: "Pastor Interino", color: "bg-chart-blue/15 text-chart-blue" },
+  presbitero: { label: "Presbítero", color: "bg-success/15 text-success" },
+  diacono: { label: "Diácono", color: "bg-chart-pink/15 text-chart-pink" },
+  auxiliar: { label: "Auxiliar", color: "bg-muted text-muted-foreground" },
+};
+
+const emptyForm = { name: "", role: "auxiliar", phone: "" };
+
+export default function Lideranca() {
+  const { organization } = useChurch();
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  useEffect(() => {
+    if (organization?.id) fetchLeaders();
+  }, [organization?.id]);
+
+  const fetchLeaders = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("leaders")
+        .select("*")
+        .eq("organization_id", organization!.id)
+        .order("name");
+      if (error) throw error;
+      setLeaders(data || []);
+    } catch (err) {
+      toast.error("Erro ao carregar liderança");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openCreate = () => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); };
+  const openEdit = (l: Leader) => {
+    setEditingId(l.id);
+    setForm({ name: l.name, role: l.role || "auxiliar", phone: l.phone || "" });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name || !organization?.id) return;
+    setIsSaving(true);
+    try {
+      const payload = { ...form, organization_id: organization.id };
+      if (editingId) {
+        const { error } = await supabase.from("leaders").update(payload).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("leaders").insert([payload]);
+        if (error) throw error;
+      }
+      setDialogOpen(false);
+      fetchLeaders();
+      toast.success(editingId ? "Líder atualizado" : "Líder cadastrado");
+    } catch (err) {
+      toast.error("Erro ao salvar líder");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Remover este líder?")) return;
+    try {
+      const { error } = await supabase.from("leaders").delete().eq("id", id);
+      if (error) throw error;
+      setLeaders(prev => prev.filter(l => l.id !== id));
+      toast.success("Líder removido");
+    } catch (err) {
+      toast.error("Erro ao remover");
+    }
+  };
+
+  if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando...</div>;
+
+  const roleOrder = Object.keys(roleLabels);
+  const sorted = [...leaders].sort((a, b) => roleOrder.indexOf(a.role || "auxiliar") - roleOrder.indexOf(b.role || "auxiliar"));
+
+  return (
+    <AppLayout>
+      <div className="animate-fade-in space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Liderança Ministerial</h1>
+            <p className="text-muted-foreground text-[13px] mt-1">Quadro de ministros da {organization.name}</p>
+          </div>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />Novo Líder
+          </Button>
+        </div>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="bg-card border-border">
+            <DialogHeader><DialogTitle>{editingId ? "Editar Líder" : "Cadastrar Líder"}</DialogTitle></DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label className="text-[13px]">Nome Completo *</Label>
+                <Input placeholder="Ex: Pr. João da Silva" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Cargo</Label>
+                  <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(roleLabels).map(([val, { label }]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Telefone</Label>
+                  <Input placeholder="(00) 00000-0000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+              </div>
+              <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingId ? "Atualizar" : "Salvar"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {loading ? (
+          <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {sorted.map((leader) => {
+              const roleInfo = roleLabels[leader.role || "auxiliar"] || roleLabels.auxiliar;
+              return (
+                <Card key={leader.id} className="bg-card border-border hover:bg-secondary/20 transition-all border-l-4 border-l-primary/40">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                          <Crown className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-bold text-foreground leading-tight">{leader.name}</p>
+                          <Badge className={`${roleInfo.color} border-0 text-[9px] mt-1.5 uppercase tracking-wide`}>{roleInfo.label}</Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEdit(leader)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(leader.id)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {leader.phone && (
+                      <div className="flex items-center gap-2 mt-4 text-[11px] text-muted-foreground font-mono">
+                        <Phone className="h-3 w-3 text-primary opacity-50" /> {leader.phone}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {leaders.length === 0 && (
+              <div className="col-span-full py-16 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                Nenhum líder cadastrado
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
+}
