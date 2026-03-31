@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search } from "lucide-react";
+import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search, History, Eye, ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useChurch } from "@/contexts/ChurchContext";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +24,9 @@ export default function Settings() {
   const [team, setTeam] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [loadingTeam, setLoadingTeam] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
 
   // Form states for Organization
   const [orgForm, setOrgForm] = useState({
@@ -72,8 +75,32 @@ export default function Settings() {
     if (organization?.id) {
       fetchTeam();
       fetchDepartments();
+      if (isAdmin) fetchAuditLogs();
     }
-  }, [organization?.id]);
+  }, [organization?.id, isAdmin]);
+
+  const fetchAuditLogs = async () => {
+    if (!organization?.id || !isAdmin) return;
+    setLoadingLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select(`
+          *,
+          profiles (full_name)
+        `)
+        .eq("organization_id", organization.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setAuditLogs(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar logs:", err);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
 
   const fetchTeam = async () => {
     setLoadingTeam(true);
@@ -212,6 +239,11 @@ export default function Settings() {
             {isAdmin && (
               <TabsTrigger value="equipe" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 Equipe
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="auditoria" onClick={fetchAuditLogs} className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Auditoria
               </TabsTrigger>
             )}
           </TabsList>
@@ -609,6 +641,162 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="auditoria" className="animate-in fade-in slide-in-from-left-2 duration-300">
+            <div className="max-w-4xl">
+              <Card className="bg-card border-border shadow-sm overflow-hidden">
+                <CardHeader className="bg-secondary/10 border-b border-border/50 py-4 flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-bold flex items-center gap-2">
+                      <History className="h-4 w-4 text-primary" /> Trilha de Auditoria
+                    </CardTitle>
+                    <p className="text-[10px] text-muted-foreground mt-1">Histórico completo de alterações em tempo real</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={fetchAuditLogs} disabled={loadingLogs} className="h-8 text-[10px] font-bold">
+                    {loadingLogs ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <History className="h-3 w-3 mr-1" />}
+                    Atualizar Logs
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-secondary/5 text-muted-foreground font-black uppercase tracking-widest border-b border-border/50">
+                        <tr>
+                          <th className="px-6 py-4">Data/Hora</th>
+                          <th className="px-6 py-4">Usuário</th>
+                          <th className="px-6 py-4">Módulo</th>
+                          <th className="px-6 py-4">Ação</th>
+                          <th className="px-6 py-4 text-right">Detalhes</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {loadingLogs ? (
+                          [1, 2, 3].map(i => (
+                            <tr key={i}><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></td></tr>
+                          ))
+                        ) : auditLogs.length === 0 ? (
+                          <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground font-medium italic">Nenhuma atividade registrada ainda.</td></tr>
+                        ) : auditLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-secondary/5 transition-colors">
+                            <td className="px-6 py-4 font-mono text-[10px] text-muted-foreground">
+                              {new Date(log.created_at).toLocaleString('pt-BR')}
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="font-bold">{log.profiles?.full_name || 'Sistema'}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant="secondary" className="text-[9px] uppercase font-bold bg-secondary/50">
+                                {log.table_name === 'transactions' ? 'Financeiro' :
+                                  log.table_name === 'members' ? 'Membros' :
+                                    log.table_name === 'documents' ? 'Documentos' :
+                                      log.table_name === 'profiles' ? 'Equipe' :
+                                        log.table_name === 'organizations' ? 'Instituição' : log.table_name}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                {log.action === 'INSERT' && <Badge className="bg-success/10 text-success border-success/20 text-[9px] font-black uppercase">Criou</Badge>}
+                                {log.action === 'UPDATE' && <Badge className="bg-warning/10 text-warning border-warning/20 text-[9px] font-black uppercase">Editou</Badge>}
+                                {log.action === 'DELETE' && <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[9px] font-black uppercase">Deletou</Badge>}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10" onClick={() => setSelectedLog(log)}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {selectedLog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                  <div className="bg-background border border-border w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
+                      <div>
+                        <h3 className="font-bold text-lg">Detalhes da Alteração</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{new Date(selectedLog.created_at).toLocaleString('pt-BR')}</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedLog(null)} className="h-8">Fechar</Button>
+                    </div>
+                    <div className="p-6 max-h-[60vh] overflow-y-auto space-y-6 text-foreground">
+                      {selectedLog.action === 'UPDATE' ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-destructive flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-destructive" /> Antes
+                              </h4>
+                              <div className="bg-secondary/20 p-4 rounded-xl border border-border/50 space-y-2">
+                                {Object.entries(selectedLog.old_data || {}).map(([key, value]: [string, any]) => {
+                                  if (['id', 'organization_id', 'created_at', 'category_id', 'department_id', 'event_id'].includes(key)) return null;
+                                  if (JSON.stringify(value) === JSON.stringify(selectedLog.new_data?.[key])) return null;
+                                  return (
+                                    <div key={key} className="flex flex-col border-b border-border/30 pb-2 last:border-0">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{key.replace(/_/g, ' ')}</span>
+                                      <span className="text-sm font-medium text-destructive line-through opacity-70 italic">{String(value)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-success" /> Depois
+                              </h4>
+                              <div className="bg-success/5 p-4 rounded-xl border border-success/20 space-y-2">
+                                {Object.entries(selectedLog.new_data || {}).map(([key, value]: [string, any]) => {
+                                  if (['id', 'organization_id', 'created_at', 'category_id', 'department_id', 'event_id'].includes(key)) return null;
+                                  if (JSON.stringify(value) === JSON.stringify(selectedLog.old_data?.[key])) return null;
+                                  return (
+                                    <div key={key} className="flex flex-col border-b border-border/30 pb-2 last:border-0">
+                                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{key.replace(/_/g, ' ')}</span>
+                                      <span className="text-sm font-bold text-success font-mono">{String(value)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                            Registro Completo
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-secondary/10 p-6 rounded-2xl border border-border/50">
+                            {Object.entries(selectedLog.action === 'INSERT' ? selectedLog.new_data : (selectedLog.old_data || {})).map(([key, value]: [string, any]) => {
+                              if (['id', 'organization_id', 'created_at', 'category_id', 'department_id', 'event_id'].includes(key)) return null;
+                              return (
+                                <div key={key} className="flex flex-col border-b border-border/20 pb-2 last:border-0">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{key.replace(/_/g, ' ')}</span>
+                                  <span className="text-[13px] font-bold text-foreground">
+                                    {key === 'amount' ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value)) : String(value)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="pt-4 opacity-30 group-hover:opacity-100 transition-opacity">
+                            <p className="text-[9px] font-mono text-center uppercase tracking-widest">Acesso técnico (JSON)</p>
+                            <pre className="mt-2 bg-secondary/5 p-3 rounded-lg text-[9px] overflow-x-auto">
+                              {JSON.stringify(selectedLog.action === 'INSERT' ? selectedLog.new_data : selectedLog.old_data, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 bg-secondary/10 border-t border-border flex justify-end">
+                      <Button onClick={() => setSelectedLog(null)} variant="secondary" className="px-6 font-bold h-10">Entendido</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
