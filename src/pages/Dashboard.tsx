@@ -32,7 +32,13 @@ export default function Dashboard() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [month, setMonth] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [showExpenses, setShowExpenses] = useState(false);
+  const [showExpenses, setShowExpenses] = useState(() => {
+    return localStorage.getItem("dashboard-show-expenses") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("dashboard-show-expenses", String(showExpenses));
+  }, [showExpenses]);
   const [stats, setStats] = useState({
     entradas: 0,
     saidas: 0,
