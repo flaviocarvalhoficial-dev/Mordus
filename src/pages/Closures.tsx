@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight } from "lucide-react";
+import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight, Trash2 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -131,6 +131,19 @@ export default function Closures() {
     }
   };
 
+  const handleDeleteClosure = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este fechamento? O período voltará a ficar em aberto para alterações.")) return;
+
+    try {
+      const { error } = await supabase.from("monthly_closures").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Fechamento removido com sucesso!");
+      setClosures(prev => prev.filter(c => c.id !== id));
+    } catch (err) {
+      toast.error("Erro ao excluir fechamento");
+    }
+  };
+
   if (!organization) return <div className="p-8 text-center text-muted-foreground font-mono">Carregando...</div>;
 
   return (
@@ -183,19 +196,30 @@ export default function Closures() {
                         {formatDate(closure.start_date)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(closure.end_date)}
                       </span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-[11px] text-muted-foreground hover:bg-secondary/50"
-                      onClick={() => {
-                        const nextId = expandedId === closure.id ? null : closure.id;
-                        setExpandedId(nextId);
-                        if (nextId) fetchTransactionsForClosure(closure);
-                      }}
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" />
-                      {expandedId === closure.id ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[11px] text-muted-foreground hover:bg-secondary/50"
+                        onClick={() => {
+                          const nextId = expandedId === closure.id ? null : closure.id;
+                          setExpandedId(nextId);
+                          if (nextId) fetchTransactionsForClosure(closure);
+                        }}
+                      >
+                        <Eye className="h-3.5 w-3.5 mr-1" />
+                        {expandedId === closure.id ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteClosure(closure.id)}
+                        title="Excluir Fechamento"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent className="pb-4 pt-0">
                     <div className="grid grid-cols-3 gap-4">

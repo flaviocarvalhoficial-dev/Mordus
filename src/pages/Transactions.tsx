@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Paperclip, Trash2, Pencil, Loader2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, Search, Paperclip, Trash2, Pencil, Loader2, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowDown10, ArrowUpDown, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,15 @@ const months = [
   { value: "10", label: "Outubro" }, { value: "11", label: "Novembro" }, { value: "12", label: "Dezembro" },
 ];
 
+const currentYear = new Date().getFullYear();
+const years = [
+  { value: "all", label: "Todos os anos" },
+  ...Array.from({ length: 5 }, (_, i) => {
+    const y = (currentYear - 2 + i).toString();
+    return { value: y, label: y };
+  }).reverse(),
+];
+
 const emptyItem = { category_id: "", amount: "", payment_method: "Pix", type: "income" };
 const emptyForm = { date: new Date().toISOString().split('T')[0], description: "", event_id: "", items: [{ ...emptyItem }] };
 
@@ -41,6 +51,7 @@ function formatDate(dateStr: string) {
 
 export default function Transactions() {
   const { organization } = useChurch();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string; type: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +59,10 @@ export default function Transactions() {
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
+  const [sortField, setSortField] = useState<"date" | "description" | "amount">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,6 +118,16 @@ export default function Transactions() {
     setForm(emptyForm);
     setDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (searchParams.get("new") === "true" && !dialogOpen && categories.length > 0) {
+      openCreate();
+      // Limpar o parâmetro para evitar reabertura ao fechar
+      const params = new URLSearchParams(searchParams);
+      params.delete("new");
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchParams, categories, dialogOpen, setSearchParams]);
 
   const openEdit = (tx: Transaction) => {
     setEditingId(tx.id);
@@ -215,9 +239,33 @@ export default function Transactions() {
   const filtered = data.filter((tx) => {
     if (typeFilter !== "all" && tx.type !== typeFilter) return false;
     if (categoryFilter !== "all" && tx.category_id !== categoryFilter) return false;
+    if (yearFilter !== "all" && tx.date.split("-")[0] !== yearFilter) return false;
     if (monthFilter !== "all" && tx.date.split("-")[1] !== monthFilter) return false;
     if (searchQuery && !tx.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
+  });
+
+  const sortedData = [...filtered].sort((a, b) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (sortField === "date") {
+      aVal = new Date(a.date).getTime();
+      bVal = new Date(b.date).getTime();
+    } else if (sortField === "description") {
+      aVal = a.description.toLowerCase();
+      bVal = b.description.toLowerCase();
+    } else if (sortField === "amount") {
+      aVal = Number(a.amount);
+      bVal = Number(b.amount);
+    } else {
+      aVal = a[sortField];
+      bVal = b[sortField];
+    }
+
+    if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+    return 0;
   });
 
   if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados da igreja...</div>;
@@ -358,7 +406,7 @@ export default function Transactions() {
               </div>
               <div className="flex flex-wrap gap-2">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os tipos</SelectItem>
                     <SelectItem value="income">Entradas</SelectItem>
@@ -366,16 +414,60 @@ export default function Transactions() {
                   </SelectContent>
                 </Select>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas categorias</SelectItem>
                     {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={yearFilter} onValueChange={setYearFilter}>
+                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
+                  <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>
+                </Select>
                 <Select value={monthFilter} onValueChange={setMonthFilter}>
                   <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
                   <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
                 </Select>
+
+                <div className="flex items-center gap-1 bg-secondary/20 p-0.5 rounded-lg border border-border/50 ml-auto">
+                  <Button
+                    variant={sortField === 'date' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 hover:bg-secondary/40"
+                    onClick={() => setSortField('date')}
+                    title="Ordenar por Data"
+                  >
+                    <Calendar className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={sortField === 'description' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 hover:bg-secondary/40"
+                    onClick={() => setSortField('description')}
+                    title="Ordenar por Nome"
+                  >
+                    <Type className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={sortField === 'amount' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-8 w-8 hover:bg-secondary/40"
+                    onClick={() => setSortField('amount')}
+                    title="Ordenar por Valor"
+                  >
+                    <ArrowUp01 className="h-4 w-4" />
+                  </Button>
+                  <Separator orientation="vertical" className="h-4 mx-1" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-secondary/40"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    title={sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
+                  >
+                    {sortOrder === 'asc' ? <ArrowUpAZ className="h-4 w-4 text-primary" /> : <ArrowDownAZ className="h-4 w-4 text-primary" />}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -396,7 +488,7 @@ export default function Transactions() {
                 <TableBody>
                   {loading ? (
                     <TableRow><TableCell colSpan={7} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" /></TableCell></TableRow>
-                  ) : filtered.map((tx) => (
+                  ) : sortedData.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="font-mono text-xs tabular-nums">{formatDate(tx.date)}</TableCell>
                       <TableCell>
@@ -418,7 +510,7 @@ export default function Transactions() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {!loading && filtered.length === 0 && (
+                  {!loading && sortedData.length === 0 && (
                     <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
                   )}
                 </TableBody>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppLayout } from "@/components/AppLayout";
@@ -9,7 +9,9 @@ import {
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
@@ -27,6 +29,7 @@ export default function Dashboard() {
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [month, setMonth] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [showExpenses, setShowExpenses] = useState(false);
   const [stats, setStats] = useState({
     entradas: 0,
     saidas: 0,
@@ -124,6 +127,12 @@ export default function Dashboard() {
             <p className="text-[12px] text-muted-foreground mt-1">{organization.name} — {periodLabel}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button asChild className="h-9 px-4 text-xs font-semibold gap-2 shadow-sm">
+              <Link to="/lancamentos?new=true">
+                <Plus className="h-4 w-4" />
+                Novo Lançamento
+              </Link>
+            </Button>
             <Select value={year} onValueChange={setYear}>
               <SelectTrigger className="h-9 w-24 text-xs border-border"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -194,11 +203,27 @@ export default function Dashboard() {
           </Card>
 
           <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-semibold">Detalhamento</CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">Exibir Saídas</span>
+                <Switch
+                  checked={showExpenses}
+                  onCheckedChange={setShowExpenses}
+                  className="scale-75 origin-right data-[state=checked]:bg-destructive"
+                />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 pt-2">
+                {showExpenses && (
+                  <div className="flex justify-between items-center pb-2 border-b border-border animate-in slide-in-from-top-1 duration-300">
+                    <span className="text-[12px] text-muted-foreground">Total Saídas</span>
+                    <span className="text-[13px] font-bold font-mono text-destructive">
+                      {loading ? "..." : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center pb-2 border-b border-border">
                   <span className="text-[12px] text-muted-foreground">Dízimos</span>
                   <span className="text-[13px] font-bold font-mono text-success">
@@ -247,8 +272,8 @@ export default function Dashboard() {
                         <stop offset="100%" stopColor="hsl(var(--chart-blue))" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={2} fill="url(#gradAreaBlue)" dot={false} />
-                    <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
+                    <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={3} fill="url(#gradAreaBlue)" dot={false} />
+                    <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(210, 85%, 70%)" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
