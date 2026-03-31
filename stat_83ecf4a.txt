@@ -1,0 +1,28 @@
+﻿commit 83ecf4a74155ab4014ee63049c60b75419e9ea04
+Author: PinGoo-AppWeb <app.pingoo@gmail.com>
+Date:   Mon Mar 30 17:56:11 2026 -0300
+
+    logotipo, categorias, foto de usu├írio, logout, irganiza├º├úo sidebar, PWA
+
+ .../lint-and-validate/scripts/type_coverage.py     |     2 +-
+ dev-dist/registerSW.js                             |     1 +
+ dev-dist/sw.js                                     |    92 +
+ dev-dist/workbox-5a5d9309.js                       |  3395 ++++
+ index.html                                         |    49 +-
+ package-lock.json                                  | 15837 ++++++++++++-------
+ package.json                                       |     1 +
+ public/favicon.ico                                 |   Bin 20373 -> 14271 bytes
+ public/favicon.svg                                 |     3 +
+ public/logo.svg                                    |     8 +
+ public/manifest.webmanifest                        |    17 +
+ src/components/AppLayout.tsx                       |    10 +-
+ src/components/AppSidebar.tsx                      |    51 +-
+ src/components/MordusLogo.tsx                      |    65 +
+ src/components/OnboardingModal.tsx                 |    17 +
+ src/index.css                                      |     8 +-
+ src/main.tsx                                       |     1 +
+ src/pages/Auth.tsx                                 |    18 +-
+ src/pages/Settings.tsx                             |    68 +-
+ tsconfig.app.json                                  |     3 +-
+ vite.config.ts                                     |    29 +-
+ 21 files changed, 13861 insertions(+), 5814 deletions(-)
