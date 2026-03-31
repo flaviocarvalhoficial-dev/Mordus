@@ -9,17 +9,20 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export function OnboardingModal() {
-  const { user, organization, setHasSeenOnboarding, hasSeenOnboarding, logout } = useChurch();
+  const { user, profile, organization, loading, setHasSeenOnboarding, hasSeenOnboarding, logout } = useChurch();
   const [churchName, setChurchName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [onboardingType, setOnboardingType] = useState<"create" | "join" | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Se o usuário tem igreja, não mostra mais o onboarding
-  if (organization) return null;
+  // Se estiver carregando os dados do contexto, não mostra o onboarding ainda
+  if (loading) return null;
+  // Se o usuário já ignorou ou tem igreja, pula
+  if (hasSeenOnboarding || organization || profile?.organization_id) return null;
   if (!user) return null;
 
   const handleCreateChurch = async () => {
+    // ... same logic ...
     if (!churchName) {
       toast.error("Por favor, informe o nome da sua igreja");
       return;
@@ -102,17 +105,15 @@ export function OnboardingModal() {
   };
 
   return (
-    <Dialog open={!organization} onOpenChange={handleClose}>
+    <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md bg-card border-none p-0 overflow-hidden rounded-3xl shadow-2xl" onPointerDownOutside={(e) => e.preventDefault()}>
         <div className="relative p-8 flex flex-col items-center text-center space-y-6">
-          {organization && (
-            <button
-              onClick={handleClose}
-              className="absolute right-4 top-4 p-2 hover:bg-secondary/50 rounded-full transition-colors text-muted-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+          <button
+            onClick={handleClose}
+            className="absolute right-4 top-4 p-2 hover:bg-secondary/50 rounded-full transition-colors text-muted-foreground z-50 border border-border"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
           <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center">
             <Church className="h-10 w-10 text-primary" />
