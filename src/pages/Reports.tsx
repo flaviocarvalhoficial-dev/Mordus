@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +40,7 @@ export default function Reports() {
         .select(`*, categories(name)`)
         .eq("organization_id", organization.id)
         .order("date", { ascending: false })
-        .limit(20); // Simulação de dados do período atual
+        .limit(20);
 
       if (error) throw error;
       setReportData(data || []);
@@ -74,67 +73,65 @@ export default function Reports() {
   const balance = totalIncome - totalExpense;
 
   return (
-    <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
-          <p className="text-muted-foreground text-[13px] mt-1">Prestação de contas corporativa — {organization?.name}</p>
-        </div>
-
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold">Gerar Relatórios</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-[13px] text-muted-foreground">
-              Selecione o período para gerar o relatório de prestação de contas.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="p-4 bg-secondary/30 border-border hover:bg-secondary/50 transition-all cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-foreground">Últimos 30 Dias</p>
-                    <p className="text-[11px] text-muted-foreground">Resumo geral das movimentações</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={fetchReportData} disabled={loading}>
-                    {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5 mr-2" />}
-                    Prévia
-                  </Button>
-                  <Button size="sm" className="flex-1 bg-primary text-primary-foreground" onClick={generatePDF} disabled={isGenerating}>
-                    {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-2" />}
-                    Gerar PDF
-                  </Button>
-                </div>
-              </Card>
-
-              <Card className="p-4 border-border border-dashed opacity-60">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-10 w-10 text-muted-foreground" />
-                  <div>
-                    <p className="text-[13px] font-medium text-foreground">Relatório Anual 2025</p>
-                    <p className="text-[11px] text-muted-foreground">Consolidado do ano anterior</p>
-                  </div>
-                </div>
-                <Button size="sm" className="mt-4 w-full" variant="outline" disabled>
-                  Disponível em breve
-                </Button>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="animate-fade-in space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">Relatórios</h2>
+        <p className="text-muted-foreground text-[12px] mt-1">Prestação de contas corporativa — {organization?.name}</p>
       </div>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold">Gerar Relatórios</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-[13px] text-muted-foreground">
+            Selecione o período para gerar o relatório de prestação de contas.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="p-4 bg-secondary/30 border-border hover:bg-secondary/50 transition-all cursor-pointer group">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-semibold text-foreground">Últimos 30 Dias</p>
+                  <p className="text-[11px] text-muted-foreground">Resumo geral das movimentações</p>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button size="sm" variant="outline" className="flex-1" onClick={fetchReportData} disabled={loading}>
+                  {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5 mr-2" />}
+                  Prévia
+                </Button>
+                <Button size="sm" className="flex-1 bg-primary text-primary-foreground" onClick={generatePDF} disabled={isGenerating}>
+                  {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-2" />}
+                  Gerar PDF
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-4 border-border border-dashed opacity-60">
+              <div className="flex items-center gap-3">
+                <FileText className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-[13px] font-medium text-foreground">Relatório Anual 2025</p>
+                  <p className="text-[11px] text-muted-foreground">Consolidado do ano anterior</p>
+                </div>
+              </div>
+              <Button size="sm" className="mt-4 w-full" variant="outline" disabled>
+                Disponível em breve
+              </Button>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-semibold flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Prévia do Relatório Montly
+              Prévia do Relatório Mês
             </DialogTitle>
           </DialogHeader>
 
@@ -195,6 +192,6 @@ export default function Reports() {
           </div>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </div>
   );
 }

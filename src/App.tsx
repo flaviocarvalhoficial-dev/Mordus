@@ -9,21 +9,8 @@ import { OnboardingModal } from "@/components/OnboardingModal";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Members from "./pages/Members";
-import Categories from "./pages/Categories";
-import Closures from "./pages/Closures";
-import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-import Patrimonio from "./pages/Patrimonio";
-import Documentos from "./pages/Documentos";
-import Congregacoes from "./pages/Congregacoes";
-import Departamentos from "./pages/Departamentos";
-import ServicoSocial from "./pages/ServicoSocial";
-import Calendario from "./pages/Calendario";
-import Parceiros from "./pages/Parceiros";
-import Lideranca from "./pages/Lideranca";
-import SecretariaDashboard from "./pages/SecretariaDashboard";
 import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -61,21 +48,9 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/lancamentos" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
               <Route path="/membros" element={<ProtectedRoute><Members /></ProtectedRoute>} />
-              <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
-              <Route path="/fechamento" element={<ProtectedRoute><Closures /></ProtectedRoute>} />
-              <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
               <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/patrimonio" element={<ProtectedRoute><Patrimonio /></ProtectedRoute>} />
-              <Route path="/documentos" element={<ProtectedRoute><Documentos /></ProtectedRoute>} />
-              <Route path="/congregacoes" element={<ProtectedRoute><Congregacoes /></ProtectedRoute>} />
-              <Route path="/departamentos" element={<ProtectedRoute><Departamentos /></ProtectedRoute>} />
-              <Route path="/servico-social" element={<ProtectedRoute><ServicoSocial /></ProtectedRoute>} />
-              <Route path="/calendario" element={<ProtectedRoute><Calendario /></ProtectedRoute>} />
-              <Route path="/parceiros" element={<ProtectedRoute><Parceiros /></ProtectedRoute>} />
-              <Route path="/lideranca" element={<ProtectedRoute><Lideranca /></ProtectedRoute>} />
-              <Route path="/secretaria" element={<ProtectedRoute><SecretariaDashboard /></ProtectedRoute>} />
 
-              <Route path="*" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

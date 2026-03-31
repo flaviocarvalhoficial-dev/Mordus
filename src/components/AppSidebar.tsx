@@ -13,7 +13,6 @@ import {
   Crown,
   UsersRound,
   Heart,
-  CalendarDays,
   Handshake,
   Instagram,
   Facebook,
@@ -40,37 +39,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const tesourariaItems = [
-  { title: "Painel", url: "/", icon: LayoutDashboard },
-  { title: "Lançamentos", url: "/lancamentos", icon: ArrowUpDown },
-  { title: "Categorias", url: "/categorias", icon: FolderOpen },
-  { title: "Fechamento", url: "/fechamento", icon: Lock },
-  { title: "Relatórios", url: "/relatorios", icon: FileText },
-];
-
-const secretariaGeral = [
-  { title: "Painel Secretaria", url: "/secretaria", icon: LayoutDashboard },
-];
-
-const secretariaPessoas = [
-  { title: "Membros", url: "/membros", icon: Users },
-  { title: "Liderança", url: "/lideranca", icon: Crown },
-  { title: "Departamentos", url: "/departamentos", icon: UsersRound },
-];
-
-const secretariaAdm = [
-  { title: "Patrimônio", url: "/patrimonio", icon: Building2 },
-  { title: "Documentos", url: "/documentos", icon: File },
-  { title: "Congregações", url: "/congregacoes", icon: Home },
-];
-
-const secretariaSocial = [
-  { title: "Calendário", url: "/calendario", icon: CalendarDays },
-  { title: "Serviço Social", url: "/servico-social", icon: Heart },
-  { title: "Parceiros", url: "/parceiros", icon: Handshake },
-];
-
-const configItems = [
+const mainItems = [
+  { title: "Painel Geral", url: "/", icon: LayoutDashboard },
+  { title: "Tesouraria", url: "/lancamentos", icon: ArrowUpDown },
+  { title: "Secretaria", url: "/membros", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
@@ -84,7 +56,7 @@ export function AppSidebar() {
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
 
-  const renderGroup = (label: string, items: typeof tesourariaItems) => (
+  const renderGroup = (label: string, items: { title: string; url: string; icon: any }[]) => (
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground text-[10px] uppercase tracking-[0.15em] font-medium">
         {label}
@@ -141,12 +113,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {renderGroup("Tesouraria", tesourariaItems)}
-        {renderGroup("Secretaria", secretariaGeral)}
-        {renderGroup("Membros & Liderança", secretariaPessoas)}
-        {renderGroup("Administrativo", secretariaAdm)}
-        {renderGroup("Comunitário & Social", secretariaSocial)}
-        {renderGroup("Sistema", configItems)}
+        {renderGroup("Navegação Principal", mainItems)}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">

@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home } from "lucide-react";
+import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function SecretariaDashboard() {
+export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { organization } = useChurch();
   const [loading, setLoading] = useState(true);
   const [recentMembers, setRecentMembers] = useState<any[]>([]);
@@ -89,125 +89,117 @@ export default function SecretariaDashboard() {
   };
 
   const kpis = [
-    { title: "Membros Ativos", value: counts.members, icon: Users, color: "text-primary" },
-    { title: "Departamentos", value: counts.departments, icon: UsersRound, color: "text-chart-blue" },
-    { title: "Liderança", value: counts.leaders, icon: Crown, color: "text-chart-pink" },
-    { title: "Eventos Anuais", value: counts.events, icon: CalendarDays, color: "text-success" },
+    { title: "Membros Ativos", value: counts.members, icon: Users, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20", tab: "membros" },
+    { title: "Departamentos", value: counts.departments, icon: UsersRound, color: "text-chart-blue", bg: "bg-chart-blue/10", border: "border-chart-blue/20", tab: "departamentos" },
+    { title: "Patrimônio", value: counts.assets, icon: Landmark, color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20", tab: "patrimonio" },
+    { title: "Congregações", value: counts.congregations, icon: MapPinned, color: "text-success", bg: "bg-success/10", border: "border-success/20", tab: "congregacoes" },
   ];
 
   const quickLinks = [
-    { title: "Membros", icon: Users, url: "/membros", count: counts.members },
-    { title: "Departamentos", icon: UsersRound, url: "/departamentos", count: counts.departments },
-    { title: "Patrimônio", icon: Building2, url: "/patrimonio", count: counts.assets },
-    { title: "Liderança", icon: Crown, url: "/lideranca", count: counts.leaders },
-    { title: "Documentos", icon: FileText, url: "/documentos", count: counts.documents },
-    { title: "Calendário", icon: CalendarDays, url: "/calendario", count: counts.events },
-    { title: "Congregações", icon: Home, url: "/congregacoes", count: counts.congregations },
-    { title: "Serviço Social", icon: Heart, url: "/servico-social", count: counts.families },
-    { title: "Parceiros", icon: Handshake, url: "/parceiros", count: counts.partners },
+    { title: "Membros", icon: Users, tab: "membros", count: counts.members },
+    { title: "Liderança", icon: Crown, tab: "lideranca", count: counts.leaders },
+    { title: "Departamentos", icon: UsersRound, tab: "departamentos", count: counts.departments },
+    { title: "Patrimônio", icon: Landmark, tab: "patrimonio", count: counts.assets },
+    { title: "Documentos", icon: FileText, tab: "documentos", count: counts.documents },
+    { title: "Congregações", icon: MapPinned, tab: "congregacoes", count: counts.congregations },
+    { title: "Eventos", icon: CalendarDays, tab: "calendario", count: counts.events },
+    { title: "Ação Social", icon: Heart, tab: "social", count: counts.families },
+    { title: "Parcerias", icon: Handshake, tab: "parceiros", count: counts.partners },
   ];
 
   if (!organization) return null;
 
   return (
-    <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-chart-blue flex items-center justify-center border border-white/20 shadow-lg shrink-0">
-            <UsersRound className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Painel da Secretaria</h1>
-            <p className="text-muted-foreground text-[12px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
-          </div>
-        </div>
+    <div className="animate-fade-in space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((kpi) => (
+          <Card key={kpi.title} className={`bg-card border-border shadow-sm hover:shadow-md transition-all cursor-pointer group rounded-2xl`} onClick={() => onNavigate?.(kpi.tab)}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div className={`h-10 w-10 rounded-xl ${kpi.bg} ${kpi.border} border flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
+                </div>
+                <Badge variant="secondary" className="bg-secondary/50 text-[10px] uppercase font-bold tracking-tight">Overview</Badge>
+              </div>
+              <div className="mt-4">
+                <p className="text-[24px] font-black text-foreground tabular-nums leading-tight">
+                  {loading ? <Skeleton className="h-8 w-12" /> : kpi.value}
+                </p>
+                <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wider mt-1">{kpi.title}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        {loading ? (
-          <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
-        ) : (
-          <>
-            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              {kpis.map((card) => (
-                <Card key={card.title} className="bg-card border-border border-l-4 border-l-primary/40 hover:translate-y-[-2px] transition-all cursor-default group">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <card.icon className={`h-4 w-4 ${card.color} group-hover:scale-110 transition-transform`} />
-                      <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">{card.title}</span>
-                    </div>
-                    <div className="flex items-end justify-between">
-                      <span className="text-2xl font-bold font-mono text-foreground tabular-nums">{card.value}</span>
-                      <Badge variant="secondary" className="text-[9px] bg-secondary/60 border-0 uppercase tracking-tighter">Realtime</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="md:col-span-1 lg:col-span-2 bg-card border-border shadow-sm rounded-2xl overflow-hidden">
+          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Home className="h-4 w-4 text-primary" /> Acesso Rápido aos Módulos
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {quickLinks.map((link) => (
+                <button
+                  key={link.title}
+                  onClick={() => onNavigate?.(link.tab)}
+                  className="flex flex-col items-center justify-center p-4 rounded-2xl border border-border/50 bg-secondary/5 hover:bg-primary/5 hover:border-primary/20 transition-all group relative overflow-hidden"
+                >
+                  <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary/30 group-hover:scale-110 transition-all shadow-sm">
+                    <link.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="text-[12px] font-bold text-foreground mt-3">{link.title}</span>
+                  <span className="text-[10px] text-muted-foreground mt-1 tabular-nums font-medium">{loading ? "..." : `${link.count} registros`}</span>
+                  <div className="absolute top-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Plus className="h-3 w-3 text-primary" />
+                  </div>
+                </button>
               ))}
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-[1fr_300px]">
-              <Card className="bg-card border-border shadow-sm">
-                <CardHeader className="pb-3 border-b border-border/50">
-                  <CardTitle className="text-[14px] font-bold uppercase tracking-widest text-muted-foreground">Módulos de Gestão</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-5">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {quickLinks.map((link) => (
-                      <a
-                        key={link.title}
-                        href={link.url}
-                        className="flex flex-col items-center gap-2 p-5 rounded-2xl bg-secondary/20 hover:bg-secondary/40 border border-border/40 transition-all group relative overflow-hidden"
-                      >
-                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                          <link.icon className="h-10 w-10 text-primary" />
-                        </div>
-                        <link.icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform mb-1" />
-                        <span className="text-[12px] font-bold text-foreground">{link.title}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono bg-background/50 px-2 py-0.5 rounded-full">{link.count} Itens</span>
-                      </a>
-                    ))}
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-l-4 border-l-primary/40">
+          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" /> Últimas Admissões
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-2 w-20" /></div></div>
+                ))
+              ) : recentMembers.map((m, i) => (
+                <div key={i} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:border-primary/30 transition-all">
+                      <User className="h-5 w-5 text-primary/70" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase mt-1">{new Date(m.created_at).toLocaleDateString("pt-BR")}</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-4">
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-[13px] font-bold text-muted-foreground uppercase">Atividade Recente</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {recentMembers.map((m, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[12px] font-bold text-foreground truncate">Novo Membro</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{m.full_name}</p>
-                        </div>
-                        <span className="text-[9px] text-muted-foreground whitespace-nowrap mt-1 uppercase font-mono">Just Now</span>
-                      </div>
-                    ))}
-                    {recentMembers.length === 0 && (
-                      <p className="text-[11px] text-center text-muted-foreground py-4 italic">Sem atividades recentes</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest">Ações Rápidas</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start text-[11px] h-9 border-dashed rounded-lg" asChild>
-                      <a href="/membros"><Plus className="h-3 w-3 mr-2 text-primary" />Novo Membro</a>
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start text-[11px] h-9 border-dashed rounded-lg" asChild>
-                      <a href="/patrimonio"><Plus className="h-3 w-3 mr-2 text-primary" />Novo Patrimônio</a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+                  <Badge variant="outline" className="text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity">NEW</Badge>
+                </div>
+              ))}
+              {!loading && recentMembers.length === 0 && (
+                <div className="text-center py-10">
+                  <User className="h-8 w-8 text-muted-foreground mx-auto opacity-20" />
+                  <p className="text-xs text-muted-foreground mt-2">Nenhuma atividade recente</p>
+                </div>
+              )}
             </div>
-          </>
-        )}
+            <Button variant="ghost" className="w-full mt-6 h-10 text-[11px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 border border-dashed border-primary/20" onClick={() => onNavigate?.("membros")}>
+              Ver Rol Completo
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </AppLayout>
+    </div>
   );
 }

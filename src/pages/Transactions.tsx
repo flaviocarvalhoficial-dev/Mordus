@@ -1,26 +1,30 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Search, Paperclip, Trash2, Pencil, Loader2, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowDown10, ArrowUpDown, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TransactionsDialog } from "@/components/TransactionsDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import type { Database } from "@/types/database.types";
 
+import Categories from "./Categories";
+import Closures from "./Closures";
+import Reports from "./Reports";
+
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
 };
 
-const paymentMethods = ["Pix", "Dinheiro", "Cartão de Débito", "Cartão de Crédito", "TED", "DOC", "Depósito"];
 const months = [
   { value: "all", label: "Todos os meses" },
   { value: "01", label: "Janeiro" }, { value: "02", label: "Fevereiro" }, { value: "03", label: "Março" },
@@ -38,9 +42,6 @@ const years = [
   }).reverse(),
 ];
 
-const emptyItem = { category_id: "", amount: "", payment_method: "Pix", type: "income" };
-const emptyForm = { date: new Date().toISOString().split('T')[0], description: "", event_id: "", items: [{ ...emptyItem }] };
-
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -49,13 +50,12 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("pt-BR");
 }
 
-export default function Transactions() {
+function TransactionsList() {
   const { organization } = useChurch();
   const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string; type: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -65,15 +65,12 @@ export default function Transactions() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [isSaving, setIsSaving] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
       fetchData();
       fetchCategories();
-      fetchEvents();
     }
   }, [organization?.id]);
 
@@ -103,124 +100,24 @@ export default function Transactions() {
     setCategories(cats || []);
   };
 
-  const fetchEvents = async () => {
-    const { data: evts } = await supabase
-      .from("events")
-      .select("id, name")
-      .eq("organization_id", organization!.id)
-      .gte("date", new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString())
-      .order("date", { ascending: false });
-    setEvents(evts || []);
-  };
-
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyForm);
-    setDialogOpen(true);
-  };
-
   useEffect(() => {
-    if (searchParams.get("new") === "true" && !dialogOpen && categories.length > 0) {
-      openCreate();
-      // Limpar o parâmetro para evitar reabertura ao fechar
+    if (searchParams.get("new") === "true" && !dialogOpen) {
+      setEditingTransaction(null);
+      setDialogOpen(true);
       const params = new URLSearchParams(searchParams);
       params.delete("new");
       setSearchParams(params, { replace: true });
     }
-  }, [searchParams, categories, dialogOpen, setSearchParams]);
+  }, [searchParams, dialogOpen, setSearchParams]);
 
   const openEdit = (tx: Transaction) => {
-    setEditingId(tx.id);
-    setForm({
-      date: tx.date,
-      description: tx.description,
-      event_id: (tx as any).event_id || "",
-      items: [{
-        type: tx.type,
-        category_id: tx.category_id || "",
-        amount: String(tx.amount),
-        payment_method: (tx as any).payment_method || "Pix"
-      }]
-    });
+    setEditingTransaction(tx);
     setDialogOpen(true);
   };
 
-  const handleSave = async () => {
-    if (!form.description || !organization?.id || form.items.length === 0) return;
-
-    // Validate items
-    const validItems = form.items.filter(item => item.amount && parseFloat(item.amount) > 0);
-    if (validItems.length === 0) {
-      toast.error("Adicione pelo menos um item com valor válido");
-      return;
-    }
-
-    const eventId = (form.event_id && form.event_id !== "none") ? form.event_id : null;
-
-    setIsSaving(true);
-    try {
-      if (editingId) {
-        // Single update (for backward compatibility or editing one from list)
-        const item = form.items[0];
-        const payload = {
-          organization_id: organization.id,
-          type: item.type,
-          category_id: item.category_id || null,
-          amount: parseFloat(item.amount),
-          date: form.date,
-          description: form.description,
-          payment_method: item.payment_method,
-          event_id: eventId
-        };
-        const { error } = await supabase.from("transactions").update(payload).eq("id", editingId);
-        if (error) throw error;
-        toast.success("Lançamento atualizado");
-      } else {
-        // Multi-insert
-        const payloads = validItems.map(item => ({
-          organization_id: organization.id,
-          type: item.type,
-          category_id: item.category_id || null,
-          amount: parseFloat(item.amount),
-          date: form.date,
-          description: form.description,
-          payment_method: item.payment_method,
-          event_id: eventId as any // Cast only where strictly needed for UUID vs string compatibility
-        }));
-
-        const { error } = await supabase.from("transactions").insert(payloads as any);
-        if (error) throw error;
-        toast.success(`${payloads.length} lançamentos criados com sucesso!`);
-      }
-
-      setDialogOpen(false);
-      fetchData();
-    } catch (err) {
-      toast.error("Erro ao salvar lançamento");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const addItem = () => {
-    setForm(prev => ({
-      ...prev,
-      items: [...prev.items, { ...emptyItem }]
-    }));
-  };
-
-  const removeItem = (index: number) => {
-    if (form.items.length <= 1) return;
-    setForm(prev => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateItem = (index: number, field: keyof typeof emptyItem, value: string) => {
-    const newItems = [...form.items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setForm({ ...form, items: newItems });
+  const openCreate = () => {
+    setEditingTransaction(null);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -258,9 +155,6 @@ export default function Transactions() {
     } else if (sortField === "amount") {
       aVal = Number(a.amount);
       bVal = Number(b.amount);
-    } else {
-      aVal = a[sortField];
-      bVal = b[sortField];
     }
 
     if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
@@ -268,256 +162,159 @@ export default function Transactions() {
     return 0;
   });
 
-  if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados da igreja...</div>;
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Movimentações</h2>
+          <p className="text-muted-foreground text-[12px] mt-0.5">Listagem detalhada de entradas e saídas</p>
+        </div>
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />Novo Lançamento
+        </Button>
+      </div>
+
+      <TransactionsDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSuccess={fetchData}
+        editingTransaction={editingTransaction}
+      />
+
+      <Card className="bg-card border-border shadow-sm overflow-hidden">
+        <CardHeader className="pb-3 bg-secondary/10">
+          <div className="flex flex-col gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar por descrição..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-32 h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="income">Entradas</SelectItem>
+                  <SelectItem value="expense">Saídas</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Categorias</SelectItem>
+                  {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger className="w-24 h-8 text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-24 h-8 text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
+                <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-1 bg-background p-0.5 rounded-md border border-border ml-auto">
+                <Button variant={sortField === 'date' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('date')}><Calendar className="h-3.5 w-3.5" /></Button>
+                <Button variant={sortField === 'description' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('description')}><Type className="h-3.5 w-3.5" /></Button>
+                <Button variant={sortField === 'amount' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('amount')}><ArrowUp01 className="h-3.5 w-3.5" /></Button>
+                <Separator orientation="vertical" className="h-4 mx-0.5" />
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                  {sortOrder === 'asc' ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[100px] text-[11px] uppercase font-bold text-muted-foreground">Data</TableHead>
+                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Descrição</TableHead>
+                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</TableHead>
+                <TableHead className="text-right text-[11px] uppercase font-bold text-muted-foreground">Valor</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                ))
+              ) : sortedData.map((tx) => (
+                <TableRow key={tx.id} className="group transition-colors">
+                  <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap">{formatDate(tx.date)}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-[13px] font-medium">{tx.description}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                  <TableCell className={`text-right font-bold font-mono text-[13px] tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                    {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                      <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!loading && sortedData.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+export default function Transactions() {
+  const { organization } = useChurch();
+
+  if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados...</div>;
 
   return (
     <AppLayout>
       <div className="animate-fade-in space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Lançamentos</h1>
-            <p className="text-muted-foreground text-[13px] mt-1">Gestão financeira — {organization.name}</p>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+            <Banknote className="h-5 w-5 text-primary" />
           </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />Novo Lançamento
-          </Button>
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Tesouraria & Finanças</h1>
+            <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+          </div>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle className="font-semibold">{editingId ? "Editar Lançamento" : "Novo Lançamento por Evento"}</DialogTitle></DialogHeader>
-            <div className="grid gap-6 py-4">
-              {/* Header Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-secondary/20 p-4 rounded-xl border border-border/50">
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Vincular a Evento (Opcional)</Label>
-                  <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v })}>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione um evento" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum evento</SelectItem>
-                      {events.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Data do Lançamento</Label>
-                  <Input type="date" value={form.date} className="bg-background" onChange={(e) => setForm({ ...form, date: e.target.value })} />
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                  <Label className="text-[13px]">Descrição Principal / Título do Evento</Label>
-                  <Input placeholder="Ex: Ofertas Culto de Domingo Noturno" className="bg-background" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-                </div>
-              </div>
+        <Tabs defaultValue="movimentacoes" className="w-full">
+          <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50">
+            <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+              <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
+            </TabsTrigger>
+            <TabsTrigger value="categorias" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+              <Type className="h-3.5 w-3.5 mr-2" /> Categorias
+            </TabsTrigger>
+            <TabsTrigger value="fechamento" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+              <Lock className="h-3.5 w-3.5 mr-2" /> Fechamentos
+            </TabsTrigger>
+            <TabsTrigger value="relatorios" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+              <FileBarChart className="h-3.5 w-3.5 mr-2" /> Relatórios
+            </TabsTrigger>
+          </TabsList>
 
-              {/* Items Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens do Lançamento</Label>
-                  {!editingId && (
-                    <Button variant="outline" size="sm" className="h-7 text-[11px] border-dashed" onClick={addItem}>
-                      <Plus className="h-3 w-3 mr-1" /> Adicionar Entrada/Saída
-                    </Button>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  {form.items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-2 pb-3 border-b border-border/30 last:border-0 relative group">
-                      {/* Type Column */}
-                      <div className="md:col-span-2 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">Tipo</Label>
-                        <Select value={item.type} onValueChange={(v) => updateItem(index, "type", v)}>
-                          <SelectTrigger className="h-9 px-2 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="income">Entrada</SelectItem>
-                            <SelectItem value="expense">Saída</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Category Column */}
-                      <div className="md:col-span-3 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">Categoria</Label>
-                        <Select value={item.category_id} onValueChange={(v) => updateItem(index, "category_id", v)}>
-                          <SelectTrigger className="h-9 px-2 text-xs truncate"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            {categories.filter(c => c.type === item.type).map((c) => (
-                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Payment Method */}
-                      <div className="md:col-span-3 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">Meio</Label>
-                        <Select value={item.payment_method} onValueChange={(v) => updateItem(index, "payment_method", v)}>
-                          <SelectTrigger className="h-9 px-2 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {paymentMethods.map((m) => (
-                              <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Value Column */}
-                      <div className="md:col-span-3 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">Valor</Label>
-                        <Input type="number" step="0.01" placeholder="0,00" value={item.amount} className="h-9 text-xs" onChange={(e) => updateItem(index, "amount", e.target.value)} />
-                      </div>
-
-                      {/* Action */}
-                      <div className="md:col-span-1 flex items-end justify-center pb-1">
-                        {!editingId && form.items.length > 1 && (
-                          <button onClick={() => removeItem(index)} className="text-muted-foreground hover:text-destructive p-1.5 rounded-lg hover:bg-destructive/10 transition-colors">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Separator className="opacity-50" />
-                <div className="flex items-center justify-between px-2">
-                  <span className="text-xs text-muted-foreground">Total do Lote:</span>
-                  <span className="text-sm font-bold text-primary font-mono">
-                    {formatCurrency(form.items.reduce((acc, item) => acc + (parseFloat(item.amount) || 0), 0))}
-                  </span>
-                </div>
-                <Button className="w-full font-semibold shadow-lg shadow-primary/10" onClick={handleSave} disabled={isSaving}>
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingId ? "Atualizar Lançamento" : `Salvar ${form.items.length} Lançamentos`}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Buscar lançamentos..." className="pl-9" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="income">Entradas</SelectItem>
-                    <SelectItem value="expense">Saídas</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas categorias</SelectItem>
-                    {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
-                  <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={monthFilter} onValueChange={setMonthFilter}>
-                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
-                  <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
-                </Select>
-
-                <div className="flex items-center gap-1 bg-secondary/20 p-0.5 rounded-lg border border-border/50 ml-auto">
-                  <Button
-                    variant={sortField === 'date' ? 'secondary' : 'ghost'}
-                    size="icon"
-                    className="h-8 w-8 hover:bg-secondary/40"
-                    onClick={() => setSortField('date')}
-                    title="Ordenar por Data"
-                  >
-                    <Calendar className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={sortField === 'description' ? 'secondary' : 'ghost'}
-                    size="icon"
-                    className="h-8 w-8 hover:bg-secondary/40"
-                    onClick={() => setSortField('description')}
-                    title="Ordenar por Nome"
-                  >
-                    <Type className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={sortField === 'amount' ? 'secondary' : 'ghost'}
-                    size="icon"
-                    className="h-8 w-8 hover:bg-secondary/40"
-                    onClick={() => setSortField('amount')}
-                    title="Ordenar por Valor"
-                  >
-                    <ArrowUp01 className="h-4 w-4" />
-                  </Button>
-                  <Separator orientation="vertical" className="h-4 mx-1" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 hover:bg-secondary/40"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    title={sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
-                  >
-                    {sortOrder === 'asc' ? <ArrowUpAZ className="h-4 w-4 text-primary" /> : <ArrowDownAZ className="h-4 w-4 text-primary" />}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Meio</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="w-20">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-12"><Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" /></TableCell></TableRow>
-                  ) : sortedData.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="font-mono text-xs tabular-nums">{formatDate(tx.date)}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className={tx.type === "income" ? "bg-success/15 text-success border-0" : "bg-destructive/15 text-destructive border-0"}>
-                          {tx.type === "income" ? "Entrada" : "Saída"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">{tx.description}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-xs">{tx.categories?.name || "Sem categoria"}</Badge></TableCell>
-                      <TableCell><span className="text-[11px] text-muted-foreground">{(tx as any).payment_method || "-"}</span></TableCell>
-                      <TableCell className={`text-right font-semibold font-mono tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                        {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                          <button onClick={() => handleDelete(tx.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {!loading && sortedData.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum lançamento encontrado</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0">
+            <TransactionsList />
+          </TabsContent>
+          <TabsContent value="categorias" className="mt-0 focus-visible:ring-0">
+            <Categories />
+          </TabsContent>
+          <TabsContent value="fechamento" className="mt-0 focus-visible:ring-0">
+            <Closures />
+          </TabsContent>
+          <TabsContent value="relatorios" className="mt-0 focus-visible:ring-0">
+            <Reports />
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

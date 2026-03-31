@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Plus, FileText, Link2, ExternalLink, Search, Pencil, Trash2, Loader2 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { parseISO, format as formatDateFns } from "date-fns";
 import type { Database } from "@/types/database.types";
 
 type DocItem = Database["public"]["Tables"]["documents"]["Row"];
@@ -49,7 +51,6 @@ export default function Documentos() {
       if (error) throw error;
       setDocs(data || []);
 
-      // Extract unique categories
       const uniqueCats = Array.from(new Set([...defaultCategories, ...(data?.map(d => d.category!).filter(Boolean) || [])]));
       setCategories(uniqueCats);
     } catch (err) {
@@ -84,10 +85,12 @@ export default function Documentos() {
       }
 
       const payload = {
-        ...form,
+        name: form.name,
+        type: form.type,
         category: finalCategory,
         organization_id: organization.id,
-        date: form.date || null
+        date: form.date || null,
+        link: form.link
       };
 
       if (editingId) {
@@ -129,148 +132,130 @@ export default function Documentos() {
   if (!organization) return null;
 
   return (
-    <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Documentos & Arquivos</h1>
-            <p className="text-muted-foreground text-[13px] mt-1">Repositório digital da {organization.name}</p>
-          </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />Novo Registro
-          </Button>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground tracking-tight">Documentos & Arquivos</h2>
+          <p className="text-muted-foreground text-[12px] mt-1">Repositório digital da {organization.name}</p>
         </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="bg-card border-border">
-            <DialogHeader><DialogTitle>{editingId ? "Editar Documento" : "Anexar Documento"}</DialogTitle></DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label className="text-[13px]">Título do Documento *</Label>
-                <Input placeholder="Ex: Ata de Assembleia Geral" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Tipo</Label>
-                  <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="arquivo">Arquivo Local</SelectItem>
-                      <SelectItem value="link">Link Externo / Drive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Categoria</Label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                      <SelectItem value="Outro">Outro...</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {selectedCategory === "Outro" && (
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Nova Categoria</Label>
-                  <Input placeholder="Digite o nome" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} autoFocus />
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Data de Referência</Label>
-                  <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[13px]">Caminho / URL</Label>
-                  <Input placeholder="https://drive.google.com/..." value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
-                </div>
-              </div>
-              <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingId ? "Atualizar" : "Salvar Documento"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar por título..." className="pl-9 h-10 border-border/60" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-          </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-44 h-10 text-xs bg-secondary/20"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Categorias</SelectItem>
-              {categories.map((cat) => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {loading ? (
-          <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
-        ) : (
-          <Card className="bg-card border-border shadow-sm overflow-hidden">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-secondary/40">
-                  <TableRow>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider">Documento</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider">Tipo</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider">Categoria</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider">Data</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((doc) => (
-                    <TableRow key={doc.id} className="hover:bg-secondary/20 transition-colors">
-                      <TableCell className="font-bold text-[13px] text-foreground">{doc.name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {doc.type === "link" ? (
-                            <Badge variant="secondary" className="bg-chart-blue/10 text-chart-blue border-0 px-2 h-5 text-[9px] uppercase"><Link2 className="h-2.5 w-2.5 mr-1" />Link</Badge>
-                          ) : (
-                            <Badge variant="secondary" className="bg-primary/10 text-primary border-0 px-2 h-5 text-[9px] uppercase"><FileText className="h-2.5 w-2.5 mr-1" />Arquivo</Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell><Badge variant="outline" className="text-[10px] font-mono border-border/50">{doc.category}</Badge></TableCell>
-                      <TableCell className="text-xs text-muted-foreground font-mono">
-                        {doc.date ? new Date(doc.date + "T12:00:00").toLocaleDateString("pt-BR") : "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {doc.link && (
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10" asChild>
-                              <a href={doc.link} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-primary" onClick={() => openEdit(doc)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(doc.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {filtered.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic text-sm">
-                        Nenhum documento encontrado
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />Novo Registro
+        </Button>
       </div>
-    </AppLayout>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader><DialogTitle>{editingId ? "Editar Documento" : "Anexar Documento"}</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-[13px]">Nome do arquivo/documento *</Label>
+              <Input placeholder="Ex: Estatuto Social - 2024" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[13px]">Categoria</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    <SelectItem value="Outro">+ Nova Categoria</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[13px]">Data de referência</Label>
+                <DatePicker
+                  date={form.date ? parseISO(form.date) : undefined}
+                  onChange={(date) => setForm({
+                    ...form,
+                    date: date ? formatDateFns(date, "yyyy-MM-dd") : ""
+                  })}
+                />
+              </div>
+            </div>
+            {selectedCategory === "Outro" && (
+              <div className="space-y-2 animate-in slide-in-from-top-1">
+                <Label className="text-[13px]">Nome da nova categoria</Label>
+                <Input placeholder="Ex: Ministerial" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-[13px]">Link / URL (Google Drive, Dropbox, etc)</Label>
+              <Input placeholder="https://..." value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} />
+            </div>
+            <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingId ? "Atualizar" : "Salvar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex flex-wrap gap-2 items-center bg-secondary/10 p-4 rounded-xl border border-border/50">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar por nome..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-44 h-9 text-xs"><SelectValue placeholder="Categorias" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas categorias</SelectItem>
+            {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="bg-card border-border overflow-hidden shadow-sm">
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-secondary/20">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-[11px] font-bold uppercase">Documento</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase">Categoria</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase">Referência</TableHead>
+                <TableHead className="text-[11px] font-bold uppercase text-center w-24">Acesso</TableHead>
+                <TableHead className="w-20"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}><TableCell colSpan={5} className="py-8"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                ))
+              ) : filtered.map((doc) => (
+                <TableRow key={doc.id} className="group transition-colors">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-medium text-[13px]">{doc.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell><Badge variant="outline" className="text-[9px] font-medium px-2 py-0 h-4 border-border/50 uppercase tracking-wide">{doc.category || "Legal"}</Badge></TableCell>
+                  <TableCell className="text-[11px] text-muted-foreground font-mono">
+                    {doc.date ? new Date(doc.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {doc.link && (
+                      <a href={doc.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center p-1.5 rounded-md bg-secondary/50 text-primary hover:bg-primary/10 transition-colors">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                      <button onClick={() => openEdit(doc)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => handleDelete(doc.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!loading && filtered.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">Nenhum documento anexado</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppLayout } from "@/components/AppLayout";
@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { QuickEntryDialog } from "@/components/QuickEntryDialog";
+import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -35,7 +38,10 @@ export default function Dashboard() {
     saidas: 0,
     dizimos: 0,
     ofertas: 0,
-    count: 0
+    count: 0,
+    memberCount: 0,
+    deptCount: 0,
+    eventCount: 0
   });
   const [chartData, setChartData] = useState<{ month: string; entradas: number; saidas: number; dizimos: number; ofertas: number }[]>([]);
 
@@ -63,8 +69,28 @@ export default function Dashboard() {
       const { data: txs, error } = await query;
       if (error) throw error;
 
+      // Fetch Secretariat counts
+      const [
+        { count: mCount },
+        { count: dCount },
+        { count: eCount }
+      ] = await Promise.all([
+        supabase.from("members").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id).eq("status", "active"),
+        supabase.from("departments").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id),
+        supabase.from("events").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id),
+      ]);
+
       // Processar dados para estatísticas e gráficos
-      const newStats = { entradas: 0, saidas: 0, dizimos: 0, ofertas: 0, count: txs?.length || 0 };
+      const newStats = {
+        entradas: 0,
+        saidas: 0,
+        dizimos: 0,
+        ofertas: 0,
+        count: txs?.length || 0,
+        memberCount: mCount || 0,
+        deptCount: dCount || 0,
+        eventCount: eCount || 0
+      };
       const monthlyAggr: Record<string, any> = {};
 
       monthNames.forEach(m => {
@@ -106,10 +132,10 @@ export default function Dashboard() {
   const saldo = stats.entradas - stats.saidas;
 
   const summaryCards = [
-    { title: "Saldo Líquido", value: `R$ ${saldo.toLocaleString("pt-BR")}`, icon: Wallet, positive: saldo >= 0 },
+    { title: "Membros Ativos", value: stats.memberCount.toString(), icon: Users, color: "text-primary", primary: true, link: "/membros" },
+    { title: "Saldo Líquido", value: `R$ ${saldo.toLocaleString("pt-BR")}`, icon: Wallet, positive: saldo >= 0, primary: false },
     { title: "Total Entradas", value: `R$ ${stats.entradas.toLocaleString("pt-BR")}`, icon: TrendingUp, positive: true },
     { title: "Total Saídas", value: `R$ ${stats.saidas.toLocaleString("pt-BR")}`, icon: TrendingDown, positive: false },
-    { title: "Movimentações", value: `${stats.count}`, icon: Receipt, positive: true },
   ];
 
   const periodLabel = month === "all"
@@ -127,12 +153,16 @@ export default function Dashboard() {
             <p className="text-[12px] text-muted-foreground mt-1">{organization.name} — {periodLabel}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild className="h-9 px-4 text-xs font-semibold gap-2 shadow-sm">
-              <Link to="/lancamentos?new=true">
-                <Plus className="h-4 w-4" />
-                Novo Lançamento
-              </Link>
-            </Button>
+            <QuickEntryDialog onSuccess={fetchDashboardData} />
+            <TransactionsDialog
+              onSuccess={fetchDashboardData}
+              trigger={
+                <Button className="h-9 px-4 text-xs font-semibold gap-2 shadow-sm">
+                  <Plus className="h-4 w-4" />
+                  Novo Lançamento
+                </Button>
+              }
+            />
             <Select value={year} onValueChange={setYear}>
               <SelectTrigger className="h-9 w-24 text-xs border-border"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -155,16 +185,25 @@ export default function Dashboard() {
 
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           {summaryCards.map((card) => (
-            <Card key={card.title} className="bg-card border-border">
+            <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
               <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <card.icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-[13px] text-muted-foreground">{card.title}</span>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
+                  </div>
+                  {card.link && (
+                    <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">VER TODOS</Link>
+                  )}
                 </div>
                 <div className="flex items-end justify-between">
-                  <span className="text-xl font-bold font-mono text-foreground tabular-nums">
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : card.value}
-                  </span>
+                  {loading ? (
+                    <Skeleton className="h-7 w-[100px]" />
+                  ) : (
+                    <span className={`text-xl font-black font-mono tabular-nums ${card.title === 'Total Saídas' ? 'text-destructive' : 'text-foreground'}`}>
+                      {card.value}
+                    </span>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -182,7 +221,13 @@ export default function Dashboard() {
             <CardContent className="pt-4 px-2">
               <div className="h-[280px]">
                 {loading ? (
-                  <div className="h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                  <div className="h-full flex flex-col gap-2 p-4">
+                    <div className="flex h-full items-end gap-2">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <Skeleton key={i} className="w-full" style={{ height: `${Math.random() * 80 + 20}%` }} />
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -220,27 +265,53 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center pb-2 border-b border-border animate-in slide-in-from-top-1 duration-300">
                     <span className="text-[12px] text-muted-foreground">Total Saídas</span>
                     <span className="text-[13px] font-bold font-mono text-destructive">
-                      {loading ? "..." : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
+                      {loading ? <Skeleton className="h-4 w-20" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pb-2 border-b border-border">
                   <span className="text-[12px] text-muted-foreground">Dízimos</span>
                   <span className="text-[13px] font-bold font-mono text-success">
-                    {loading ? "..." : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
+                    {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b border-border">
                   <span className="text-[12px] text-muted-foreground">Ofertas</span>
                   <span className="text-[13px] font-bold font-mono text-success">
-                    {loading ? "..." : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
+                    {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-[12px] font-semibold text-foreground">Total Líquido</span>
-                  <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-success" : "text-destructive"}`}>
-                    {loading ? "..." : `R$ ${saldo.toLocaleString("pt-BR")}`}
-                  </span>
+                  {loading ? (
+                    <Skeleton className="h-5 w-24" />
+                  ) : (
+                    <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                      {`R$ ${saldo.toLocaleString("pt-BR")}`}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-border space-y-4">
+                  <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Secretaria</h4>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <UsersRound className="h-3.5 w-3.5 text-primary/60" />
+                      <span className="text-[12px] text-muted-foreground">Departamentos</span>
+                    </div>
+                    <span className="text-[13px] font-bold font-mono text-foreground">
+                      {loading ? <Skeleton className="h-4 w-10" /> : stats.deptCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
+                      <span className="text-[12px] text-muted-foreground">Eventos</span>
+                    </div>
+                    <span className="text-[13px] font-bold font-mono text-foreground">
+                      {loading ? <Skeleton className="h-4 w-10" /> : stats.eventCount}
+                    </span>
+                  </div>
                 </div>
               </div>
               <Button variant="outline" className="w-full mt-8 h-9 text-[12px] border-border group">
@@ -258,7 +329,9 @@ export default function Dashboard() {
           <CardContent className="pt-4 px-2">
             <div className="h-[240px]">
               {loading ? (
-                <div className="h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                <div className="h-full w-full flex items-end px-4 pb-2">
+                  <Skeleton className="h-full w-full rounded-lg opacity-20" />
+                </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

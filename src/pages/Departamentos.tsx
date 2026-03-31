@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -139,111 +138,109 @@ export default function Departamentos() {
   if (!organization) return <div className="p-8 text-center text-muted-foreground font-mono">Carregando...</div>;
 
   return (
-    <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Departamentos</h1>
-            <p className="text-muted-foreground text-[13px] mt-1">Gestão de ministérios — {organization.name}</p>
-          </div>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />Novo Departamento
-          </Button>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Departamentos</h2>
+          <p className="text-muted-foreground text-[12px] mt-1">Gestão de ministérios — {organization.name}</p>
         </div>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="bg-card border-border">
-            <DialogHeader><DialogTitle>{editingId ? "Editar Departamento" : "Novo Departamento"}</DialogTitle></DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2"><Label className="text-[13px]">Nome *</Label><Input placeholder="Ex: Mulheres" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-[13px]">Líder</Label><Input placeholder="Nome do líder" value={form.leader_name} onChange={(e) => setForm({ ...form, leader_name: e.target.value })} /></div>
-                <div className="space-y-2"><Label className="text-[13px]">Membros</Label><Input type="number" placeholder="0" value={form.member_count} onChange={(e) => setForm({ ...form, member_count: e.target.value })} /></div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[13px]">Cor de Destaque</Label>
-                <Select value={form.color} onValueChange={(v) => setForm({ ...form, color: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{colorOptions.map((c) => <SelectItem key={c.label} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {editingId ? "Atualizar" : "Salvar"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {loading ? (
-          <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((dep) => (
-              <Card key={dep.id} className="bg-card border-border">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[15px] font-semibold text-foreground">{dep.name}</h3>
-                    <div className="flex items-center gap-2">
-                      <Badge className={`${dep.color || colorOptions[0].value} border-0 text-[10px]`}>{(dep.member_count || 0)} membros</Badge>
-                      <button onClick={() => openEdit(dep)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => handleDelete(dep.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
-                    <Users className="h-3 w-3" />Líder: <span className="text-foreground font-medium">{dep.leader_name || "Não informado"}</span>
-                  </div>
-
-                  {Array.isArray(dep.subgroups) && dep.subgroups.length > 0 && (
-                    <div className="mt-4 space-y-2 border-t border-border pt-3">
-                      {dep.subgroups.map((sg: any) => (
-                        <div key={sg.id} className="flex items-center justify-between text-[11px] text-foreground pl-2 border-l-2 border-primary/40">
-                          <div className="flex items-center gap-2">
-                            <Music className="h-3 w-3 text-primary opacity-70" />
-                            <span>{sg.name}</span>
-                            <span className="text-muted-foreground text-[10px] uppercase font-mono italic">— {sg.role}</span>
-                          </div>
-                          <button onClick={() => handleDeleteSubGroup(dep, sg.id)} className="text-muted-foreground hover:text-destructive transition-all"><Trash2 className="h-2.5 w-2.5" /></button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
-                    <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-full border border-dashed border-border hover:bg-secondary/50" onClick={() => setSubGroupDialog(dep.id)}>
-                      <Plus className="h-3 w-3 mr-1" />Adicionar Sub-grupo
-                    </Button>
-                    <DialogContent className="bg-card border-border">
-                      <DialogHeader><DialogTitle className="text-sm">Novo Sub-grupo — {dep.name}</DialogTitle></DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="space-y-2"><Label className="text-[13px]">Nome</Label><Input placeholder="Ex: Cantores" value={newSubGroup.name} onChange={(e) => setNewSubGroup({ ...newSubGroup, name: e.target.value })} /></div>
-                        <div className="space-y-2">
-                          <Label className="text-[13px]">Função</Label>
-                          <Select value={newSubGroup.role} onValueChange={(v) => setNewSubGroup({ ...newSubGroup, role: v })}>
-                            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Cantores">Cantores</SelectItem>
-                              <SelectItem value="Músicos">Músicos</SelectItem>
-                              <SelectItem value="Mídia / Projeção">Mídia / Projeção</SelectItem>
-                              <SelectItem value="Técnico de Som">Técnico de Som</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <Button className="w-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
-            ))}
-            {items.length === 0 && (
-              <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
-                Nenhum departamento registrado
-              </div>
-            )}
-          </div>
-        )}
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+          <Plus className="h-4 w-4 mr-2" />Novo Departamento
+        </Button>
       </div>
-    </AppLayout>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader><DialogTitle>{editingId ? "Editar Departamento" : "Novo Departamento"}</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2"><Label className="text-[13px]">Nome *</Label><Input placeholder="Ex: Mulheres" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[13px]">Líder</Label><Input placeholder="Nome do líder" value={form.leader_name} onChange={(e) => setForm({ ...form, leader_name: e.target.value })} /></div>
+              <div className="space-y-2"><Label className="text-[13px]">Membros</Label><Input type="number" placeholder="0" value={form.member_count} onChange={(e) => setForm({ ...form, member_count: e.target.value })} /></div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[13px]">Cor de Destaque</Label>
+              <Select value={form.color} onValueChange={(v) => setForm({ ...form, color: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{colorOptions.map((c) => <SelectItem key={c.label} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingId ? "Atualizar" : "Salvar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {loading ? (
+        <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((dep) => (
+            <Card key={dep.id} className="bg-card border-border border-l-4 border-l-primary/40">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[15px] font-semibold text-foreground">{dep.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className={`${dep.color || colorOptions[0].value} border-0 text-[10px] h-4 px-2`}>{(dep.member_count || 0)} membros</Badge>
+                    <button onClick={() => openEdit(dep)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => handleDelete(dep.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-3 text-[11px] text-muted-foreground">
+                  <Users className="h-3 w-3" />Líder: <span className="text-foreground font-medium">{dep.leader_name || "Não informado"}</span>
+                </div>
+
+                {Array.isArray(dep.subgroups) && dep.subgroups.length > 0 && (
+                  <div className="mt-4 space-y-2 border-t border-border pt-3">
+                    {dep.subgroups.map((sg: any) => (
+                      <div key={sg.id} className="flex items-center justify-between text-[11px] text-foreground pl-2 border-l-2 border-primary/40">
+                        <div className="flex items-center gap-2">
+                          <Music className="h-3 w-3 text-primary opacity-70" />
+                          <span>{sg.name}</span>
+                          <span className="text-muted-foreground text-[10px] uppercase font-mono italic">— {sg.role}</span>
+                        </div>
+                        <button onClick={() => handleDeleteSubGroup(dep, sg.id)} className="text-muted-foreground hover:text-destructive transition-all"><Trash2 className="h-2.5 w-2.5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
+                  <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-full border border-dashed border-border hover:bg-secondary/50 group" onClick={() => setSubGroupDialog(dep.id)}>
+                    <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar Sub-grupo
+                  </Button>
+                  <DialogContent className="bg-card border-border">
+                    <DialogHeader><DialogTitle className="text-sm">Novo Sub-grupo — {dep.name}</DialogTitle></DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="space-y-2"><Label className="text-[13px]">Nome</Label><Input placeholder="Ex: Cantores" value={newSubGroup.name} onChange={(e) => setNewSubGroup({ ...newSubGroup, name: e.target.value })} /></div>
+                      <div className="space-y-2">
+                        <Label className="text-[13px]">Função</Label>
+                        <Select value={newSubGroup.role} onValueChange={(v) => setNewSubGroup({ ...newSubGroup, role: v })}>
+                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Cantores">Cantores</SelectItem>
+                            <SelectItem value="Músicos">Músicos</SelectItem>
+                            <SelectItem value="Mídia / Projeção">Mídia / Projeção</SelectItem>
+                            <SelectItem value="Técnico de Som">Técnico de Som</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button className="w-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          ))}
+          {items.length === 0 && (
+            <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+              Nenhum departamento registrado
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
