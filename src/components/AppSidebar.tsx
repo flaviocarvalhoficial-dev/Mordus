@@ -101,15 +101,6 @@ export function AppSidebar() {
             className={`${collapsed ? "h-8 w-8" : "w-[100px] h-auto"} transition-all duration-300 text-sidebar-foreground`}
           />
         </div>
-        {!collapsed && (
-          <div className="relative mt-3">
-            <Input
-              placeholder="Buscar..."
-              className="h-8 bg-secondary border-border text-xs pl-3 pr-8 placeholder:text-muted-foreground"
-            />
-            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          </div>
-        )}
       </SidebarHeader>
 
       <SidebarContent>

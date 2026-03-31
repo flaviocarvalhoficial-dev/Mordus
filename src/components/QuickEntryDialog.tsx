@@ -11,6 +11,19 @@ import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
 import { parseISO, format as formatDateFns } from "date-fns";
 
+const OCCASIONS = [
+    "Culto de Domingo (Manhã)",
+    "Culto de Domingo (Noite)",
+    "Culto de Ensino",
+    "Escola Dominical",
+    "Reunião de Oração",
+    "Círculo de Oração",
+    "Santa Ceia",
+    "Conferência",
+    "Evento Especial",
+    "Outros"
+];
+
 export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
     const { organization } = useChurch();
     const [open, setOpen] = useState(false);
@@ -23,7 +36,8 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
         amount: "",
         category_id: "",
         type: "income" as "income" | "expense",
-        payment_method: "Dinheiro"
+        payment_method: "Dinheiro",
+        occasion: ""
     });
 
     useEffect(() => {
@@ -55,7 +69,8 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                 amount: parseFloat(form.amount),
                 date: form.date,
                 description: form.description,
-                payment_method: form.payment_method
+                payment_method: form.payment_method,
+                occasion: form.occasion || null
             }]);
 
             if (error) throw error;
@@ -68,7 +83,8 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                 amount: "",
                 category_id: "",
                 type: "income",
-                payment_method: "Dinheiro"
+                payment_method: "Dinheiro",
+                occasion: ""
             });
             if (onSuccess) onSuccess();
         } catch (err) {
@@ -133,6 +149,27 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                                 </SelectContent>
                             </Select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label className="text-[12px]">Ocasião / Evento</Label>
+                        <Select
+                            value={form.occasion}
+                            onValueChange={(v) => {
+                                setForm({
+                                    ...form,
+                                    occasion: v,
+                                    description: v !== "Outros" ? v : form.description
+                                });
+                            }}
+                        >
+                            <SelectTrigger className="h-10"><SelectValue placeholder="Selecione a ocasião" /></SelectTrigger>
+                            <SelectContent>
+                                {OCCASIONS.map(oc => (
+                                    <SelectItem key={oc} value={oc}>{oc}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="space-y-2">

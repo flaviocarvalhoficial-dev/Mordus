@@ -14,8 +14,20 @@ import { parseISO, format as formatDateFns } from "date-fns";
 import type { ReactNode } from "react";
 
 const paymentMethods = ["Pix", "Dinheiro", "Cartão de Débito", "Cartão de Crédito", "TED", "DOC", "Depósito"];
+const OCCASIONS = [
+    "Culto de Domingo (Manhã)",
+    "Culto de Domingo (Noite)",
+    "Culto de Ensino",
+    "Escola Dominical",
+    "Reunião de Oração",
+    "Círculo de Oração",
+    "Santa Ceia",
+    "Conferência",
+    "Evento Especial",
+    "Outros"
+];
 const emptyItem = { category_id: "", amount: "", payment_method: "Pix", type: "income" as "income" | "expense" };
-const emptyForm = { date: new Date().toISOString().split('T')[0], description: "", event_id: "", items: [{ ...emptyItem }] };
+const emptyForm = { date: new Date().toISOString().split('T')[0], description: "", event_id: "", occasion: "", items: [{ ...emptyItem }] };
 
 interface TransactionsDialogProps {
     onSuccess?: () => void;
@@ -49,6 +61,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     date: editingTransaction.date,
                     description: editingTransaction.description,
                     event_id: editingTransaction.event_id || "",
+                    occasion: editingTransaction.occasion || "",
                     items: [{
                         type: editingTransaction.type,
                         category_id: editingTransaction.category_id || "",
@@ -127,7 +140,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     date: form.date,
                     description: form.description,
                     payment_method: item.payment_method,
-                    event_id: eventId
+                    event_id: eventId,
+                    occasion: form.occasion || null
                 };
                 const { error } = await supabase.from("transactions").update(payload).eq("id", editingTransaction.id);
                 if (error) throw error;
@@ -141,7 +155,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     date: form.date,
                     description: form.description,
                     payment_method: item.payment_method,
-                    event_id: eventId as any
+                    event_id: eventId as any,
+                    occasion: form.occasion || null
                 }));
 
                 const { error } = await supabase.from("transactions").insert(payloads as any);
@@ -170,9 +185,29 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                 <div className="grid gap-6 py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-secondary/20 p-4 rounded-xl border border-border/50">
                         <div className="space-y-2">
-                            <Label className="text-[13px]">Vincular a Evento (Opcional)</Label>
+                            <Label className="text-[13px]">Tipo de Ocasião / Culto</Label>
+                            <Select
+                                value={form.occasion}
+                                onValueChange={(v) => {
+                                    setForm({
+                                        ...form,
+                                        occasion: v,
+                                        description: v !== "Outros" ? v : form.description
+                                    });
+                                }}
+                            >
+                                <SelectTrigger className="bg-background h-10"><SelectValue placeholder="Selecione a ocasião" /></SelectTrigger>
+                                <SelectContent>
+                                    {OCCASIONS.map(oc => (
+                                        <SelectItem key={oc} value={oc}>{oc}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[13px]">Vincular a Evento (Calendário - Opcional)</Label>
                             <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v })}>
-                                <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione um evento" /></SelectTrigger>
+                                <SelectTrigger className="bg-background h-10"><SelectValue placeholder="Evento do calendário" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="none">Nenhum evento</SelectItem>
                                     {events.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}

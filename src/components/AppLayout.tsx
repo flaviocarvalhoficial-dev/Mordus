@@ -2,8 +2,9 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLocation } from "react-router-dom";
-import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown } from "lucide-react";
+import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { useMemo } from "react";
 
@@ -62,14 +63,23 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-12 flex items-center justify-between border-b border-border bg-background px-6">
-            <div className="flex items-center gap-2 text-[13px]">
+            <div className="flex items-center gap-2 text-[13px] w-1/3">
               <SidebarTrigger className="mr-2" />
               <SectionIcon className="h-4 w-4 text-primary" />
               <span className="text-muted-foreground">{sectionLabels[route.section]}</span>
               <span className="text-muted-foreground">/</span>
               <span className="text-foreground font-semibold">{route.name}</span>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="flex-1 max-w-sm relative group mx-4 h-8 flex items-center">
+              <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Pesquisar no Mordus..."
+                className="w-full h-8 bg-secondary/50 border-border/50 pl-8 pr-3 text-[13px] focus-visible:ring-primary/20 hover:bg-secondary/70 transition-all rounded-lg"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 justify-end w-1/3">
               <span className="text-[13px] text-muted-foreground hidden md:block">
                 {greeting}, <span className="text-foreground font-medium">{settings.displayName || settings.churchName}</span>
               </span>
