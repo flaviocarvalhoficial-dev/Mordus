@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DatePicker } from "@/components/ui/date-picker";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -49,7 +50,7 @@ function calculateAge(birthDate: string) {
 }
 
 function MembersList() {
-  const { organization } = useChurch();
+  const { organization, profile } = useChurch();
   const [members, setMembers] = useState<(Member & { congregations?: { name: string } | null })[]>([]);
   const [congregations, setCongregations] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +74,16 @@ function MembersList() {
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from("members")
         .select("*, congregations(name)")
-        .eq("organization_id", organization!.id)
-        .order("full_name");
+        .eq("organization_id", organization!.id);
+
+      if (profile?.role === 'leader' && profile.department_id) {
+        query = query.eq("department_id", profile.department_id);
+      }
+
+      const { data, error } = await query.order("full_name");
       if (error) throw error;
       setMembers(data as any || []);
     } catch (err) {
@@ -170,9 +176,11 @@ function MembersList() {
           <h2 className="text-lg font-semibold text-foreground">Gestão de Membros</h2>
           <p className="text-muted-foreground text-[12px] mt-0.5">Listagem e cadastro completo do rol de membros</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); }}>
-          <Plus className="h-4 w-4 mr-2" />Novo Membro
-        </Button>
+        <PermissionGuard requireWrite>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />Novo Membro
+          </Button>
+        </PermissionGuard>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -366,9 +374,11 @@ function MembersList() {
                   <TableCell><Badge variant="outline" className={`text-[9px] font-bold px-2 py-0 h-4 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
                   <TableCell><Badge variant="secondary" className={`text-[9px] font-bold px-2 py-0 h-4 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
-                      <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-background rounded-md text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3.5 w-3.5" /></button>
-                    </div>
+                    <PermissionGuard requireWrite>
+                      <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
+                        <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-background rounded-md text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </PermissionGuard>
                   </TableCell>
                 </TableRow>
               ))}
@@ -391,83 +401,98 @@ export default function Members() {
 
   return (
     <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
-            <ShieldCheck className="h-5 w-5 text-primary" />
+      <PermissionGuard
+        requireAccessSecretariat
+        fallback={
+          <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-4">
+            <div className="h-16 w-16 rounded-3xl bg-primary/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold font-mono tracking-tight text-foreground uppercase">Acesso Restrito</h2>
+              <p className="text-muted-foreground text-sm max-w-xs mt-2">Você não tem permissão para acessar a Secretaria. Solicite acesso ao seu administrador.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Secretaria Geral</h1>
-            <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+        }
+      >
+        <div className="animate-fade-in space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Secretaria Geral</h1>
+              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+            </div>
           </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 flex-wrap overflow-x-auto justify-start inline-flex">
+              <TabsTrigger value="resumo" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Home className="h-3.5 w-3.5 mr-2" /> Início
+              </TabsTrigger>
+              <TabsTrigger value="membros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Users className="h-3.5 w-3.5 mr-2" /> Membros
+              </TabsTrigger>
+              <TabsTrigger value="lideranca" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Liderança
+              </TabsTrigger>
+              <TabsTrigger value="departamentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Users className="h-3.5 w-3.5 mr-2" /> Departamentos
+              </TabsTrigger>
+              <TabsTrigger value="patrimonio" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Landmark className="h-3.5 w-3.5 mr-2" /> Patrimônio
+              </TabsTrigger>
+              <TabsTrigger value="documentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <FileText className="h-3.5 w-3.5 mr-2" /> Documentos
+              </TabsTrigger>
+              <TabsTrigger value="congregacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <MapPinned className="h-3.5 w-3.5 mr-2" /> Congregações
+              </TabsTrigger>
+              <TabsTrigger value="calendario" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <CalendarDays className="h-3.5 w-3.5 mr-2" /> Calendário
+              </TabsTrigger>
+              <TabsTrigger value="social" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Heart className="h-3.5 w-3.5 mr-2" /> Ação Social
+              </TabsTrigger>
+              <TabsTrigger value="parceiros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Handshake className="h-3.5 w-3.5 mr-2" /> Parcerias
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="resumo" className="mt-0 focus-visible:ring-0">
+              <Summary onNavigate={setActiveTab} />
+            </TabsContent>
+            <TabsContent value="membros" className="mt-0 focus-visible:ring-0">
+              <MembersList />
+            </TabsContent>
+            <TabsContent value="lideranca" className="mt-0 focus-visible:ring-0">
+              <Lideranca />
+            </TabsContent>
+            <TabsContent value="departamentos" className="mt-0 focus-visible:ring-0">
+              <Departamentos />
+            </TabsContent>
+            <TabsContent value="patrimonio" className="mt-0 focus-visible:ring-0">
+              <Patrimonio />
+            </TabsContent>
+            <TabsContent value="documentos" className="mt-0 focus-visible:ring-0">
+              <Documentos />
+            </TabsContent>
+            <TabsContent value="congregacoes" className="mt-0 focus-visible:ring-0">
+              <Congregacoes />
+            </TabsContent>
+            <TabsContent value="calendario" className="mt-0 focus-visible:ring-0">
+              <Calendario />
+            </TabsContent>
+            <TabsContent value="social" className="mt-0 focus-visible:ring-0">
+              <ServicoSocial />
+            </TabsContent>
+            <TabsContent value="parceiros" className="mt-0 focus-visible:ring-0">
+              <Parceiros />
+            </TabsContent>
+          </Tabs>
         </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 flex-wrap overflow-x-auto justify-start inline-flex">
-            <TabsTrigger value="resumo" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Home className="h-3.5 w-3.5 mr-2" /> Início
-            </TabsTrigger>
-            <TabsTrigger value="membros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Users className="h-3.5 w-3.5 mr-2" /> Membros
-            </TabsTrigger>
-            <TabsTrigger value="lideranca" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Liderança
-            </TabsTrigger>
-            <TabsTrigger value="departamentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Users className="h-3.5 w-3.5 mr-2" /> Departamentos
-            </TabsTrigger>
-            <TabsTrigger value="patrimonio" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Landmark className="h-3.5 w-3.5 mr-2" /> Patrimônio
-            </TabsTrigger>
-            <TabsTrigger value="documentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <FileText className="h-3.5 w-3.5 mr-2" /> Documentos
-            </TabsTrigger>
-            <TabsTrigger value="congregacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <MapPinned className="h-3.5 w-3.5 mr-2" /> Congregações
-            </TabsTrigger>
-            <TabsTrigger value="calendario" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <CalendarDays className="h-3.5 w-3.5 mr-2" /> Calendário
-            </TabsTrigger>
-            <TabsTrigger value="social" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Heart className="h-3.5 w-3.5 mr-2" /> Ação Social
-            </TabsTrigger>
-            <TabsTrigger value="parceiros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Handshake className="h-3.5 w-3.5 mr-2" /> Parcerias
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="resumo" className="mt-0 focus-visible:ring-0">
-            <Summary onNavigate={setActiveTab} />
-          </TabsContent>
-          <TabsContent value="membros" className="mt-0 focus-visible:ring-0">
-            <MembersList />
-          </TabsContent>
-          <TabsContent value="lideranca" className="mt-0 focus-visible:ring-0">
-            <Lideranca />
-          </TabsContent>
-          <TabsContent value="departamentos" className="mt-0 focus-visible:ring-0">
-            <Departamentos />
-          </TabsContent>
-          <TabsContent value="patrimonio" className="mt-0 focus-visible:ring-0">
-            <Patrimonio />
-          </TabsContent>
-          <TabsContent value="documentos" className="mt-0 focus-visible:ring-0">
-            <Documentos />
-          </TabsContent>
-          <TabsContent value="congregacoes" className="mt-0 focus-visible:ring-0">
-            <Congregacoes />
-          </TabsContent>
-          <TabsContent value="calendario" className="mt-0 focus-visible:ring-0">
-            <Calendario />
-          </TabsContent>
-          <TabsContent value="social" className="mt-0 focus-visible:ring-0">
-            <ServicoSocial />
-          </TabsContent>
-          <TabsContent value="parceiros" className="mt-0 focus-visible:ring-0">
-            <Parceiros />
-          </TabsContent>
-        </Tabs>
-      </div>
+      </PermissionGuard>
     </AppLayout>
   );
 }

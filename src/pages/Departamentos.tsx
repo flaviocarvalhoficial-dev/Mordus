@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import type { Database } from "@/types/database.types";
 
 type Department = Database["public"]["Tables"]["departments"]["Row"];
@@ -24,7 +25,7 @@ const colorOptions = [
 const emptyDep = { name: "", leader_name: "", member_count: "", color: colorOptions[0].value };
 
 export default function Departamentos() {
-  const { organization } = useChurch();
+  const { organization, profile, isAdmin, canManageSecretariat } = useChurch();
   const [items, setItems] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,11 +43,16 @@ export default function Departamentos() {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from("departments")
         .select("*")
-        .eq("organization_id", organization!.id)
-        .order("name");
+        .eq("organization_id", organization!.id);
+
+      if (profile?.role === 'leader' && profile.department_id) {
+        query = query.eq("id", profile.department_id);
+      }
+
+      const { data, error } = await query.order("name");
       if (error) throw error;
       setItems(data || []);
     } catch (err) {
@@ -144,9 +150,11 @@ export default function Departamentos() {
           <h2 className="text-lg font-semibold text-foreground">Departamentos</h2>
           <p className="text-muted-foreground text-[12px] mt-1">Gestão de ministérios — {organization.name}</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />Novo Departamento
-        </Button>
+        <PermissionGuard requireSecretariat>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />Novo Departamento
+          </Button>
+        </PermissionGuard>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -184,8 +192,12 @@ export default function Departamentos() {
                   <h3 className="text-[15px] font-semibold text-foreground">{dep.name}</h3>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className={`${dep.color || colorOptions[0].value} border-0 text-[10px] h-4 px-2`}>{(dep.member_count || 0)} membros</Badge>
-                    <button onClick={() => openEdit(dep)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button onClick={() => handleDelete(dep.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <PermissionGuard requireWrite>
+                      <button onClick={() => openEdit(dep)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                    </PermissionGuard>
+                    <PermissionGuard requireSecretariat>
+                      <button onClick={() => handleDelete(dep.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </PermissionGuard>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 mt-3 text-[11px] text-muted-foreground">
@@ -207,10 +219,13 @@ export default function Departamentos() {
                   </div>
                 )}
 
-                <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
+                <PermissionGuard requireWrite>
                   <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-full border border-dashed border-border hover:bg-secondary/50 group" onClick={() => setSubGroupDialog(dep.id)}>
                     <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar Sub-grupo
                   </Button>
+                </PermissionGuard>
+
+                <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
                   <DialogContent className="bg-card border-border">
                     <DialogHeader><DialogTitle className="text-sm">Novo Sub-grupo — {dep.name}</DialogTitle></DialogHeader>
                     <div className="grid gap-4 py-4">

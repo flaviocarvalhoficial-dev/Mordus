@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -169,9 +170,11 @@ function TransactionsList() {
           <h2 className="text-lg font-semibold text-foreground">Movimentações</h2>
           <p className="text-muted-foreground text-[12px] mt-0.5">Listagem detalhada de entradas e saídas</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />Novo Lançamento
-        </Button>
+        <PermissionGuard requireWrite>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />Novo Lançamento
+          </Button>
+        </PermissionGuard>
       </div>
 
       <TransactionsDialog
@@ -250,10 +253,12 @@ function TransactionsList() {
                     {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                      <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </div>
+                    <PermissionGuard requireWrite>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                        <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </PermissionGuard>
                   </TableCell>
                 </TableRow>
               ))}
@@ -275,47 +280,62 @@ export default function Transactions() {
 
   return (
     <AppLayout>
-      <div className="animate-fade-in space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
-            <Banknote className="h-5 w-5 text-primary" />
+      <PermissionGuard
+        requireFinance
+        fallback={
+          <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-4">
+            <div className="h-16 w-16 rounded-3xl bg-destructive/10 flex items-center justify-center">
+              <Lock className="h-8 w-8 text-destructive" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">Acesso Restrito</h2>
+              <p className="text-muted-foreground text-sm max-w-xs">Você não tem permissão para acessar o módulo financeiro. Entre em contato com o administrador.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Tesouraria & Finanças</h1>
-            <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+        }
+      >
+        <div className="animate-fade-in space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+              <Banknote className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Tesouraria & Finanças</h1>
+              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+            </div>
           </div>
+
+          <Tabs defaultValue="movimentacoes" className="w-full">
+            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50">
+              <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
+              </TabsTrigger>
+              <TabsTrigger value="categorias" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Type className="h-3.5 w-3.5 mr-2" /> Categorias
+              </TabsTrigger>
+              <TabsTrigger value="fechamento" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <Lock className="h-3.5 w-3.5 mr-2" /> Fechamentos
+              </TabsTrigger>
+              <TabsTrigger value="relatorios" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
+                <FileBarChart className="h-3.5 w-3.5 mr-2" /> Relatórios
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0">
+              <TransactionsList />
+            </TabsContent>
+            <TabsContent value="categorias" className="mt-0 focus-visible:ring-0">
+              <Categories />
+            </TabsContent>
+            <TabsContent value="fechamento" className="mt-0 focus-visible:ring-0">
+              <Closures />
+            </TabsContent>
+            <TabsContent value="relatorios" className="mt-0 focus-visible:ring-0">
+              <Reports />
+            </TabsContent>
+          </Tabs>
         </div>
-
-        <Tabs defaultValue="movimentacoes" className="w-full">
-          <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50">
-            <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
-            </TabsTrigger>
-            <TabsTrigger value="categorias" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Type className="h-3.5 w-3.5 mr-2" /> Categorias
-            </TabsTrigger>
-            <TabsTrigger value="fechamento" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <Lock className="h-3.5 w-3.5 mr-2" /> Fechamentos
-            </TabsTrigger>
-            <TabsTrigger value="relatorios" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-              <FileBarChart className="h-3.5 w-3.5 mr-2" /> Relatórios
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0">
-            <TransactionsList />
-          </TabsContent>
-          <TabsContent value="categorias" className="mt-0 focus-visible:ring-0">
-            <Categories />
-          </TabsContent>
-          <TabsContent value="fechamento" className="mt-0 focus-visible:ring-0">
-            <Closures />
-          </TabsContent>
-          <TabsContent value="relatorios" className="mt-0 focus-visible:ring-0">
-            <Reports />
-          </TabsContent>
-        </Tabs>
-      </div>
+      </PermissionGuard>
     </AppLayout>
   );
 }

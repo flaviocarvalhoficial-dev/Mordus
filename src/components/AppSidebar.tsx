@@ -25,6 +25,7 @@ import { useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { MordusLogo } from "@/components/MordusLogo";
+import { useMemo } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -51,7 +52,17 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-  const { settings, user, signOut } = useChurch();
+  const { settings, user, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
+
+  const mainItems = useMemo(() => {
+    const items = [
+      { title: "Painel Geral", url: "/", icon: LayoutDashboard, visible: true },
+      { title: "Tesouraria", url: "/lancamentos", icon: ArrowUpDown, visible: canManageFinances },
+      { title: "Secretaria", url: "/membros", icon: Users, visible: canAccessSecretariat },
+      { title: "Configurações", url: "/configuracoes", icon: Settings, visible: true },
+    ];
+    return items.filter(item => item.visible);
+  }, [canManageFinances, canAccessSecretariat]);
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
@@ -111,7 +122,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => signOut()}
+              onClick={() => logout()}
               className="text-sidebar-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-4 w-4" />

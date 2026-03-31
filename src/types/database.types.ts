@@ -349,6 +349,7 @@ export type Database = {
                     previous_church: string | null
                     role: string | null
                     status: string | null
+                    department_id: string | null
                 }
                 Insert: {
                     address?: string | null
@@ -368,6 +369,7 @@ export type Database = {
                     previous_church?: string | null
                     role?: string | null
                     status?: string | null
+                    department_id?: string | null
                 }
                 Update: {
                     address?: string | null
@@ -387,6 +389,7 @@ export type Database = {
                     previous_church?: string | null
                     role?: string | null
                     status?: string | null
+                    department_id?: string | null
                 }
                 Relationships: [
                     {
@@ -403,6 +406,13 @@ export type Database = {
                         referencedRelation: "organizations"
                         referencedColumns: ["id"]
                     },
+                    {
+                        foreignKeyName: "members_department_id_fkey"
+                        columns: ["department_id"]
+                        isOneToOne: false
+                        referencedRelation: "departments"
+                        referencedColumns: ["id"]
+                    }
                 ]
             }
             monthly_closures: {
@@ -572,6 +582,7 @@ export type Database = {
                     organization_id: string | null
                     phone: string | null
                     role: string | null
+                    department_id: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -581,6 +592,7 @@ export type Database = {
                     organization_id?: string | null
                     phone?: string | null
                     role?: string | null
+                    department_id?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -590,6 +602,7 @@ export type Database = {
                     organization_id?: string | null
                     phone?: string | null
                     role?: string | null
+                    department_id?: string | null
                 }
                 Relationships: [
                     {
@@ -597,6 +610,13 @@ export type Database = {
                         columns: ["organization_id"]
                         isOneToOne: false
                         referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "profiles_department_id_fkey"
+                        columns: ["department_id"]
+                        isOneToOne: false
+                        referencedRelation: "departments"
                         referencedColumns: ["id"]
                     },
                 ]
@@ -721,7 +741,7 @@ export type Database = {
             [_ in never]: never
         }
         Enums: {
-            user_role: "admin" | "treasurer" | "secretary"
+            user_role: "admin" | "treasurer" | "secretary" | "leader" | "viewer"
         }
         CompositeTypes: {
             [_ in never]: never

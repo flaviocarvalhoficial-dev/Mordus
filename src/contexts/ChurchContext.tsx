@@ -28,7 +28,17 @@ interface ChurchContextType {
   hasSeenOnboarding: boolean;
   setHasSeenOnboarding: (v: boolean) => void;
   loading: boolean;
-  signOut: () => Promise<void>;
+  logout: () => Promise<void>;
+  // Role helpers
+  isAdmin: boolean;
+  isTreasurer: boolean;
+  isSecretary: boolean;
+  isLeader: boolean;
+  isViewer: boolean;
+  canManageFinances: boolean;
+  canManageSecretariat: boolean;
+  canAccessSecretariat: boolean;
+  canWrite: boolean;
 }
 
 const defaultSettings: ChurchSettings = {
@@ -139,15 +149,28 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signOut = async () => {
+  const logout = async () => {
     await supabase.auth.signOut();
   };
+
+  const isAdmin = profile?.role === "admin";
+  const isTreasurer = profile?.role === "treasurer";
+  const isSecretary = profile?.role === "secretary";
+  const isLeader = profile?.role === "leader";
+  const isViewer = profile?.role === "viewer";
+
+  const canManageFinances = isAdmin || isTreasurer;
+  const canManageSecretariat = isAdmin || isSecretary;
+  const canAccessSecretariat = canManageSecretariat || isLeader;
+  const canWrite = !isViewer;
 
   return (
     <ChurchContext.Provider value={{
       user, profile, organization, settings, updateSettings,
       updateSocialMedia, hasSeenOnboarding, setHasSeenOnboarding,
-      loading, signOut
+      loading, logout,
+      isAdmin, isTreasurer, isSecretary, isLeader, isViewer,
+      canManageFinances, canManageSecretariat, canAccessSecretariat, canWrite
     }}>
       {children}
     </ChurchContext.Provider>
