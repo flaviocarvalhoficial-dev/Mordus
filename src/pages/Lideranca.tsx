@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Crown, Pencil, Loader2, Phone } from "lucide-react";
+import { Plus, Trash2, Crown, Pencil, Loader2, Phone, Calendar } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ const roleLabels: Record<string, { label: string; color: string }> = {
   auxiliar: { label: "Auxiliar", color: "bg-muted text-muted-foreground" },
 };
 
-const emptyForm = { name: "", role: "auxiliar", phone: "" };
+const emptyForm = { name: "", role: "auxiliar", phone: "", appointment_date: "" };
 
 export default function Lideranca() {
   const { organization } = useChurch();
@@ -60,7 +60,12 @@ export default function Lideranca() {
   const openCreate = () => { setEditingId(null); setForm(emptyForm); setDialogOpen(true); };
   const openEdit = (l: Leader) => {
     setEditingId(l.id);
-    setForm({ name: l.name, role: l.role || "auxiliar", phone: l.phone || "" });
+    setForm({
+      name: l.name,
+      role: l.role || "auxiliar",
+      phone: l.phone || "",
+      appointment_date: l.appointment_date || ""
+    });
     setDialogOpen(true);
   };
 
@@ -141,6 +146,10 @@ export default function Lideranca() {
                   <Input placeholder="(00) 00000-0000" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label className="text-[13px]">Data de Posse (Opcional)</Label>
+                <Input type="date" value={form.appointment_date || ""} onChange={(e) => setForm({ ...form, appointment_date: e.target.value })} />
+              </div>
               <Button className="w-full" onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingId ? "Atualizar" : "Salvar"}
@@ -177,11 +186,19 @@ export default function Lideranca() {
                         </button>
                       </div>
                     </div>
-                    {leader.phone && (
-                      <div className="flex items-center gap-2 mt-4 text-[11px] text-muted-foreground font-mono">
-                        <Phone className="h-3 w-3 text-primary opacity-50" /> {leader.phone}
-                      </div>
-                    )}
+                    <div className="mt-4 flex flex-col gap-2">
+                      {leader.phone && (
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
+                          <Phone className="h-3 w-3 text-primary opacity-50" /> {leader.phone}
+                        </div>
+                      )}
+                      {leader.appointment_date && (
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <Calendar className="h-3 w-3 text-primary opacity-50" />
+                          Posse: {new Date(leader.appointment_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               );

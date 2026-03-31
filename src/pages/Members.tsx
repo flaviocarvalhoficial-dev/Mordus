@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -18,14 +19,25 @@ import type { Database } from "@/types/database.types";
 type Member = Database["public"]["Tables"]["members"]["Row"];
 
 const emptyMember = {
-  full_name: "", phone: "", email: "", gender: "", birth_date: "", age_group: "", status: "active",
-  mother_name: "", father_name: "", is_baptized: false, goes_to_sunday_school: false, conversion_date: "", is_from_other_church: false, address: "",
-  avatar_url: ""
+  full_name: "", phone: "", email: "", gender: "Masculino", birth_date: "", status: "active",
+  mother_name: "", father_name: "", is_baptized: false, previous_church: "", address: "",
+  avatar_url: "", congregation_id: null as string | null
 };
+
+function calculateAge(birthDate: string) {
+  if (!birthDate) return null;
+  const birth = new Date(birthDate);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age;
+}
 
 export default function Members() {
   const { organization } = useChurch();
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<(Member & { congregations?: { name: string } | null })[]>([]);
+  const [congregations, setCongregations] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -41,7 +53,10 @@ export default function Members() {
   const [form, setForm] = useState(emptyMember);
 
   useEffect(() => {
-    if (organization?.id) fetchMembers();
+    if (organization?.id) {
+      fetchMembers();
+      fetchCongregations();
+    }
   }, [organization?.id]);
 
   const fetchMembers = async () => {
@@ -49,15 +64,29 @@ export default function Members() {
       setLoading(true);
       const { data, error } = await supabase
         .from("members")
-        .select("*")
+        .select("*, congregations(name)")
         .eq("organization_id", organization!.id)
         .order("full_name");
       if (error) throw error;
-      setMembers(data || []);
+      setMembers(data as any || []);
     } catch (err) {
       toast.error("Erro ao carregar membros");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCongregations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("congregations")
+        .select("id, name")
+        .eq("organization_id", organization!.id)
+        .order("name");
+      if (error) throw error;
+      setCongregations(data || []);
+    } catch (err) {
+      console.error("Erro ao carregar congregações:", err);
     }
   };
 
@@ -94,7 +123,13 @@ export default function Members() {
     if (!form.full_name || !organization?.id) return;
     setIsSaving(true);
     try {
-      const payload = { ...form, organization_id: organization.id };
+      const payload: any = {
+        ...form,
+        organization_id: organization.id,
+        // Ensure boolean fields are correctly typed
+        is_baptized: !!form.is_baptized
+      };
+
       if (editingId) {
         const { error } = await supabase.from("members").update(payload).eq("id", editingId);
         if (error) throw error;
@@ -105,8 +140,8 @@ export default function Members() {
       setDialogOpen(false);
       fetchMembers();
       toast.success(editingId ? "Membro atualizado" : "Membro cadastrado");
-    } catch (err) {
-      toast.error("Erro ao salvar membro");
+    } catch (err: any) {
+      toast.error("Erro ao salvar membro: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -157,18 +192,16 @@ export default function Members() {
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Foto de Perfil</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Dados Pessoais */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[13px]">Nome completo *</Label>
-                  <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                  <Input value={form.full_name} placeholder="Nome do Membro" onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[13px]">Email</Label>
-                  <Input type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <Input type="email" value={form.email || ""} placeholder="exemplo@igreja.com" onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[13px]">Sexo</Label>
                   <Select value={form.gender || ""} onValueChange={(v) => setForm({ ...form, gender: v })}>
@@ -177,16 +210,77 @@ export default function Members() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[13px]">Telefone</Label>
+                  <Input value={form.phone || ""} placeholder="(00) 00000-0000" onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[13px]">Data de Nascimento</Label>
+                    {form.birth_date && (
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        {calculateAge(form.birth_date)} anos
+                      </span>
+                    )}
+                  </div>
+                  <Input type="date" value={form.birth_date || ""} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
+                </div>
+                <div className="space-y-2">
                   <Label className="text-[13px]">Status</Label>
                   <Select value={form.status || "active"} onValueChange={(v) => setForm({ ...form, status: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent><SelectItem value="active">Ativo</SelectItem><SelectItem value="inactive">Inativo</SelectItem></SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Congregação</Label>
+                  <Select
+                    value={form.congregation_id || "none"}
+                    onValueChange={(v) => setForm({ ...form, congregation_id: v === "none" ? null : v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione a congregação" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sede (Matriz)</SelectItem>
+                      {congregations.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {/* filiação */}
+              <Separator />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Nome do Pai</Label>
+                  <Input value={form.father_name || ""} placeholder="Nome Completo do Pai" onChange={(e) => setForm({ ...form, father_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Nome da Mãe</Label>
+                  <Input value={form.mother_name || ""} placeholder="Nome Completo da Mãe" onChange={(e) => setForm({ ...form, mother_name: e.target.value })} />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label className="text-[13px]">Endereço</Label>
-                <Input value={form.address || ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                <Label className="text-[13px]">Endereço Completo</Label>
+                <Input value={form.address || ""} placeholder="Rua, Número, Bairro, Cidade..." onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              </div>
+
+              <Separator />
+              {/* Eclesiástico */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div className="space-y-2">
+                  <Label className="text-[13px]">Igreja de Procedência</Label>
+                  <Input value={form.previous_church || ""} placeholder="Se veio de outra igreja, qual?" onChange={(e) => setForm({ ...form, previous_church: e.target.value })} />
+                </div>
+                <div className="flex items-center space-x-2 h-10 px-2">
+                  <Checkbox
+                    id="is_baptized"
+                    checked={form.is_baptized}
+                    onCheckedChange={(checked) => setForm({ ...form, is_baptized: !!checked })}
+                  />
+                  <Label htmlFor="is_baptized" className="text-sm font-medium leading-none cursor-pointer">Já foi batizado(a)?</Label>
+                </div>
               </div>
 
               <Button className="w-full mt-2" onClick={handleSave} disabled={isSaving || uploading}>
@@ -203,6 +297,7 @@ export default function Members() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Perfil</TableHead>
+                  <TableHead>Congregação</TableHead>
                   <TableHead>Sexo</TableHead>
                   <TableHead>Batizado</TableHead>
                   <TableHead>Status</TableHead>
@@ -225,12 +320,17 @@ export default function Members() {
                         </div>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <span className="text-[13px] text-muted-foreground">
+                        {m.congregations?.name || "Sede (Matriz)"}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{m.gender}</TableCell>
                     <TableCell><Badge variant="secondary" className={m.is_baptized ? "bg-success/15 text-success border-0" : "bg-muted text-muted-foreground border-0"}>{m.is_baptized ? "Sim" : "Não"}</Badge></TableCell>
                     <TableCell><Badge variant={m.status === "active" ? "default" : "secondary"}>{m.status === "active" ? "Ativo" : "Inativo"}</Badge></TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", age_group: m.age_group || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: m.is_baptized || false, goes_to_sunday_school: m.goes_to_sunday_school || false, conversion_date: m.conversion_date || "", is_from_other_church: m.is_from_other_church || false, address: m.address || "" }); setDialogOpen(true); }} className="p-2 hover:bg-secondary rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: m.is_baptized || false, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-secondary rounded-lg transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
                       </div>
                     </TableCell>
                   </TableRow>
