@@ -13,6 +13,8 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import { Loader2 } from "lucide-react";
 
+import { SidebarProvider } from "@/components/ui/sidebar";
+
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -37,23 +39,25 @@ const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
     <QueryClientProvider client={queryClient}>
       <ChurchProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <OnboardingModal />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
+        <SidebarProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <OnboardingModal />
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
 
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/lancamentos" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-              <Route path="/membros" element={<ProtectedRoute><Members /></ProtectedRoute>} />
-              <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/lancamentos" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/membros" element={<ProtectedRoute><Members /></ProtectedRoute>} />
+                <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SidebarProvider>
       </ChurchProvider>
     </QueryClientProvider>
   </ThemeProvider>
