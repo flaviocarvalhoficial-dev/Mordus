@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { useMemo } from "react";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 interface RouteInfo {
   name: string;
@@ -70,13 +71,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="text-foreground font-semibold">{route.name}</span>
           </div>
 
-          <div className="flex-1 max-w-sm relative group mx-4 h-8 flex items-center">
-            <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input
-              placeholder="Pesquisar no Mordus..."
-              className="w-full h-8 bg-secondary/50 border-border/50 pl-8 pr-3 text-[13px] focus-visible:ring-primary/20 hover:bg-secondary/70 transition-all rounded-lg"
-            />
-          </div>
+          <GlobalSearch />
 
           <div className="flex items-center gap-3 justify-end w-1/3">
             <span className="text-[13px] text-muted-foreground hidden md:block">
