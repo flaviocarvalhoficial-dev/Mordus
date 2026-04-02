@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight, Trash2, Calendar, Wallet } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -11,6 +12,16 @@ import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
 import type { Database } from "@/types/database.types";
+
+const months = [
+  { value: "01", label: "Janeiro" }, { value: "02", label: "Fevereiro" }, { value: "03", label: "Março" },
+  { value: "04", label: "Abril" }, { value: "05", label: "Maio" }, { value: "06", label: "Junho" },
+  { value: "07", label: "Julho" }, { value: "08", label: "Agosto" }, { value: "09", label: "Setembro" },
+  { value: "10", label: "Outubro" }, { value: "11", label: "Novembro" }, { value: "12", label: "Dezembro" },
+];
+
+const currentYearConst = new Date().getFullYear();
+const years = Array.from({ length: 3 }, (_, i) => String(currentYearConst - 1 + i));
 
 type Closure = Database["public"]["Tables"]["monthly_closures"]["Row"];
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & { categories?: { name: string } | null };
@@ -31,22 +42,35 @@ export default function Closures() {
   const [loading, setLoading] = useState(true);
   const [isClosingId, setIsClosingId] = useState<string | null>(null);
 
+  // States for period selection
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const [selectedMonth, setSelectedMonth] = useState(String(currentMonth).padStart(2, "0"));
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
+  const [lastClosure, setLastClosure] = useState<Closure | null>(null);
+
   const [currentPeriodStats, setCurrentPeriodStats] = useState({
     income: 0,
     expense: 0,
     count: 0,
+    initial: 0,
     start: "",
     end: ""
   });
 
   useEffect(() => {
     if (organization?.id) {
-      fetchClosures();
-      fetchCurrentMonthStats();
+      fetchClosuresAndLast();
     }
   }, [organization?.id]);
 
-  const fetchClosures = async () => {
+  useEffect(() => {
+    if (organization?.id && (lastClosure !== undefined)) {
+      fetchCurrentMonthStats();
+    }
+  }, [organization?.id, selectedMonth, selectedYear, lastClosure]);
+
+  const fetchClosuresAndLast = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -54,8 +78,10 @@ export default function Closures() {
         .select("*")
         .eq("organization_id", organization!.id)
         .order("end_date", { ascending: false });
+
       if (error) throw error;
       setClosures(data || []);
+      setLastClosure(data && data.length > 0 ? data[0] : null);
     } catch (err) {
       toast.error("Erro ao carregar históricos");
     } finally {
@@ -64,27 +90,50 @@ export default function Closures() {
   };
 
   const fetchCurrentMonthStats = async () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA');
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-CA');
+    // Definimos o início como o dia seguinte ao último fechamento
+    // Se não houver fechamento anterior, usamos o início do mês selecionado
+    let startDateStr = "";
+    if (lastClosure) {
+      const lastEnd = new Date(lastClosure.end_date + "T12:00:00");
+      lastEnd.setDate(lastEnd.getDate() + 1);
+      startDateStr = lastEnd.toISOString().split('T')[0];
+    } else {
+      // Se não há fechamento anterior, buscamos desde o "início dos tempos" 
+      // para garantir que transações órfãs sejam capturadas.
+      startDateStr = "2020-01-01";
+    }
+
+    // O fim é sempre o último dia do mês selecionado
+    const endDateStr = new Date(Number(selectedYear), Number(selectedMonth), 0).toLocaleDateString('en-CA');
+    const initialBalance = lastClosure?.final_balance || 0;
 
     try {
       const { data, error } = await supabase
         .from("transactions")
         .select("amount, type")
         .eq("organization_id", organization!.id)
-        .gte("date", start)
-        .lte("date", end);
+        .gte("date", startDateStr)
+        .lte("date", endDateStr);
 
       if (error) throw error;
 
-      const stats = { income: 0, expense: 0, count: data?.length || 0, start, end };
+      const stats = {
+        income: 0,
+        expense: 0,
+        count: data?.length || 0,
+        initial: initialBalance,
+        start: startDateStr,
+        end: endDateStr
+      };
+
       data?.forEach(tx => {
         if (tx.type === "income") stats.income += tx.amount;
         else stats.expense += tx.amount;
       });
       setCurrentPeriodStats(stats);
-    } catch (err) { }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const fetchTransactionsForClosure = async (closure: Closure) => {
@@ -105,19 +154,18 @@ export default function Closures() {
   };
 
   const handleClosePeriod = async () => {
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA');
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-CA');
-
     setIsClosingId("current");
     try {
+      const finalBalance = currentPeriodStats.initial + currentPeriodStats.income - currentPeriodStats.expense;
+
       const { error } = await supabase.from("monthly_closures").insert([{
         organization_id: organization!.id,
-        start_date: start,
-        end_date: end,
+        start_date: currentPeriodStats.start,
+        end_date: currentPeriodStats.end,
+        initial_balance: currentPeriodStats.initial,
         total_income: currentPeriodStats.income,
         total_expense: currentPeriodStats.expense,
-        final_balance: currentPeriodStats.income - currentPeriodStats.expense,
+        final_balance: finalBalance,
         status: 'closed',
         closed_by: profile?.id,
         closed_at: new Date().toISOString()
@@ -125,7 +173,7 @@ export default function Closures() {
 
       if (error) throw error;
       toast.success("Mês fechado com sucesso!");
-      fetchClosures();
+      fetchClosuresAndLast();
     } catch (err) {
       toast.error("Erro ao realizar fechamento");
     } finally {
@@ -134,13 +182,13 @@ export default function Closures() {
   };
 
   const handleDeleteClosure = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este fechamento? O período voltará a ficar em aberto para alterações.")) return;
+    if (!confirm("Tem certeza que deseja excluir este fechamento? O período voltará a ficar em aberto para alterações. Recomenda-se excluir apenas o fechamento mais recente para manter a integridade dos saldos transportados.")) return;
 
     try {
       const { error } = await supabase.from("monthly_closures").delete().eq("id", id);
       if (error) throw error;
       toast.success("Fechamento removido com sucesso!");
-      setClosures(prev => prev.filter(c => c.id !== id));
+      fetchClosuresAndLast(); // Refresh to update lastClosure
     } catch (err) {
       toast.error("Erro ao excluir fechamento");
     }
@@ -148,21 +196,42 @@ export default function Closures() {
 
   if (!organization) return <div className="p-8 text-center text-muted-foreground font-mono">Carregando...</div>;
 
+  const saldoProjetado = currentPeriodStats.initial + currentPeriodStats.income - currentPeriodStats.expense;
+  const isDifferentMonth = (selectedMonth !== String(currentMonth).padStart(2, "0")) || (selectedYear !== String(currentYear));
+
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Fechamento de Caixa</h2>
           <p className="text-muted-foreground text-[12px] mt-1">Audit trail e encerramento de períodos — {organization.name}</p>
         </div>
+
+        <div className="flex items-center gap-2 bg-secondary/20 p-1.5 rounded-lg border border-border/50">
+          <Calendar className="h-4 w-4 text-muted-foreground ml-1 mr-1" />
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="h-8 w-32 text-xs bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="h-8 w-24 text-xs bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <Card className="bg-card border-border border-l-4 border-l-primary/40">
+      <Card className={`bg-card border-border border-l-4 ${isDifferentMonth ? 'border-l-orange-500/40' : 'border-l-primary/40'}`}>
         <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-3">
-            <Unlock className="h-4 w-4 text-primary" />
+            <Unlock className={`h-4 w-4 ${isDifferentMonth ? 'text-orange-500' : 'text-primary'}`} />
             <div>
-              <CardTitle className="text-sm font-semibold">Período Atual (Em Aberto)</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Período em Aberto {isDifferentMonth && <span className="text-orange-500 ml-1 text-[10px] uppercase font-black">(Seleção)</span>}
+              </CardTitle>
               {currentPeriodStats.start && (
                 <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
                   {formatDate(currentPeriodStats.start)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(currentPeriodStats.end)}
@@ -170,26 +239,42 @@ export default function Closures() {
               )}
             </div>
           </div>
-          <Badge variant="secondary" className="bg-success/15 text-success border-0 text-[10px]">Aguardando Fechamento</Badge>
+          <Badge variant="secondary" className={`${isDifferentMonth ? 'bg-orange-500/15 text-orange-600' : 'bg-success/15 text-success'} border-0 text-[10px]`}>
+            {isDifferentMonth ? 'Revisando Período' : 'Aguardando Fechamento'}
+          </Badge>
         </CardHeader>
         <CardContent className="pb-4 pt-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div><p className="text-[10px] text-muted-foreground uppercase font-semibold">Movimentações</p>
-              {loading ? <Skeleton className="h-6 w-12" /> : <p className="text-lg font-bold font-mono">{currentPeriodStats.count}</p>}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1"><Wallet className="h-3 w-3" /> Saldo Anterior</p>
+              {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-muted-foreground">{formatCurrency(currentPeriodStats.initial)}</p>}
             </div>
-            <div><p className="text-[10px] text-muted-foreground uppercase font-semibold">Entradas</p>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold">Entradas</p>
               {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-success">{formatCurrency(currentPeriodStats.income)}</p>}
             </div>
-            <div><p className="text-[10px] text-muted-foreground uppercase font-semibold">Saídas</p>
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold">Saídas</p>
               {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-destructive">{formatCurrency(currentPeriodStats.expense)}</p>}
             </div>
+            <div>
+              <p className="text-[10px] text-primary uppercase font-bold">Saldo Projetado</p>
+              {loading ? <Skeleton className="h-6 w-24" /> : <p className={`text-lg font-bold font-mono ${saldoProjetado >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(saldoProjetado)}</p>}
+            </div>
             <div className="flex flex-col justify-end">
-              <Button size="sm" className="bg-primary text-primary-foreground font-semibold" onClick={handleClosePeriod} disabled={isClosingId === "current" || currentPeriodStats.count === 0}>
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" onClick={handleClosePeriod} disabled={isClosingId === "current" || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
                 {isClosingId === "current" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
                 Finalizar Mês
               </Button>
             </div>
           </div>
+
+          {lastClosure && currentPeriodStats.start && new Date(currentPeriodStats.start) > new Date(lastClosure.end_date) && (
+            <div className="mt-4 p-2 bg-secondary/10 border border-border rounded-md text-[10px] text-muted-foreground flex items-center gap-2 italic">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Este fechamento iniciará exatamente onde o último parou ({formatDate(lastClosure.end_date)}).
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -241,7 +326,8 @@ export default function Closures() {
                   </div>
                 </CardHeader>
                 <CardContent className="pb-4 pt-0">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div><p className="text-[10px] text-muted-foreground uppercase">S. Anterior</p><p className="text-[13px] font-bold text-muted-foreground font-mono tabular-nums">{formatCurrency(Number(closure.initial_balance || 0))}</p></div>
                     <div><p className="text-[10px] text-muted-foreground uppercase">Entradas</p><p className="text-[13px] font-bold text-success font-mono tabular-nums">{formatCurrency(Number(closure.total_income || 0))}</p></div>
                     <div><p className="text-[10px] text-muted-foreground uppercase">Saídas</p><p className="text-[13px] font-bold text-destructive font-mono tabular-nums">{formatCurrency(Number(closure.total_expense || 0))}</p></div>
                     <div><p className="text-[10px] text-muted-foreground uppercase">Saldo Final</p><p className="text-[13px] font-bold text-foreground font-mono tabular-nums">{formatCurrency(Number(closure.final_balance || 0))}</p></div>
