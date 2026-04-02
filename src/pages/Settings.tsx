@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function Settings() {
-  const { organization, profile, user, canManageFinances, isAdmin, canWrite } = useChurch();
+  const { organization, profile, user, canManageFinances, isAdmin, canWrite, refreshOrganization } = useChurch();
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -151,10 +151,15 @@ export default function Settings() {
     setIsSavingOrg(true);
     try {
       const { error } = await (supabase.from("organizations") as any).update(orgForm).eq("id", organization.id);
-      if (error) throw error;
+      if (error) {
+        toast.error("Erro técnico: " + error.message);
+        throw error;
+      }
+      await refreshOrganization();
       toast.success("Dados da igreja atualizados");
-    } catch (err) {
-      toast.error("Erro ao atualizar igreja");
+    } catch (err: any) {
+      console.error("Erro ao atualizar igreja:", err);
+      if (!err.message) toast.error("Erro ao atualizar igreja");
     } finally {
       setIsSavingOrg(false);
     }
@@ -420,10 +425,10 @@ export default function Settings() {
                   <div className="bg-secondary/20 p-6 rounded-2xl border border-border/50 transition-all duration-300 hover:border-primary/20">
                     <div className="flex items-center justify-between gap-4">
                       <div className="space-y-1">
-                        <p className="text-[14px] font-bold flex items-center gap-2">
+                        <div className="text-[14px] font-bold flex items-center gap-2">
                           Modo de Fechamento Flexível
                           {orgForm.closure_mode === 'flexible' && <Badge className="bg-primary/10 text-primary text-[9px] h-4">Ativo</Badge>}
-                        </p>
+                        </div>
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
                           Permite fechar qualquer período sem exigir continuidade cronológica e oculta alertas de lançamentos órfãos. Recomendado para regularizações rápidas.
                         </p>

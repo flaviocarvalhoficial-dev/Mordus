@@ -39,6 +39,7 @@ interface ChurchContextType {
   canManageSecretariat: boolean;
   canAccessSecretariat: boolean;
   canWrite: boolean;
+  refreshOrganization: () => Promise<void>;
 }
 
 const defaultSettings: ChurchSettings = {
@@ -170,7 +171,8 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
       updateSocialMedia, hasSeenOnboarding, setHasSeenOnboarding,
       loading, logout,
       isAdmin, isTreasurer, isSecretary, isLeader, isViewer,
-      canManageFinances, canManageSecretariat, canAccessSecretariat, canWrite
+      canManageFinances, canManageSecretariat, canAccessSecretariat, canWrite,
+      refreshOrganization: () => user ? fetchProfile(user.id) : Promise.resolve()
     }}>
       {children}
     </ChurchContext.Provider>
