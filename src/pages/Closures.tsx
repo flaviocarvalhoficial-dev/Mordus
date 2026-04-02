@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight, Trash2, Calendar, Wallet } from "lucide-react";
+import { Lock, Unlock, Eye, ChevronDown, ChevronUp, Loader2, ArrowRight, Trash2, Calendar, Wallet, AlertTriangle } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -48,6 +48,7 @@ export default function Closures() {
   const [selectedMonth, setSelectedMonth] = useState(String(currentMonth).padStart(2, "0"));
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [lastClosure, setLastClosure] = useState<Closure | null>(null);
+  const [hasRetroactiveUnclosed, setHasRetroactiveUnclosed] = useState(false);
 
   const [currentPeriodStats, setCurrentPeriodStats] = useState({
     income: 0,
@@ -55,7 +56,8 @@ export default function Closures() {
     count: 0,
     initial: 0,
     start: "",
-    end: ""
+    end: "",
+    error: null as string | null
   });
 
   useEffect(() => {
@@ -81,7 +83,20 @@ export default function Closures() {
 
       if (error) throw error;
       setClosures(data || []);
-      setLastClosure(data && data.length > 0 ? data[0] : null);
+      const last = data && data.length > 0 ? data[0] : null;
+      setLastClosure(last);
+
+      if (data && data.length > 0) {
+        const oldestClosure = data[data.length - 1];
+        const { count } = await supabase
+          .from("transactions")
+          .select("*", { count: 'exact', head: true })
+          .eq("organization_id", organization!.id)
+          .lt("date", oldestClosure.start_date);
+        setHasRetroactiveUnclosed((count || 0) > 0);
+      } else {
+        setHasRetroactiveUnclosed(false);
+      }
     } catch (err) {
       toast.error("Erro ao carregar históricos");
     } finally {
@@ -90,22 +105,47 @@ export default function Closures() {
   };
 
   const fetchCurrentMonthStats = async () => {
-    // Definimos o início como o dia seguinte ao último fechamento
-    // Se não houver fechamento anterior, usamos o início do mês selecionado
+    // Calculamos o primeiro dia do mês que o usuário selecionou
+    const targetStartDateStr = `${selectedYear}-${selectedMonth}-01`;
+    const targetStartDate = new Date(targetStartDateStr + "T12:00:00");
+
+    // Buscamos se existe algum fechamento que termina ANTES desse mês selecionado
+    // Como closures está ordenado por end_date desc, vamos filtrar
+    const previousClosures = closures.filter(c => new Date(c.end_date) < targetStartDate);
+    const immediatePrevious = previousClosures.length > 0 ? previousClosures[0] : null;
+
     let startDateStr = "";
-    if (lastClosure) {
-      const lastEnd = new Date(lastClosure.end_date + "T12:00:00");
+    if (immediatePrevious) {
+      const lastEnd = new Date(immediatePrevious.end_date + "T12:00:00");
       lastEnd.setDate(lastEnd.getDate() + 1);
       startDateStr = lastEnd.toISOString().split('T')[0];
     } else {
-      // Se não há fechamento anterior, buscamos desde o "início dos tempos" 
-      // para garantir que transações órfãs sejam capturadas.
+      // Se não há nenhum fechamento ANTES deste mês, buscamos desde o início dos tempos
       startDateStr = "2020-01-01";
     }
 
     // O fim é sempre o último dia do mês selecionado
-    const endDateStr = new Date(Number(selectedYear), Number(selectedMonth), 0).toLocaleDateString('en-CA');
-    const initialBalance = lastClosure?.final_balance || 0;
+    const lastDay = new Date(Number(selectedYear), Number(selectedMonth), 0);
+    const endDateStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+
+    // O saldo inicial deste período deve vir do último fechamento ANTES dele
+    const initialBalance = immediatePrevious?.final_balance || 0;
+
+    // Proteção: Verificar se este mês (especificamente este range) já está coberto por algum fechamento
+    const alreadyClosed = closures.find(c => c.end_date === endDateStr);
+
+    if (alreadyClosed) {
+      setCurrentPeriodStats({
+        income: 0,
+        expense: 0,
+        count: 0,
+        initial: 0,
+        start: alreadyClosed.start_date,
+        end: alreadyClosed.end_date,
+        error: `Este período (${months.find(m => m.value === selectedMonth)?.label}/${selectedYear}) já foi fechado.`
+      });
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -123,7 +163,8 @@ export default function Closures() {
         count: data?.length || 0,
         initial: initialBalance,
         start: startDateStr,
-        end: endDateStr
+        end: endDateStr,
+        error: null as string | null
       };
 
       data?.forEach(tx => {
@@ -224,6 +265,26 @@ export default function Closures() {
         </div>
       </div>
 
+      {hasRetroactiveUnclosed && (
+        <Card className="bg-destructive/5 border-destructive/20 border-l-4 border-l-destructive shadow-none">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-destructive">Lançamentos Retroativos Detectados</h4>
+                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[9px] uppercase font-black">Atenção</Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                Existem transações datadas <strong>antes</strong> do seu primeiro fechamento registrado que não foram incluídas em nenhum período.
+                Isso causa inconsistência no saldo inicial. Recomendamos excluir os fechamentos atuais e refazê-los a partir do mês desta transação.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className={`bg-card border-border border-l-4 ${isDifferentMonth ? 'border-l-orange-500/40' : 'border-l-primary/40'}`}>
         <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
           <div className="flex items-center gap-3">
@@ -262,14 +323,21 @@ export default function Closures() {
               {loading ? <Skeleton className="h-6 w-24" /> : <p className={`text-lg font-bold font-mono ${saldoProjetado >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(saldoProjetado)}</p>}
             </div>
             <div className="flex flex-col justify-end">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" onClick={handleClosePeriod} disabled={isClosingId === "current" || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" onClick={handleClosePeriod} disabled={isClosingId === "current" || currentPeriodStats.error !== null || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
                 {isClosingId === "current" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
                 Finalizar Mês
               </Button>
             </div>
           </div>
 
-          {lastClosure && currentPeriodStats.start && new Date(currentPeriodStats.start) > new Date(lastClosure.end_date) && (
+          {currentPeriodStats.error && (
+            <div className="mt-4 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-[10px] text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {currentPeriodStats.error}
+            </div>
+          )}
+
+          {!currentPeriodStats.error && lastClosure && currentPeriodStats.start && new Date(currentPeriodStats.start) > new Date(lastClosure.end_date) && (
             <div className="mt-4 p-2 bg-secondary/10 border border-border rounded-md text-[10px] text-muted-foreground flex items-center gap-2 italic">
               <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               Este fechamento iniciará exatamente onde o último parou ({formatDate(lastClosure.end_date)}).
