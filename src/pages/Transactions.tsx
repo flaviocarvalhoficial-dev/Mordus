@@ -25,6 +25,7 @@ import Reports from "./Reports";
 
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
+  payment_method_cat?: { name: string } | null;
 };
 
 const months = [
@@ -84,7 +85,7 @@ function TransactionsList() {
       setLoading(true);
       const { data: txs, error } = await supabase
         .from("transactions")
-        .select(`*, categories!category_id(name, color)`)
+        .select(`*, categories!category_id(name, color), payment_method_cat:categories!payment_method_id(name)`)
         .eq("organization_id", organization!.id)
         .order("date", { ascending: false });
 
@@ -256,6 +257,7 @@ function TransactionsList() {
                 <TableHead className="w-[100px] text-[11px] uppercase font-bold text-muted-foreground">Data</TableHead>
                 <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Descrição</TableHead>
                 <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</TableHead>
+                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Meio</TableHead>
                 <TableHead className="text-right text-[11px] uppercase font-bold text-muted-foreground">Valor</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
@@ -263,7 +265,7 @@ function TransactionsList() {
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                 ))
               ) : (
                 <>
@@ -272,6 +274,11 @@ function TransactionsList() {
                       <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap">{formatDate(tx.date)}</TableCell>
                       <TableCell className="max-w-[200px] truncate text-[13px] font-medium">{tx.description}</TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
+                          {tx.payment_method_cat?.name || tx.payment_method || "-"}
+                        </Badge>
+                      </TableCell>
                       <TableCell className={`text-right font-bold font-mono text-[13px] tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                         {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                       </TableCell>
@@ -286,14 +293,14 @@ function TransactionsList() {
                     </TableRow>
                   ))}
                   {!loading && sortedData.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
                   )}
                 </>
               )}
 
               {showTotals && sortedData.length > 0 && (
                 <TableRow className="bg-secondary/40 border-t-2 border-border/50 font-bold hover:bg-secondary/40">
-                  <TableCell colSpan={3} className="text-[11px] uppercase tracking-wider text-muted-foreground pl-6 py-4">Total Filtrado ({sortedData.length})</TableCell>
+                  <TableCell colSpan={4} className="text-[11px] uppercase tracking-wider text-muted-foreground pl-6 py-4">Total Filtrado ({sortedData.length})</TableCell>
                   <TableCell className="text-right py-4">
                     <div className="flex flex-col gap-0.5">
                       <div className="text-[10px] text-success font-mono">+{formatCurrency(totals.income)}</div>
