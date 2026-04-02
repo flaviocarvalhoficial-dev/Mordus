@@ -11,7 +11,9 @@ import Transactions from "./pages/Transactions";
 import Members from "./pages/Members";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import Support from "./pages/Support";
 import { Loader2 } from "lucide-react";
+import { AppLayout } from "@/components/AppLayout";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -52,6 +54,7 @@ const App = () => (
                 <Route path="/lancamentos" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
                 <Route path="/membros" element={<ProtectedRoute><Members /></ProtectedRoute>} />
                 <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/ajuda" element={<ProtectedRoute><AppLayout><Support /></AppLayout></ProtectedRoute>} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

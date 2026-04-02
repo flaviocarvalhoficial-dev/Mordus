@@ -19,6 +19,7 @@ import {
   Youtube,
   MessageCircle,
   LogOut,
+  BookOpen,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -120,6 +121,18 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/ajuda")}>
+              <NavLink
+                to="/ajuda"
+                className="text-sidebar-muted hover:text-primary transition-colors hover:bg-primary/5"
+              >
+                <BookOpen className="h-4 w-4" />
+                {!collapsed && <span>Guia de Uso</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => logout()}

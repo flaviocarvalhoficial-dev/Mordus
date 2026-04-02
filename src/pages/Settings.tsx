@@ -33,7 +33,8 @@ export default function Settings() {
     name: "", cnpj: "", address: "", pastor_name: "", phone: "",
     bank_name: "", bank_agency: "", bank_account: "",
     pix_key_type: "", pix_key: "",
-    instagram: "", facebook: "", youtube: "", whatsapp: ""
+    instagram: "", facebook: "", youtube: "", whatsapp: "",
+    closure_mode: "continuous"
   });
 
   // Form states for Profile
@@ -57,7 +58,8 @@ export default function Settings() {
         instagram: (organization as any).instagram || "",
         facebook: (organization as any).facebook || "",
         youtube: (organization as any).youtube || "",
-        whatsapp: (organization as any).whatsapp || ""
+        whatsapp: (organization as any).whatsapp || "",
+        closure_mode: (organization as any).closure_mode || "continuous"
       });
     }
   }, [organization]);
@@ -412,6 +414,24 @@ export default function Settings() {
                         <Label className="text-[12px]">Número da Conta</Label>
                         <Input value={orgForm.bank_account} onChange={e => setOrgForm({ ...orgForm, bank_account: e.target.value })} className="h-10" />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-secondary/20 p-6 rounded-2xl border border-border/50 transition-all duration-300 hover:border-primary/20">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[14px] font-bold flex items-center gap-2">
+                          Modo de Fechamento Flexível
+                          {orgForm.closure_mode === 'flexible' && <Badge className="bg-primary/10 text-primary text-[9px] h-4">Ativo</Badge>}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                          Permite fechar qualquer período sem exigir continuidade cronológica e oculta alertas de lançamentos órfãos. Recomendado para regularizações rápidas.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={orgForm.closure_mode === 'flexible'}
+                        onCheckedChange={(checked) => setOrgForm({ ...orgForm, closure_mode: checked ? 'flexible' : 'continuous' })}
+                      />
                     </div>
                   </div>
 

@@ -86,7 +86,9 @@ export default function Closures() {
       const last = data && data.length > 0 ? data[0] : null;
       setLastClosure(last);
 
-      if (data && data.length > 0) {
+      const isFlexible = (organization as any)?.closure_mode === 'flexible';
+
+      if (data && data.length > 0 && !isFlexible) {
         const oldestClosure = data[data.length - 1];
         const { count } = await supabase
           .from("transactions")
@@ -114,8 +116,14 @@ export default function Closures() {
     const previousClosures = closures.filter(c => new Date(c.end_date) < targetStartDate);
     const immediatePrevious = previousClosures.length > 0 ? previousClosures[0] : null;
 
+    const isFlexible = (organization as any)?.closure_mode === 'flexible';
     let startDateStr = "";
-    if (immediatePrevious) {
+
+    if (isFlexible) {
+      // Modo Flexível: O início é sempre o dia 1 do mês selecionado
+      startDateStr = targetStartDateStr;
+    } else if (immediatePrevious) {
+      // Modo Contínuo: O início é o dia seguinte ao último fechamento
       const lastEnd = new Date(immediatePrevious.end_date + "T12:00:00");
       lastEnd.setDate(lastEnd.getDate() + 1);
       startDateStr = lastEnd.toISOString().split('T')[0];
@@ -244,7 +252,12 @@ export default function Closures() {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Fechamento de Caixa</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground">Fechamento de Caixa</h2>
+            <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest bg-secondary/30 border-primary/20">
+              Modo {(organization as any)?.closure_mode === 'flexible' ? 'Flexível' : 'Contínuo'}
+            </Badge>
+          </div>
           <p className="text-muted-foreground text-[12px] mt-1">Audit trail e encerramento de períodos — {organization.name}</p>
         </div>
 

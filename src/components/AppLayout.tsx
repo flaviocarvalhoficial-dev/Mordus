@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLocation } from "react-router-dom";
-import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search } from "lucide-react";
+import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -32,6 +32,7 @@ const routeMap: Record<string, RouteInfo> = {
   "/lideranca": { name: "Liderança", section: "secretaria", icon: Crown },
   "/secretaria": { name: "Painel", section: "secretaria", icon: LayoutDashboard },
   "/configuracoes": { name: "Configurações", section: "sistema", icon: Settings },
+  "/ajuda": { name: "Guia de Uso", section: "sistema", icon: BookOpen },
 };
 
 const sectionLabels = {
