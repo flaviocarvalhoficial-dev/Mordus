@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,7 +49,9 @@ function formatCurrency(value: number) {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("pt-BR");
+  if (!dateStr) return "-";
+  // Usamos T12:00:00 para evitar que a conversão de fuso horário mude o dia
+  return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR");
 }
 
 function TransactionsList() {
@@ -67,6 +70,7 @@ function TransactionsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showTotals, setShowTotals] = useState(false);
 
   useEffect(() => {
     if (organization?.id) {
@@ -80,7 +84,7 @@ function TransactionsList() {
       setLoading(true);
       const { data: txs, error } = await supabase
         .from("transactions")
-        .select(`*, categories(name, color)`)
+        .select(`*, categories!category_id(name, color)`)
         .eq("organization_id", organization!.id)
         .order("date", { ascending: false });
 
@@ -148,8 +152,8 @@ function TransactionsList() {
     let bVal: any;
 
     if (sortField === "date") {
-      aVal = new Date(a.date).getTime();
-      bVal = new Date(b.date).getTime();
+      aVal = new Date(a.date + "T12:00:00").getTime();
+      bVal = new Date(b.date + "T12:00:00").getTime();
     } else if (sortField === "description") {
       aVal = a.description.toLowerCase();
       bVal = b.description.toLowerCase();
@@ -162,6 +166,14 @@ function TransactionsList() {
     if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
     return 0;
   });
+
+  const totals = useMemo(() => {
+    return sortedData.reduce((acc, tx) => {
+      if (tx.type === 'income') acc.income += tx.amount;
+      else acc.expense += tx.amount;
+      return acc;
+    }, { income: 0, expense: 0 });
+  }, [sortedData]);
 
   return (
     <div className="space-y-6">
@@ -225,6 +237,15 @@ function TransactionsList() {
                   {sortOrder === 'asc' ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
                 </Button>
               </div>
+
+              <div className="flex items-center gap-2 ml-2 border-l border-border pl-3">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">Totais</span>
+                <Switch
+                  checked={showTotals}
+                  onCheckedChange={setShowTotals}
+                  className="scale-75 data-[state=checked]:bg-primary"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -244,26 +265,46 @@ function TransactionsList() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}><TableCell colSpan={5}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                 ))
-              ) : sortedData.map((tx) => (
-                <TableRow key={tx.id} className="group transition-colors">
-                  <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap">{formatDate(tx.date)}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-[13px] font-medium">{tx.description}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
-                  <TableCell className={`text-right font-bold font-mono text-[13px] tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                    {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                  </TableCell>
-                  <TableCell>
-                    <PermissionGuard requireWrite>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                        <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                        <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+              ) : (
+                <>
+                  {sortedData.map((tx) => (
+                    <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/20">
+                      <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap">{formatDate(tx.date)}</TableCell>
+                      <TableCell className="max-w-[200px] truncate text-[13px] font-medium">{tx.description}</TableCell>
+                      <TableCell><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                      <TableCell className={`text-right font-bold font-mono text-[13px] tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                        {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                      </TableCell>
+                      <TableCell>
+                        <PermissionGuard requireWrite>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                            <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                        </PermissionGuard>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!loading && sortedData.length === 0 && (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
+                  )}
+                </>
+              )}
+
+              {showTotals && sortedData.length > 0 && (
+                <TableRow className="bg-secondary/40 border-t-2 border-border/50 font-bold hover:bg-secondary/40">
+                  <TableCell colSpan={3} className="text-[11px] uppercase tracking-wider text-muted-foreground pl-6 py-4">Total Filtrado ({sortedData.length})</TableCell>
+                  <TableCell className="text-right py-4">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="text-[10px] text-success font-mono">+{formatCurrency(totals.income)}</div>
+                      <div className="text-[10px] text-destructive font-mono">-{formatCurrency(totals.expense)}</div>
+                      <div className={`text-[13px] font-mono border-t border-border/50 pt-0.5 mt-0.5 ${totals.income - totals.expense >= 0 ? 'text-foreground' : 'text-destructive'}`}>
+                        {formatCurrency(totals.income - totals.expense)}
                       </div>
-                    </PermissionGuard>
+                    </div>
                   </TableCell>
+                  <TableCell />
                 </TableRow>
-              ))}
-              {!loading && sortedData.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -275,6 +316,7 @@ function TransactionsList() {
 
 export default function Transactions() {
   const { organization } = useChurch();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados...</div>;
 
@@ -305,8 +347,12 @@ export default function Transactions() {
             </div>
           </div>
 
-          <Tabs defaultValue="movimentacoes" className="w-full">
-            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50">
+          <Tabs
+            value={searchParams.get("tab") || "movimentacoes"}
+            onValueChange={(v) => setSearchParams({ tab: v })}
+            className="w-full"
+          >
+            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 overflow-x-auto no-scrollbar justify-start">
               <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
                 <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
               </TabsTrigger>
@@ -321,16 +367,16 @@ export default function Transactions() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0">
+            <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0 outline-none">
               <TransactionsList />
             </TabsContent>
-            <TabsContent value="categorias" className="mt-0 focus-visible:ring-0">
+            <TabsContent value="categorias" className="mt-0 focus-visible:ring-0 outline-none">
               <Categories />
             </TabsContent>
-            <TabsContent value="fechamento" className="mt-0 focus-visible:ring-0">
+            <TabsContent value="fechamento" className="mt-0 focus-visible:ring-0 outline-none">
               <Closures />
             </TabsContent>
-            <TabsContent value="relatorios" className="mt-0 focus-visible:ring-0">
+            <TabsContent value="relatorios" className="mt-0 focus-visible:ring-0 outline-none">
               <Reports />
             </TabsContent>
           </Tabs>

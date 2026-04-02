@@ -165,7 +165,7 @@ export default function ServicoSocial() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center text-[12px] font-mono font-medium text-muted-foreground">{new Date(a.delivery_date).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell className="text-center text-[12px] font-mono font-medium text-muted-foreground">{new Date(a.delivery_date + 'T12:00:00').toLocaleDateString("pt-BR")}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant="secondary" className="bg-secondary/50 text-foreground font-mono text-[10px] h-5">{a.items_count} ITENS</Badge>
                       </TableCell>

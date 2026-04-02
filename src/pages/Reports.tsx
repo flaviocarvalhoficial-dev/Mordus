@@ -21,7 +21,8 @@ function formatCurrency(value: number) {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("pt-BR");
+  if (!dateStr) return "-";
+  return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR");
 }
 
 export default function Reports() {
@@ -35,12 +36,15 @@ export default function Reports() {
     if (!organization?.id) return;
     setLoading(true);
     try {
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from("transactions")
-        .select(`*, categories(name)`)
+        .select(`*, categories!category_id(name)`)
         .eq("organization_id", organization.id)
-        .order("date", { ascending: false })
-        .limit(20);
+        .gte("date", thirtyDaysAgo)
+        .order("date", { ascending: false });
 
       if (error) throw error;
       setReportData(data || []);
@@ -53,16 +57,26 @@ export default function Reports() {
   };
 
   const generatePDF = async () => {
+    // Se não houver dados, buscamos primeiro
+    if (reportData.length === 0) {
+      await fetchReportData();
+    }
+
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-report", {
-        body: { churchId: organization?.id, type: "monthly" }
-      });
+      // Pequeno delay para garantir que o DOM está pronto se acabamos de carregar
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      if (error) throw error;
-      toast.success(data.message || "Relatório gerado com sucesso!");
+      // Armazenamos o título original para o nome do arquivo no Save as PDF
+      const originalTitle = document.title;
+      document.title = `Relatorio_Financeiro_${organization?.name?.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
+
+      window.print();
+
+      document.title = originalTitle;
+      toast.success("Relatório preparado para impressão!");
     } catch (err) {
-      toast.error("Erro ao gerar relatório automatizado");
+      toast.error("Erro ao gerar relatório");
     } finally {
       setIsGenerating(false);
     }
@@ -180,6 +194,13 @@ export default function Reports() {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-border border-dashed text-center space-y-1">
+              <p className="text-[12px] font-bold text-foreground">{organization?.name}</p>
+              {organization?.cnpj && <p className="text-[10px] text-muted-foreground uppercase tracking-wider">CNPJ: {organization.cnpj}</p>}
+              {organization?.address && <p className="text-[10px] text-muted-foreground leading-snug">{organization.address}</p>}
+              {organization?.phone && <p className="text-[10px] text-muted-foreground italic">Contato: {organization.phone}</p>}
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t border-border">

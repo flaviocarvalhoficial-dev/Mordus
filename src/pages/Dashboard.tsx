@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppLayout } from "@/components/AppLayout";
@@ -62,7 +62,7 @@ export default function Dashboard() {
     try {
       let query = supabase
         .from("transactions")
-        .select(`*, categories(name)`)
+        .select(`*, categories!category_id(name)`)
         .eq("organization_id", organization!.id);
 
       // Filtro de ano aproximado (Supabase range ou raw filter)
@@ -338,10 +338,12 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              <Button variant="outline" className="w-full mt-8 h-9 text-[12px] border-border group">
-                <Download className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
-                Baixar Relatório
-              </Button>
+              <Link to="/lancamentos?tab=relatorios" className="block w-full mt-8">
+                <Button variant="outline" className="w-full h-9 text-[12px] border-border group">
+                  <Eye className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
+                  Visualizar Relatório
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

@@ -31,12 +31,13 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
     const [categories, setCategories] = useState<{ id: string; name: string; type: string }[]>([]);
 
     const [form, setForm] = useState({
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toLocaleDateString('en-CA'),
         description: "",
         amount: "",
         category_id: "",
         type: "income" as "income" | "expense",
         payment_method: "Dinheiro",
+        payment_method_id: undefined as string | undefined,
         occasion: ""
     });
 
@@ -70,6 +71,7 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                 date: form.date,
                 description: form.description,
                 payment_method: form.payment_method,
+                payment_method_id: form.payment_method_id || null,
                 occasion: form.occasion || null
             }]);
 
@@ -78,12 +80,13 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
             toast.success("Lançamento rápido realizado!");
             setOpen(false);
             setForm({
-                date: new Date().toISOString().split('T')[0],
+                date: new Date().toLocaleDateString('en-CA'),
                 description: "",
                 amount: "",
                 category_id: "",
                 type: "income",
                 payment_method: "Dinheiro",
+                payment_method_id: undefined,
                 occasion: ""
             });
             if (onSuccess) onSuccess();
@@ -125,7 +128,7 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                     <div className="space-y-2">
                         <Label className="text-[12px]">Data</Label>
                         <DatePicker
-                            date={form.date ? parseISO(form.date) : undefined}
+                            date={form.date ? new Date(form.date + 'T12:00:00') : undefined}
                             onChange={(date) => setForm({
                                 ...form,
                                 date: date ? formatDateFns(date, "yyyy-MM-dd") : ""
@@ -151,25 +154,56 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="text-[12px]">Ocasião / Evento</Label>
-                        <Select
-                            value={form.occasion}
-                            onValueChange={(v) => {
-                                setForm({
-                                    ...form,
-                                    occasion: v,
-                                    description: v !== "Outros" ? v : form.description
-                                });
-                            }}
-                        >
-                            <SelectTrigger className="h-10"><SelectValue placeholder="Selecione a ocasião" /></SelectTrigger>
-                            <SelectContent>
-                                {OCCASIONS.map(oc => (
-                                    <SelectItem key={oc} value={oc}>{oc}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <Label className="text-[12px]">Ocasião / Evento</Label>
+                            <Select
+                                value={form.occasion}
+                                onValueChange={(v) => {
+                                    setForm({
+                                        ...form,
+                                        occasion: v,
+                                        description: v !== "Outros" ? v : form.description
+                                    });
+                                }}
+                            >
+                                <SelectTrigger className="h-10 text-[11px]"><SelectValue placeholder="Ocasião" /></SelectTrigger>
+                                <SelectContent>
+                                    {OCCASIONS.map(oc => (
+                                        <SelectItem key={oc} value={oc}>{oc}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[12px]">Meio</Label>
+                            <Select
+                                value={form.payment_method_id || form.payment_method}
+                                onValueChange={(v) => {
+                                    const selected = categories.find(c => c.id === v);
+                                    setForm({
+                                        ...form,
+                                        payment_method_id: selected ? v : undefined,
+                                        payment_method: selected ? selected.name : v
+                                    });
+                                }}
+                            >
+                                <SelectTrigger className="h-10 text-[11px]"><SelectValue placeholder="Meio" /></SelectTrigger>
+                                <SelectContent>
+                                    {categories.filter(c => c.type === 'method').map(c => (
+                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                    ))}
+                                    {/* Fallback para compatibilidade se não houver dinâmicos ainda */}
+                                    {categories.filter(c => c.type === 'method').length === 0 && (
+                                        <>
+                                            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                                            <SelectItem value="Pix">Pix</SelectItem>
+                                            <SelectItem value="Cartão">Cartão</SelectItem>
+                                        </>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="space-y-2">

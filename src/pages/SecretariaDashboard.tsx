@@ -122,9 +122,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                 <Badge variant="secondary" className="bg-secondary/50 text-[10px] uppercase font-bold tracking-tight">Overview</Badge>
               </div>
               <div className="mt-4">
-                <p className="text-[24px] font-black text-foreground tabular-nums leading-tight">
+                <div className="text-[24px] font-black text-foreground tabular-nums leading-tight">
                   {loading ? <Skeleton className="h-8 w-12" /> : kpi.value}
-                </p>
+                </div>
                 <p className="text-[12px] font-medium text-muted-foreground uppercase tracking-wider mt-1">{kpi.title}</p>
               </div>
             </CardContent>

@@ -116,7 +116,7 @@ export default function Calendario() {
               <div className="space-y-2">
                 <Label className="text-[13px]">Data *</Label>
                 <DatePicker
-                  date={form.date ? parseISO(form.date) : undefined}
+                  date={form.date ? new Date(form.date + 'T12:00:00') : undefined}
                   onChange={(date) => setForm({
                     ...form,
                     date: date ? formatDateFns(date, "yyyy-MM-dd") : ""

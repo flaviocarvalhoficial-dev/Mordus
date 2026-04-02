@@ -26,8 +26,8 @@ const OCCASIONS = [
     "Evento Especial",
     "Outros"
 ];
-const emptyItem = { category_id: "", amount: "", payment_method: "Pix", type: "income" as "income" | "expense" };
-const emptyForm = { date: new Date().toISOString().split('T')[0], description: "", event_id: "", occasion: "", items: [{ ...emptyItem }] };
+const emptyItem = { category_id: "", amount: "", payment_method: "Dinheiro", payment_method_id: "", type: "income" as "income" | "expense" };
+const emptyForm = { date: new Date().toLocaleDateString('en-CA'), description: "", event_id: "", occasion: "", items: [{ ...emptyItem }] };
 
 interface TransactionsDialogProps {
     onSuccess?: () => void;
@@ -66,7 +66,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                         type: editingTransaction.type,
                         category_id: editingTransaction.category_id || "",
                         amount: String(editingTransaction.amount),
-                        payment_method: editingTransaction.payment_method || "Pix"
+                        payment_method: editingTransaction.payment_method || "Dinheiro",
+                        payment_method_id: editingTransaction.payment_method_id || ""
                     }]
                 });
             } else {
@@ -110,7 +111,17 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
 
     const updateItem = (index: number, field: string, value: string) => {
         const newItems = [...form.items];
-        newItems[index] = { ...newItems[index], [field]: value } as any;
+        if (field === "payment_method" && value !== "") {
+            // Se for um UUID das categorias dinâmicas
+            const selectedMethod = categories.find(c => c.id === value && c.type === 'method');
+            if (selectedMethod) {
+                newItems[index] = { ...newItems[index], payment_method: selectedMethod.name, payment_method_id: selectedMethod.id } as any;
+            } else {
+                newItems[index] = { ...newItems[index], payment_method: value, payment_method_id: "" } as any;
+            }
+        } else {
+            newItems[index] = { ...newItems[index], [field]: value } as any;
+        }
         setForm({ ...form, items: newItems });
     };
 
@@ -140,6 +151,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     date: form.date,
                     description: form.description,
                     payment_method: item.payment_method,
+                    payment_method_id: item.payment_method_id || null,
                     event_id: eventId,
                     occasion: form.occasion || null
                 };
@@ -155,6 +167,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     date: form.date,
                     description: form.description,
                     payment_method: item.payment_method,
+                    payment_method_id: item.payment_method_id || null,
                     event_id: eventId as any,
                     occasion: form.occasion || null
                 }));
@@ -217,7 +230,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                         <div className="space-y-2">
                             <Label className="text-[13px]">Data do Lançamento</Label>
                             <DatePicker
-                                date={form.date ? parseISO(form.date) : undefined}
+                                date={form.date ? new Date(form.date + 'T12:00:00') : undefined}
                                 onChange={(date) => setForm({
                                     ...form,
                                     date: date ? formatDateFns(date, "yyyy-MM-dd") : ""
@@ -268,12 +281,22 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
 
                                     <div className="md:col-span-3 space-y-1">
                                         <Label className="text-[10px] text-muted-foreground uppercase">Meio</Label>
-                                        <Select value={item.payment_method} onValueChange={(v) => updateItem(index, "payment_method", v)}>
-                                            <SelectTrigger className="h-9 px-2 text-xs"><SelectValue /></SelectTrigger>
+                                        <Select
+                                            value={item.payment_method_id || item.payment_method}
+                                            onValueChange={(v) => updateItem(index, "payment_method", v)}
+                                        >
+                                            <SelectTrigger className="h-9 px-2 text-xs"><SelectValue placeholder="Meio" /></SelectTrigger>
                                             <SelectContent>
-                                                {paymentMethods.map((m) => (
-                                                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                                                {categories.filter(c => c.type === 'method').map((m) => (
+                                                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                                                 ))}
+                                                {categories.filter(c => c.type === 'method').length === 0 && (
+                                                    <>
+                                                        <SelectItem value="Pix">Pix</SelectItem>
+                                                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                                                        <SelectItem value="Cartão">Cartão</SelectItem>
+                                                    </>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>

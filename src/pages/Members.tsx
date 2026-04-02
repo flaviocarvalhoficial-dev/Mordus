@@ -234,7 +234,7 @@ function MembersList() {
                         )}
                       </div>
                       <DatePicker
-                        date={form.birth_date ? parseISO(form.birth_date) : undefined}
+                        date={form.birth_date ? new Date(form.birth_date + 'T12:00:00') : undefined}
                         onChange={(date) => setForm({
                           ...form,
                           birth_date: date ? formatDateFns(date, "yyyy-MM-dd") : ""

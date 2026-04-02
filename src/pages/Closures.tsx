@@ -34,7 +34,9 @@ export default function Closures() {
   const [currentPeriodStats, setCurrentPeriodStats] = useState({
     income: 0,
     expense: 0,
-    count: 0
+    count: 0,
+    start: "",
+    end: ""
   });
 
   useEffect(() => {
@@ -63,8 +65,8 @@ export default function Closures() {
 
   const fetchCurrentMonthStats = async () => {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA');
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-CA');
 
     try {
       const { data, error } = await supabase
@@ -76,7 +78,7 @@ export default function Closures() {
 
       if (error) throw error;
 
-      const stats = { income: 0, expense: 0, count: data?.length || 0 };
+      const stats = { income: 0, expense: 0, count: data?.length || 0, start, end };
       data?.forEach(tx => {
         if (tx.type === "income") stats.income += tx.amount;
         else stats.expense += tx.amount;
@@ -90,7 +92,7 @@ export default function Closures() {
     try {
       const { data, error } = await supabase
         .from("transactions")
-        .select(`*, categories(name)`)
+        .select(`*, categories!category_id(name)`)
         .eq("organization_id", organization!.id)
         .gte("date", closure.start_date)
         .lte("date", closure.end_date)
@@ -104,8 +106,8 @@ export default function Closures() {
 
   const handleClosePeriod = async () => {
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString('en-CA');
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-CA');
 
     setIsClosingId("current");
     try {
@@ -157,9 +159,16 @@ export default function Closures() {
 
       <Card className="bg-card border-border border-l-4 border-l-primary/40">
         <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Unlock className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm font-semibold">Período Atual (Em Aberto)</CardTitle>
+            <div>
+              <CardTitle className="text-sm font-semibold">Período Atual (Em Aberto)</CardTitle>
+              {currentPeriodStats.start && (
+                <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                  {formatDate(currentPeriodStats.start)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(currentPeriodStats.end)}
+                </p>
+              )}
+            </div>
           </div>
           <Badge variant="secondary" className="bg-success/15 text-success border-0 text-[10px]">Aguardando Fechamento</Badge>
         </CardHeader>
