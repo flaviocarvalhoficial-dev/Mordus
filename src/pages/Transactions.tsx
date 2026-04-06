@@ -25,7 +25,7 @@ import Reports from "./Reports";
 
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
-  payment_method_cat?: { name: string } | null;
+  payment_method_cat?: any;
 };
 
 const months = [
@@ -254,12 +254,12 @@ function TransactionsList() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[100px] text-[11px] uppercase font-bold text-muted-foreground">Data</TableHead>
-                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Descrição</TableHead>
-                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Categoria</TableHead>
-                <TableHead className="text-[11px] uppercase font-bold text-muted-foreground">Meio</TableHead>
-                <TableHead className="text-right text-[11px] uppercase font-bold text-muted-foreground">Valor</TableHead>
-                <TableHead className="w-16"></TableHead>
+                <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
+                <TableHead className="w-[35%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
+                <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
+                <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
+                <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
+                <TableHead className="w-[5%]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -271,15 +271,15 @@ function TransactionsList() {
                 <>
                   {sortedData.map((tx) => (
                     <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/20">
-                      <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap">{formatDate(tx.date)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate text-[13px] font-medium">{tx.description}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
-                      <TableCell>
+                      <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center">{formatDate(tx.date)}</TableCell>
+                      <TableCell className="text-[13px] font-medium text-center">{tx.description}</TableCell>
+                      <TableCell className="text-center"><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                      <TableCell className="text-center">
                         <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
                           {tx.payment_method_cat?.name || tx.payment_method || "-"}
                         </Badge>
                       </TableCell>
-                      <TableCell className={`text-right font-bold font-mono text-[13px] tabular-nums ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                      <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                         {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                       </TableCell>
                       <TableCell>
@@ -343,8 +343,8 @@ export default function Transactions() {
           </div>
         }
       >
-        <div className="animate-fade-in space-y-6">
-          <div className="flex items-center gap-3">
+        <div className="animate-fade-in space-y-6 print:space-y-0 print:m-0 print:p-0">
+          <div className="flex items-center gap-3 print:hidden">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
               <Banknote className="h-5 w-5 text-primary" />
             </div>
@@ -359,7 +359,7 @@ export default function Transactions() {
             onValueChange={(v) => setSearchParams({ tab: v })}
             className="w-full"
           >
-            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 overflow-x-auto no-scrollbar justify-start">
+            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 overflow-x-auto no-scrollbar justify-start print:hidden">
               <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
                 <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
               </TabsTrigger>

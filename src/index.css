@@ -135,20 +135,48 @@
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
 
   aside,
   nav,
-  button:not(.print-allow),
+  header,
+  footer,
+  [data-sidebar],
   .no-print {
     display: none !important;
   }
 
   body,
-  main {
+  main,
+  html {
     background: white !important;
     color: black !important;
     padding: 0 !important;
     margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Remove margins from elements hidden during print */
+  [class*="space-y-"] {
+    gap: 0 !important;
+  }
+
+  [class*="space-y-"]>* {
+    margin-top: 0 !important;
+  }
+
+  main {
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  button:not(.print-allow) {
+    display: none !important;
   }
 
   [role="dialog"] {
@@ -159,5 +187,39 @@
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  [data-radix-portal] {
+    position: static !important;
+    width: 100% !important;
   }
 }
+/* Paper-like preview for reports on screen */
+.report-paper {
+  background: white !important;
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  padding: 15mm;
+  margin: 1.5rem auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
+  color: black !important;
+  border-radius: 2px;
+}
+
+.dark .report-paper {
+  background: white !important;
+  color: black !important;
+}
+
+@media print {
+  .report-paper {
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+

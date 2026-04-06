@@ -63,7 +63,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-12 flex items-center justify-between border-b border-border bg-background px-6">
+        <header className="h-12 flex items-center justify-between border-b border-border bg-background px-6 print:hidden">
           <div className="flex items-center gap-2 text-[13px] w-1/3">
             <SidebarTrigger className="mr-2" />
             <SectionIcon className="h-4 w-4 text-primary" />
@@ -94,7 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto print:p-0">
           {children}
         </main>
       </div>
