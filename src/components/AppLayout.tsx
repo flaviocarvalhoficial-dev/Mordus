@@ -94,7 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 p-6 overflow-auto print:p-0">
+        <main className="flex-1 p-6 overflow-auto print:p-0 no-scrollbar">
           {children}
         </main>
       </div>

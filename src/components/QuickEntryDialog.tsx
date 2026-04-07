@@ -100,8 +100,8 @@ export function QuickEntryDialog({ onSuccess }: { onSuccess?: () => void }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="h-9 px-4 text-xs font-semibold gap-2 border-primary/20 hover:bg-primary/5 shadow-sm">
-                    <Plus className="h-4 w-4 text-primary" />
+                <Button variant="outline" className="h-9 px-4 text-xs font-semibold gap-2 border-primary/30 hover:bg-primary/10 shadow-sm text-primary hover:text-primary transition-all">
+                    <Plus className="h-4 w-4" />
                     Lançamento Rápido
                 </Button>
             </DialogTrigger>

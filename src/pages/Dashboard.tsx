@@ -27,6 +27,46 @@ const formatYAxis = (v: number) => {
   return `${(v / 1000).toFixed(1)}k`;
 };
 
+const Counter = ({ value, prefix = "", suffix = "", decimals = 0 }: { value: number, prefix?: string, suffix?: string, decimals?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = value;
+    if (end === 0) {
+      setDisplayValue(0);
+      return;
+    }
+    const duration = 800; // 0.8 seconds
+    const stepTime = 20; // 50fps
+    const totalSteps = duration / stepTime;
+    const increment = end / totalSteps;
+
+    const timer = setInterval(() => {
+      start += increment;
+      if ((increment > 0 && start >= end) || (increment < 0 && start <= end)) {
+        setDisplayValue(end);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(start);
+      }
+    }, stepTime);
+
+    return () => clearInterval(timer);
+  }, [value]);
+
+  return (
+    <span>
+      {prefix}
+      {displayValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      })}
+      {suffix}
+    </span>
+  );
+};
+
 export default function Dashboard() {
   const { organization, canManageFinances } = useChurch();
   const [year, setYear] = useState(new Date().getFullYear().toString());
@@ -138,10 +178,10 @@ export default function Dashboard() {
   const saldo = stats.entradas - stats.saidas;
 
   const summaryCards = [
-    { title: "Membros Ativos", value: stats.memberCount.toString(), icon: Users, color: "text-primary", primary: true, link: "/membros" },
-    { title: "Saldo Líquido", value: `R$ ${saldo.toLocaleString("pt-BR")}`, icon: Wallet, positive: saldo >= 0, primary: false },
-    { title: "Total Entradas", value: `R$ ${stats.entradas.toLocaleString("pt-BR")}`, icon: TrendingUp, positive: true },
-    { title: "Total Saídas", value: `R$ ${stats.saidas.toLocaleString("pt-BR")}`, icon: TrendingDown, positive: false },
+    { title: "Membros Ativos", value: stats.memberCount, suffix: "", decimals: 0, icon: Users, color: "text-primary", primary: true, link: "/membros" },
+    { title: "Saldo Líquido", value: saldo, prefix: "R$ ", decimals: 2, icon: Wallet, positive: saldo >= 0, primary: false },
+    { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", decimals: 2, icon: TrendingUp, positive: true },
+    { title: "Total Saídas", value: stats.saidas, prefix: "R$ ", decimals: 2, icon: TrendingDown, positive: false },
   ];
 
   const periodLabel = month === "all"
@@ -216,7 +256,12 @@ export default function Dashboard() {
                     <Skeleton className="h-7 w-[100px]" />
                   ) : (
                     <span className={`text-xl font-black font-mono tabular-nums ${card.title === 'Total Saídas' ? 'text-destructive' : 'text-foreground'}`}>
-                      {card.value}
+                      <Counter
+                        value={card.value}
+                        prefix={card.prefix}
+                        suffix={card.suffix}
+                        decimals={card.decimals}
+                      />
                     </span>
                   )}
                 </div>
