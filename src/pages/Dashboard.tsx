@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned, Eye, Bell } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, Layers, CalendarDays, MapPinned, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -205,18 +205,6 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {canManageFinances && (
               <>
-                <Button
-                  variant="outline"
-                  className="h-9 px-4 text-xs font-bold gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all shadow-sm rounded-xl"
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-updates', { detail: { lock: true } }))}
-                >
-                  <div className="relative">
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-destructive shadow-[0_0_5px_rgba(var(--destructive),0.5)]" />
-                  </div>
-                  Alertas de Tesouraria
-                </Button>
-                <div className="h-6 w-px bg-border mx-1" />
                 <QuickEntryDialog onSuccess={fetchDashboardData} />
                 <TransactionsDialog
                   onSuccess={fetchDashboardData}
@@ -376,7 +364,7 @@ export default function Dashboard() {
                   <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Secretaria</h4>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <UsersRound className="h-3.5 w-3.5 text-primary/60" />
+                      <Layers className="h-3.5 w-3.5 text-primary/60" />
                       <span className="text-[12px] text-muted-foreground">Departamentos</span>
                     </div>
                     <span className="text-[13px] font-bold font-mono text-foreground">

@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ContextSidebar } from "@/components/ContextSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useLocation, Outlet } from "react-router-dom";
-import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search, BookOpen } from "lucide-react";
+import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search, BookOpen, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -27,7 +27,7 @@ const routeMap: Record<string, RouteInfo> = {
   "/patrimonio": { name: "Patrimônio", section: "secretaria", icon: Building2 },
   "/documentos": { name: "Documentos", section: "secretaria", icon: FileIcon },
   "/congregacoes": { name: "Congregações", section: "secretaria", icon: Church },
-  "/departamentos": { name: "Departamentos", section: "secretaria", icon: UsersRound },
+  "/departamentos": { name: "Departamentos", section: "secretaria", icon: Layers },
   "/servico-social": { name: "Serviço Social", section: "secretaria", icon: Heart },
   "/calendario": { name: "Calendário", section: "secretaria", icon: CalendarDays },
   "/parceiros": { name: "Parceiros", section: "secretaria", icon: Handshake },
@@ -93,21 +93,6 @@ export function AppLayout({ children }: AppLayoutProps) {
               {greeting}, <span className="text-foreground font-medium">{settings.displayName || settings.churchName}</span>
             </span>
             <ThemeToggle />
-            <button
-              onClick={() => {
-                setLockUpdates(false);
-                setShowUpdates(true);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all group outline-none"
-            >
-              <div className="relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive shadow-[0_0_8px_rgba(var(--destructive),0.4)]" />
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider hidden lg:block">
-                Alertas
-              </span>
-            </button>
             <Link to="/configuracoes" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border overflow-hidden">
                 {profile?.avatar_url ? (

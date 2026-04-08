@@ -1,9 +1,9 @@
 import { useLocation, Link } from "react-router-dom";
 import {
-    Users, Building2, FileText, MapPinned, UsersRound,
+    Users, Building2, FileText, MapPinned,
     Heart, CalendarDays, Handshake, Crown, LayoutDashboard,
     ArrowUpDown, FolderOpen, Lock, Bell, AlertCircle, TrendingUp,
-    ChevronRight, ArrowRight, User, Settings, ShieldCheck, History
+    ChevronRight, ArrowRight, User, Settings, ShieldCheck, History, HardDrive, Layers
 } from "lucide-react";
 import { useChurch } from "@/contexts/ChurchContext";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ const SECRETARIA_ITEMS: SubItem[] = [
     { title: "Dashboard", url: "/membros?tab=resumo", icon: LayoutDashboard },
     { title: "Membros", url: "/membros?tab=membros", icon: Users },
     { title: "Liderança", url: "/membros?tab=lideranca", icon: Crown },
-    { title: "Departamentos", url: "/membros?tab=departamentos", icon: UsersRound },
+    { title: "Departamentos", url: "/membros?tab=departamentos", icon: Layers },
     { title: "Patrimônio", url: "/membros?tab=patrimonio", icon: Building2 },
     { title: "Documentos", url: "/membros?tab=documentos", icon: FileText },
     { title: "Congregações", url: "/membros?tab=congregacoes", icon: MapPinned },
@@ -54,6 +54,7 @@ const SISTEMA_ITEMS: SubItem[] = [
     { title: "Meu Perfil", url: "/configuracoes?tab=perfil", icon: User },
     { title: "Instituição", url: "/configuracoes?tab=igreja", icon: Building2 },
     { title: "Financeiro", url: "/configuracoes?tab=financeiro", icon: ArrowUpDown },
+    { title: "Armazenamento", url: "/configuracoes?tab=armazenamento", icon: HardDrive },
     { title: "Digital", url: "/configuracoes?tab=digital", icon: FileText },
     { title: "Configurações", url: "/configuracoes?tab=preferencias", icon: Settings },
     { title: "Equipe", url: "/configuracoes?tab=equipe", icon: ShieldCheck },

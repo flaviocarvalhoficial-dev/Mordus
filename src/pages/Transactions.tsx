@@ -199,9 +199,31 @@ function TransactionsList() {
       <Card className="bg-card border-border shadow-sm overflow-hidden">
         <CardHeader className="pb-3 bg-secondary/10">
           <div className="flex flex-col gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar por descrição..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar por descrição..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+              </div>
+              {showTotals && sortedData.length > 0 && (
+                <div className="flex items-center gap-4 px-4 py-1.5 bg-background rounded-xl border border-border/50 shadow-sm animate-in fade-in slide-in-from-right-2 duration-300">
+                  <div className="flex flex-col items-center">
+                    <span className="text-[9px] uppercase font-black text-success/70 leading-none mb-1 tracking-tighter">Entradas</span>
+                    <span className="text-[11px] font-mono font-black text-success">+{formatCurrency(totals.income)}</span>
+                  </div>
+                  <Separator orientation="vertical" className="h-6 opacity-30" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-[9px] uppercase font-black text-destructive/70 leading-none mb-1 tracking-tighter">Saídas</span>
+                    <span className="text-[11px] font-mono font-black text-destructive">-{formatCurrency(totals.expense)}</span>
+                  </div>
+                  <Separator orientation="vertical" className="h-6 opacity-30" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-[9px] uppercase font-black text-muted-foreground leading-none mb-1 tracking-tighter">Saldo</span>
+                    <span className={`text-[11px] font-mono font-black ${totals.income - totals.expense >= 0 ? 'text-foreground' : 'text-destructive'}`}>
+                      {formatCurrency(totals.income - totals.expense)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2 items-center">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -295,22 +317,6 @@ function TransactionsList() {
                     <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
                   )}
                 </>
-              )}
-
-              {showTotals && sortedData.length > 0 && (
-                <TableRow className="bg-secondary/40 border-t-2 border-border/50 font-bold hover:bg-secondary/40">
-                  <TableCell colSpan={4} className="text-[11px] uppercase tracking-wider text-muted-foreground pl-6 py-4">Total Filtrado ({sortedData.length})</TableCell>
-                  <TableCell className="text-right py-4">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="text-[10px] text-success font-mono">+{formatCurrency(totals.income)}</div>
-                      <div className="text-[10px] text-destructive font-mono">-{formatCurrency(totals.expense)}</div>
-                      <div className={`text-[13px] font-mono border-t border-border/50 pt-0.5 mt-0.5 ${totals.income - totals.expense >= 0 ? 'text-foreground' : 'text-destructive'}`}>
-                        {formatCurrency(totals.income - totals.expense)}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell />
-                </TableRow>
               )}
             </TableBody>
           </Table>

@@ -13,6 +13,8 @@ import { useChurch } from "@/contexts/ChurchContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { GoogleDriveConnector } from "@/components/GoogleDriveConnector";
+import { HardDrive } from "lucide-react";
 
 export default function Settings() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -460,6 +462,11 @@ export default function Settings() {
                   )}
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+          <TabsContent value="armazenamento" className="animate-in fade-in slide-in-from-left-2 duration-300">
+            <div className="max-w-2xl">
+              <GoogleDriveConnector />
             </div>
           </TabsContent>
 
