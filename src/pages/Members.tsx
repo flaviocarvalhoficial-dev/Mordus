@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock, ChevronRight, ChevronLeft } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,28 @@ function MembersList() {
     }
   };
 
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const validateStep = (step: number) => {
+    if (step === 1) {
+      if (!form.full_name) {
+        toast.error("O nome completo é obrigatório");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => prev - 1);
+  };
+
   const handleSave = async () => {
     if (!form.full_name || !organization?.id) return;
     setIsSaving(true);
@@ -154,6 +176,7 @@ function MembersList() {
         if (error) throw error;
       }
       setDialogOpen(false);
+      setCurrentStep(1);
       fetchMembers();
       toast.success(editingId ? "Membro atualizado" : "Membro cadastrado");
     } catch (err: any) {
@@ -177,146 +200,225 @@ function MembersList() {
           <p className="text-muted-foreground text-[12px] mt-0.5">Listagem e cadastro completo do rol de membros</p>
         </div>
         <PermissionGuard requireWrite>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); }}>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}>
             <Plus className="h-4 w-4 mr-2" />Novo Membro
           </Button>
         </PermissionGuard>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto p-0 border-primary/20 shadow-2xl">
-          <DialogHeader className="p-6 pb-0"><DialogTitle className="text-xl font-bold flex items-center gap-2"><UserPlus className="h-5 w-5 text-primary" /> {editingId ? "Editar Membro" : "Novo Membro"}</DialogTitle></DialogHeader>
-          <div className="py-4">
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-transparent border-b border-border rounded-none h-auto p-0">
-                <TabsTrigger value="basic" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 text-xs font-semibold uppercase tracking-wider">Básico</TabsTrigger>
-                <TabsTrigger value="contact" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 text-xs font-semibold uppercase tracking-wider">Contato</TabsTrigger>
-                <TabsTrigger value="church" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-3 text-xs font-semibold uppercase tracking-wider">Eclesiástico</TabsTrigger>
-              </TabsList>
-
-              <div className="p-6 space-y-6">
-                <TabsContent value="basic" className="mt-0 space-y-6">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="relative h-24 w-24 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-primary/20 group shadow-md">
-                      {form.avatar_url ? (
-                        <img src={form.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-                      ) : (
-                        <User className="h-10 w-10 text-muted-foreground" />
-                      )}
-                      <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
-                        <Camera className="h-6 w-6 text-white" />
-                        <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploading} />
-                      </label>
-                      {uploading && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-white" /></div>}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Foto de Perfil</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Nome completo *</Label>
-                      <Input value={form.full_name} placeholder="Nome do Membro" className="h-10" onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Sexo</Label>
-                      <Select value={form.gender || ""} onValueChange={(v) => setForm({ ...form, gender: v })}>
-                        <SelectTrigger className="h-10"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                        <SelectContent><SelectItem value="Masculino">Masculino</SelectItem><SelectItem value="Feminino">Feminino</SelectItem></SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-[13px]">Data de Nascimento</Label>
-                        {form.birth_date && (
-                          <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                            {calculateAge(form.birth_date)} anos
-                          </span>
-                        )}
-                      </div>
-                      <DatePicker
-                        date={form.birth_date ? new Date(form.birth_date + 'T12:00:00') : undefined}
-                        onChange={(date) => setForm({
-                          ...form,
-                          birth_date: date ? formatDateFns(date, "yyyy-MM-dd") : ""
-                        })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Status</Label>
-                      <Select value={form.status || "active"} onValueChange={(v) => setForm({ ...form, status: v })}>
-                        <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                        <SelectContent><SelectItem value="active">Ativo</SelectItem><SelectItem value="inactive">Inativo</SelectItem></SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="contact" className="mt-0 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Email</Label>
-                      <Input type="email" value={form.email || ""} placeholder="exemplo@igreja.com" className="h-10" onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Telefone</Label>
-                      <Input value={form.phone || ""} placeholder="(00) 00000-0000" className="h-10" onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                    </div>
-                    <div className="md:col-span-2 space-y-2">
-                      <Label className="text-[13px]">Endereço Completo</Label>
-                      <Input value={form.address || ""} placeholder="Rua, Número, Bairro, Cidade..." className="h-10" onChange={(e) => setForm({ ...form, address: e.target.value })} />
-                    </div>
-                  </div>
-                  <Separator className="my-6" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Nome do Pai</Label>
-                      <Input value={form.father_name || ""} placeholder="Nome Completo do Pai" className="h-10" onChange={(e) => setForm({ ...form, father_name: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Nome da Mãe</Label>
-                      <Input value={form.mother_name || ""} placeholder="Nome Completo da Mãe" className="h-10" onChange={(e) => setForm({ ...form, mother_name: e.target.value })} />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="church" className="mt-0 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Congregação</Label>
-                      <Select
-                        value={form.congregation_id || "none"}
-                        onValueChange={(v) => setForm({ ...form, congregation_id: v === "none" ? null : v })}
-                      >
-                        <SelectTrigger className="h-10"><SelectValue placeholder="Selecione a congregação" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Sede (Matriz)</SelectItem>
-                          {congregations.map((c) => (
-                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[13px]">Igreja de Procedência</Label>
-                      <Input value={form.previous_church || ""} placeholder="Se veio de outra igreja, qual?" className="h-10" onChange={(e) => setForm({ ...form, previous_church: e.target.value })} />
-                    </div>
-                    <div className="flex items-center space-x-3 h-10 px-3 bg-secondary/20 rounded-lg border border-border/50">
-                      <Checkbox
-                        id="is_baptized"
-                        checked={form.is_baptized}
-                        onCheckedChange={(checked) => setForm({ ...form, is_baptized: !!checked })}
-                      />
-                      <Label htmlFor="is_baptized" className="text-sm font-semibold leading-none cursor-pointer select-none">Já foi batizado(a)?</Label>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <Button className="w-full mt-4 h-11 text-base font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] transition-transform active:scale-[0.99]" onClick={handleSave} disabled={isSaving || uploading}>
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingId ? "Salvar Alterações" : "Concluir Cadastro"}
-                </Button>
+      <Dialog open={dialogOpen} onOpenChange={(o) => {
+        setDialogOpen(o);
+        if (!o) setCurrentStep(1);
+      }}>
+        <DialogContent className="sm:max-w-xl bg-card border-border p-0 overflow-hidden shadow-2xl ring-1 ring-primary/10">
+          <div className="bg-gradient-to-r from-primary/10 via-background to-primary/5 p-6 border-b border-border/50">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+                <UserPlus className="h-5 w-5 text-primary" />
               </div>
-            </Tabs>
+              <div>
+                <DialogTitle className="text-xl font-bold tracking-tight">
+                  {editingId ? "Editar Membro" : "Novo Membro"}
+                </DialogTitle>
+                <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-0.5">
+                  Passo {currentStep} de 3
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className="flex-1 flex items-center gap-2">
+                  <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${currentStep >= s ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]" : "bg-secondary"}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-6 max-h-[65vh] overflow-y-auto custom-scrollbar">
+            {currentStep === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative h-24 w-24 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-primary/20 group shadow-md">
+                    {form.avatar_url ? (
+                      <img src={form.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-10 w-10 text-muted-foreground" />
+                    )}
+                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+                      <Camera className="h-6 w-6 text-white" />
+                      <input type="file" className="hidden" accept="image/*" onChange={uploadAvatar} disabled={uploading} />
+                    </label>
+                    {uploading && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-white" /></div>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Foto de Perfil</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[13px] font-semibold">Nome completo *</Label>
+                    <Input value={form.full_name} placeholder="Nome do Membro" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Sexo</Label>
+                    <Select value={form.gender || ""} onValueChange={(v) => setForm({ ...form, gender: v })}>
+                      <SelectTrigger className="h-10 bg-secondary/10"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent><SelectItem value="Masculino">Masculino</SelectItem><SelectItem value="Feminino">Feminino</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[13px] font-semibold">Data de Nascimento</Label>
+                      {form.birth_date && (
+                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                          {calculateAge(form.birth_date)} anos
+                        </span>
+                      )}
+                    </div>
+                    <DatePicker
+                      date={form.birth_date ? new Date(form.birth_date + 'T12:00:00') : undefined}
+                      onChange={(date) => setForm({
+                        ...form,
+                        birth_date: date ? formatDateFns(date, "yyyy-MM-dd") : ""
+                      })}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="text-[13px] font-semibold">Status de Cadastro</Label>
+                    <Select value={form.status || "active"} onValueChange={(v) => setForm({ ...form, status: v })}>
+                      <SelectTrigger className="h-10 bg-secondary/10"><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="active">Ativo (No Rol)</SelectItem><SelectItem value="inactive">Inativo / Afastado</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Email</Label>
+                    <Input type="email" value={form.email || ""} placeholder="exemplo@igreja.com" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Telefone / WhatsApp</Label>
+                    <Input value={form.phone || ""} placeholder="(00) 00000-0000" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[13px] font-semibold">Endereço Residencial</Label>
+                    <Input value={form.address || ""} placeholder="Rua, Número, Bairro, Cidade..." className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                  </div>
+                </div>
+
+                <Separator className="opacity-50" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Filiação: Pai</Label>
+                    <Input value={form.father_name || ""} placeholder="Nome do Pai" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, father_name: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Filiação: Mãe</Label>
+                    <Input value={form.mother_name || ""} placeholder="Nome da Mãe" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, mother_name: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 3 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Congregação</Label>
+                    <Select
+                      value={form.congregation_id || "none"}
+                      onValueChange={(v) => setForm({ ...form, congregation_id: v === "none" ? null : v })}
+                    >
+                      <SelectTrigger className="h-10 bg-secondary/10"><SelectValue placeholder="Selecione a congregação" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sede (Matriz)</SelectItem>
+                        {congregations.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[13px] font-semibold">Igreja de Procedência</Label>
+                    <Input value={form.previous_church || ""} placeholder="Qual igreja frequentava?" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, previous_church: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-2 flex items-center space-x-3 h-12 px-4 bg-primary/5 rounded-2xl border border-primary/20 transition-all hover:bg-primary/10">
+                    <Checkbox
+                      id="is_baptized"
+                      checked={form.is_baptized}
+                      onCheckedChange={(checked) => setForm({ ...form, is_baptized: !!checked })}
+                      className="h-5 w-5"
+                    />
+                    <div className="space-y-0.5">
+                      <Label htmlFor="is_baptized" className="text-[13px] font-bold leading-none cursor-pointer">Batizado nas Águas</Label>
+                      <p className="text-[10px] text-muted-foreground">Marque se o membro já passou pelo batismo bíblico.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Card className="bg-secondary/10 border-border/50 overflow-hidden rounded-2xl mt-8">
+                  <div className="bg-secondary/20 p-4 border-b border-border/50">
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Resumo do Cadastro</p>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Membro:</span>
+                      <span className="font-bold">{form.full_name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant="secondary" className="text-[10px]">{form.status === 'active' ? 'ATVO' : 'INATIVO'}</Badge>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Congregação:</span>
+                      <span className="font-bold">{congregations.find(c => c.id === form.congregation_id)?.name || "Sede"}</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 bg-secondary/10 border-t border-border/50 flex items-center gap-3">
+            {currentStep > 1 && (
+              <Button
+                variant="outline"
+                className="flex-1 h-11 font-bold group border-border/50 bg-background"
+                onClick={prevStep}
+                disabled={isSaving}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Voltar
+              </Button>
+            )}
+
+            {currentStep < 3 ? (
+              <Button
+                className="flex-[2] h-11 font-bold group shadow-lg shadow-primary/10"
+                onClick={nextStep}
+              >
+                Continuar
+                <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            ) : (
+              <Button
+                className="flex-[2] h-11 font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all bg-gradient-to-r from-primary to-primary/80"
+                onClick={handleSave}
+                disabled={isSaving || uploading}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>{editingId ? "Salvar Alterações" : "Concluir Cadastro"}</>
+                )}
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

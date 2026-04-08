@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User } from "lucide-react";
+import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,26 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
     documents: 0
   });
 
+  const [incompleteProfiles, setIncompleteProfiles] = useState(0);
+
   useEffect(() => {
     if (organization?.id) {
       fetchCounts();
       fetchRecentActivity();
+      fetchIncompleteProfiles();
     }
   }, [organization?.id]);
+
+  const fetchIncompleteProfiles = async () => {
+    try {
+      const { count } = await supabase
+        .from("members")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", organization!.id)
+        .or("phone.is.null,email.is.null,avatar_url.is.null");
+      setIncompleteProfiles(count || 0);
+    } catch (err) { }
+  };
 
   const fetchCounts = async () => {
     setLoading(true);
@@ -130,6 +144,60 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">Ações Recomendadas</Badge>
+          <div className="h-px flex-1 bg-border/50" />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card
+            className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-primary"
+            onClick={() => onNavigate?.("membros")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <UserPlus className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[13px] font-bold leading-tight">Completar Perfis</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{incompleteProfiles} membros com dados faltantes</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="bg-card border-border shadow-sm hover:border-orange-500/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-orange-500"
+            onClick={() => onNavigate?.("calendario")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
+                <CalendarDays className="h-5 w-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-[13px] font-bold leading-tight">Próximos Eventos</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{counts.events} eventos agendados</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="bg-card border-border shadow-sm hover:border-success/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-success"
+            onClick={() => onNavigate?.("documentos")}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-[13px] font-bold leading-tight">Doc. Pendentes</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Organizar arquivo da igreja</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
