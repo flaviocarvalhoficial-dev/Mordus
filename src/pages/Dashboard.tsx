@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned, Eye } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned, Eye, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -179,8 +179,8 @@ export default function Dashboard() {
   const summaryCards = [
     { title: "Membros Ativos", value: stats.memberCount, suffix: "", decimals: 0, icon: Users, color: "text-primary", primary: true, link: "/membros" },
     { title: "Saldo Líquido", value: saldo, prefix: "R$ ", decimals: 2, icon: Wallet, positive: saldo >= 0, primary: false },
-    { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", decimals: 2, icon: TrendingUp, positive: true },
-    { title: "Total Saídas", value: stats.saidas, prefix: "R$ ", decimals: 2, icon: TrendingDown, positive: false },
+    { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", decimals: 2, icon: TrendingUp, positive: true, muted: true },
+    { title: "Total Saídas", value: stats.saidas, prefix: "R$ ", decimals: 2, icon: TrendingDown, positive: false, muted: true },
   ];
 
   const periodLabel = month === "all"
@@ -205,6 +205,18 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {canManageFinances && (
               <>
+                <Button
+                  variant="outline"
+                  className="h-9 px-4 text-xs font-bold gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all shadow-sm rounded-xl"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-updates', { detail: { lock: true } }))}
+                >
+                  <div className="relative">
+                    <Bell className="h-4 w-4" />
+                    <span className="absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-destructive shadow-[0_0_5px_rgba(var(--destructive),0.5)]" />
+                  </div>
+                  Alertas de Tesouraria
+                </Button>
+                <div className="h-6 w-px bg-border mx-1" />
                 <QuickEntryDialog onSuccess={fetchDashboardData} />
                 <TransactionsDialog
                   onSuccess={fetchDashboardData}
@@ -243,7 +255,7 @@ export default function Dashboard() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground/60'}`} />
                     <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
                   </div>
                   {card.link && (
@@ -254,7 +266,7 @@ export default function Dashboard() {
                   {loading ? (
                     <Skeleton className="h-7 w-[100px]" />
                   ) : (
-                    <span className={`text-xl font-black font-mono tabular-nums ${card.title === 'Total Saídas' ? 'text-destructive' : 'text-foreground'}`}>
+                    <span className={`text-xl font-black font-mono tabular-nums text-foreground`}>
                       <Counter
                         value={card.value}
                         prefix={card.prefix}
@@ -271,8 +283,8 @@ export default function Dashboard() {
 
         <div className={`grid gap-4 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
           {canManageFinances && (
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+              <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-[15px] font-semibold">Fluxo de Caixa Mensal</CardTitle>
                   <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
@@ -309,8 +321,8 @@ export default function Dashboard() {
             </Card>
           )}
 
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+            <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-semibold">Detalhamento</CardTitle>
               {canManageFinances && (
                 <div className="flex items-center gap-2">
@@ -337,13 +349,13 @@ export default function Dashboard() {
                     )}
                     <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-[12px] text-muted-foreground">Dízimos</span>
-                      <span className="text-[13px] font-bold font-mono text-success">
+                      <span className="text-[13px] font-bold font-mono text-foreground">
                         {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
                       </span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border">
                       <span className="text-[12px] text-muted-foreground">Ofertas</span>
-                      <span className="text-[13px] font-bold font-mono text-success">
+                      <span className="text-[13px] font-bold font-mono text-foreground">
                         {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
                       </span>
                     </div>
@@ -352,7 +364,7 @@ export default function Dashboard() {
                       {loading ? (
                         <Skeleton className="h-5 w-24" />
                       ) : (
-                        <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-success" : "text-destructive"}`}>
+                        <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-primary" : "text-destructive"}`}>
                           {`R$ ${saldo.toLocaleString("pt-BR")}`}
                         </span>
                       )}
@@ -393,8 +405,8 @@ export default function Dashboard() {
         </div>
 
         {canManageFinances && (
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-2">
+          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+            <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
               <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
             </CardHeader>
             <CardContent className="pt-2 px-2 pb-0">

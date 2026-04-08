@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User, UserPlus } from "lucide-react";
+import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User, UserPlus, Bell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,10 +128,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
   };
 
   const kpis = [
-    { title: "Membros Ativos", value: counts.members, icon: Users, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20", tab: "membros" },
-    { title: "Departamentos", value: counts.departments, icon: UsersRound, color: "text-chart-blue", bg: "bg-chart-blue/10", border: "border-chart-blue/20", tab: "departamentos" },
-    { title: "Patrimônio", value: counts.assets, icon: Landmark, color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20", tab: "patrimonio" },
-    { title: "Congregações", value: counts.congregations, icon: MapPinned, color: "text-success", bg: "bg-success/10", border: "border-success/20", tab: "congregacoes" },
+    { title: "Membros Ativos", value: counts.members, icon: Users, color: "text-primary", bg: "bg-primary/5", border: "border-primary/10", tab: "membros" },
+    { title: "Departamentos", value: counts.departments, icon: UsersRound, color: "text-primary/70", bg: "bg-secondary/50", border: "border-border/50", tab: "departamentos" },
+    { title: "Patrimônio", value: counts.assets, icon: Landmark, color: "text-primary/70", bg: "bg-secondary/50", border: "border-border/50", tab: "patrimonio" },
+    { title: "Congregações", value: counts.congregations, icon: MapPinned, color: "text-primary/70", bg: "bg-secondary/50", border: "border-border/50", tab: "congregacoes" },
   ];
 
   const quickLinks = [
@@ -177,14 +177,29 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           <div className="h-px flex-1 bg-border/50" />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card
-            className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-primary"
+            className="bg-primary/5 border-primary/20 shadow-sm hover:bg-primary/10 transition-all cursor-pointer group rounded-2xl"
+            onClick={() => window.dispatchEvent(new CustomEvent('open-updates', { detail: { lock: true } }))}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <Bell className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[13px] font-bold leading-tight text-primary">Alertas de Secretaria</p>
+                <p className="text-[11px] text-primary/70 mt-1">Aniversariantes e novos membros</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl"
             onClick={() => onNavigate?.("membros")}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <UserPlus className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <UserPlus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div>
                 <p className="text-[13px] font-bold leading-tight">Completar Perfis</p>
@@ -194,12 +209,12 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           </Card>
 
           <Card
-            className="bg-card border-border shadow-sm hover:border-orange-500/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-orange-500"
+            className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl"
             onClick={() => onNavigate?.("calendario")}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
-                <CalendarDays className="h-5 w-5 text-orange-500" />
+              <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <CalendarDays className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div>
                 <p className="text-[13px] font-bold leading-tight">Próximos Eventos</p>
@@ -209,12 +224,12 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           </Card>
 
           <Card
-            className="bg-card border-border shadow-sm hover:border-success/30 transition-all cursor-pointer group rounded-2xl border-l-4 border-l-success"
+            className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl"
             onClick={() => onNavigate?.("documentos")}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center shrink-0">
-                <FileText className="h-5 w-5 text-success" />
+              <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
               <div>
                 <p className="text-[13px] font-bold leading-tight">Doc. Pendentes</p>
@@ -226,12 +241,12 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-4 border-t-primary/40">
-          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4 flex flex-row items-center justify-between">
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+          <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-primary" /> Aniversariantes do Mês
+              <CalendarDays className="h-4 w-4 text-primary/60" /> Aniversariantes do Mês
             </CardTitle>
-            <Badge variant="outline" className="text-[10px] font-bold bg-background uppercase">{new Date().toLocaleString('pt-BR', { month: 'long' })}</Badge>
+            <Badge variant="outline" className="text-[10px] font-bold bg-background uppercase border-border/50">{new Date().toLocaleString('pt-BR', { month: 'long' })}</Badge>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
@@ -247,7 +262,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
               ) : upcomingBirthdays.map((m, i) => (
                 <div key={i} className="flex items-center justify-between group p-2 hover:bg-secondary/5 rounded-xl transition-all">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:border-primary/30 transition-all font-bold text-primary text-xs">
+                    <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center border border-border group-hover:border-primary/20 transition-all font-bold text-muted-foreground text-xs">
                       {new Date(m.birth_date).getDate()}
                     </div>
                     <div>
@@ -256,7 +271,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                     </div>
                   </div>
                   <div className="h-8 w-8 rounded-full bg-secondary/50 flex items-center justify-center">
-                    <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] p-0 h-6 w-6 rounded-full flex items-center justify-center">🎂</Badge>
+                    <Badge variant="secondary" className="bg-primary/5 text-primary/60 text-[10px] p-0 h-6 w-6 rounded-full flex items-center justify-center">🎂</Badge>
                   </div>
                 </div>
               ))}
@@ -264,10 +279,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-4 border-t-primary/40">
-          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4">
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+          <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" /> Últimas Admissões
+              <Users className="h-4 w-4 text-primary/60" /> Últimas Admissões
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">

@@ -7,8 +7,9 @@ import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileT
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { UpdatesSheet } from "@/components/UpdatesSheet";
 
 interface RouteInfo {
   name: string;
@@ -59,6 +60,17 @@ export function AppLayout({ children }: AppLayoutProps) {
   const route = routeMap[location.pathname] || { name: "Página", section: "sistema" as const, icon: Home };
   const greeting = useMemo(() => getGreeting(), []);
   const SectionIcon = route.icon;
+  const [showUpdates, setShowUpdates] = useState(false);
+  const [lockUpdates, setLockUpdates] = useState(false);
+
+  useEffect(() => {
+    const handleOpenUpdates = (e: any) => {
+      setShowUpdates(true);
+      setLockUpdates(!!e.detail?.lock);
+    };
+    window.addEventListener("open-updates", handleOpenUpdates as any);
+    return () => window.removeEventListener("open-updates", handleOpenUpdates as any);
+  }, []);
 
   return (
     <div className="min-h-screen flex w-full overflow-hidden hide-all-scrollbars">
@@ -81,9 +93,20 @@ export function AppLayout({ children }: AppLayoutProps) {
               {greeting}, <span className="text-foreground font-medium">{settings.displayName || settings.churchName}</span>
             </span>
             <ThemeToggle />
-            <button className="relative text-muted-foreground hover:text-foreground transition-colors">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+            <button
+              onClick={() => {
+                setLockUpdates(false);
+                setShowUpdates(true);
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30 transition-all group outline-none"
+            >
+              <div className="relative">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive shadow-[0_0_8px_rgba(var(--destructive),0.4)]" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-wider hidden lg:block">
+                Alertas
+              </span>
             </button>
             <Link to="/configuracoes" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border overflow-hidden">
@@ -100,6 +123,13 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children || <Outlet />}
         </main>
       </div>
+
+      <UpdatesSheet
+        open={showUpdates}
+        onOpenChange={setShowUpdates}
+        defaultTab={route.section === 'secretaria' ? 'secretary' : 'treasury'}
+        lockTab={lockUpdates}
+      />
     </div>
   );
 }
