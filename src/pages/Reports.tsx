@@ -12,6 +12,11 @@ import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
 import type { Database } from "@/types/database.types";
 
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { addDays, subDays, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string } | null;
 };
@@ -31,22 +36,24 @@ interface ReportTemplateProps {
   totalIncome: number;
   totalExpense: number;
   balance: number;
+  periodLabel: string;
 }
 
-const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, balance }: ReportTemplateProps) => (
-  <div className="report-paper flex flex-col justify-between">
+const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, balance, periodLabel }: ReportTemplateProps) => (
+  <div className="report-paper flex flex-col justify-between print:m-0 print:p-[20mm] bg-white">
     <div className="w-full">
       <div className="text-center border-b-2 border-primary/20 pb-8 mb-12 pt-4 relative">
         <div className="absolute top-0 right-0 text-[8px] text-muted-foreground/60 font-mono uppercase tracking-tighter">
           {`DOCRef: ${organization?.name?.substring(0, 3)}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`}
         </div>
         <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-primary/80">{organization?.name}</h2>
-        <h1 className="text-3xl font-black text-foreground mt-4 uppercase tracking-tighter">Demonstrativo de Fluxo de Caixa</h1>
+        <h1 className="text-3xl font-black text-foreground mt-4 uppercase tracking-tighter leading-tight">Demonstrativo de Fluxo de Caixa</h1>
         <div className="flex items-center justify-between mt-10 text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">
-          <span>Período: Últimos 30 dias</span>
+          <span>Período: {periodLabel}</span>
           <span>Emitido em: {new Date().toLocaleDateString("pt-BR")}</span>
         </div>
       </div>
+      {/* ... rest of the template ... */}
 
       <div className="grid grid-cols-3 gap-4">
         <div className="p-4 rounded-xl border border-border bg-secondary/10">
@@ -98,25 +105,39 @@ const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, b
   </div >
 );
 
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
+
 export default function Reports() {
   const { organization } = useChurch();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState<Transaction[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+
+  const getPeriodLabel = () => {
+    if (!dateRange?.from) return "Período não selecionado";
+    if (!dateRange?.to) return `A partir de ${format(dateRange.from, "dd/MM/yyyy")}`;
+    return `${format(dateRange.from, "dd/MM/yyyy")} a ${format(dateRange.to, "dd/MM/yyyy")}`;
+  };
 
   const fetchReportData = async (shouldOpenPreview = true) => {
-    if (!organization?.id) return;
+    if (!organization?.id || !dateRange?.from) return;
     setLoading(true);
     try {
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+      const from = dateRange.from.toISOString().split('T')[0];
+      const to = (dateRange.to || dateRange.from).toISOString().split('T')[0];
 
       const { data, error } = await supabase
         .from("transactions")
         .select(`*, categories!category_id(name)`)
         .eq("organization_id", organization.id)
-        .gte("date", thirtyDaysAgo)
+        .gte("date", from)
+        .lte("date", to)
         .order("date", { ascending: false });
 
       if (error) throw error;
@@ -130,26 +151,46 @@ export default function Reports() {
   };
 
   const generatePDF = async () => {
-    // Se não houver dados, buscamos primeiro mas SEM abrir o modal automaticamente
-    // (a versão oculta print:block cuidará da impressão)
     if (reportData.length === 0) {
       await fetchReportData(false);
     }
 
+    // Pegamos a organização atualizada caso não tenha sido carregada
+    if (!organization) return;
+
     setIsGenerating(true);
+    const toastId = toast.loading("Gerando arquivo PDF...");
+
     try {
       // Pequeno delay para garantir que o DOM está pronto com os novos dados
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      const originalTitle = document.title;
-      document.title = `Relatorio_Financeiro_${organization?.name?.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
+      const element = document.getElementById('report-to-print');
+      if (!element) throw new Error("Elemento do relatório não encontrado");
 
-      window.print();
+      const opt = {
+        margin: 0,
+        filename: `Relatorio_${organization.name?.replace(/\s+/g, '_')}_${format(new Date(), "dd-MM-yyyy")}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+          scrollY: 0,
+          scrollX: 0
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      } as const;
 
-      document.title = originalTitle;
-      toast.success("Relatório preparado para impressão!");
+      // No modo download direto, precisamos garantir que o elemento esteja visível temporariamente
+      // ou renderizá-lo em um local que o html2pdf consiga capturar sem interferência da UI
+      await html2pdf().set(opt).from(element).save();
+
+      toast.success("Download concluído com sucesso!", { id: toastId });
     } catch (err) {
-      toast.error("Erro ao gerar relatório");
+      console.error("Erro no PDF:", err);
+      toast.error("Erro ao gerar o download do PDF", { id: toastId });
     } finally {
       setIsGenerating(false);
     }
@@ -170,67 +211,81 @@ export default function Reports() {
         <CardHeader>
           <CardTitle className="text-sm font-semibold">Gerar Relatórios</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-[13px] text-muted-foreground">
-            Selecione o período para gerar o relatório de prestação de contas.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4 bg-secondary/30 border-border hover:bg-secondary/50 transition-all cursor-pointer group">
+        <CardContent className="space-y-6">
+          <div className="flex flex-col md:flex-row items-end gap-4">
+            <div className="flex-1 space-y-2">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Período do Relatório</label>
+              <DateRangePicker
+                date={dateRange}
+                onDateChange={setDateRange}
+                className="w-full md:w-[320px]"
+              />
+            </div>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Button variant="outline" className="flex-1 md:w-32" onClick={() => fetchReportData(true)} disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ver Prévia"}
+              </Button>
+              <Button className="flex-1 md:w-32 bg-primary text-primary-foreground" onClick={generatePDF} disabled={isGenerating}>
+                {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gerar PDF"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <Card className="p-4 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group" onClick={() => {
+              setDateRange({ from: subDays(new Date(), 30), to: new Date() });
+            }}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold text-foreground">Últimos 30 Dias</p>
-                  <p className="text-[11px] text-muted-foreground">Resumo geral das movimentações</p>
+                  <p className="text-[13px] font-semibold">Últimos 30 Dias</p>
+                  <p className="text-[11px] text-muted-foreground">Configuração rápida</p>
                 </div>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => fetchReportData(true)} disabled={loading}>
-                  {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5 mr-2" />}
-                  Prévia
-                </Button>
-                <Button size="sm" className="flex-1 bg-primary text-primary-foreground" onClick={generatePDF} disabled={isGenerating}>
-                  {isGenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-2" />}
-                  Gerar PDF
-                </Button>
               </div>
             </Card>
 
-            <Card className="p-4 border-border border-dashed opacity-60">
+            <Card className="p-4 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group" onClick={() => {
+              const now = new Date();
+              setDateRange({
+                from: new Date(now.getFullYear(), now.getMonth(), 1),
+                to: now
+              });
+            }}>
               <div className="flex items-center gap-3">
-                <FileText className="h-10 w-10 text-muted-foreground" />
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="text-[13px] font-medium text-foreground">Relatório Anual 2025</p>
-                  <p className="text-[11px] text-muted-foreground">Consolidado do ano anterior</p>
+                  <p className="text-[13px] font-semibold">Mês Atual</p>
+                  <p className="text-[11px] text-muted-foreground">Movimentações de {format(new Date(), "MMMM", { locale: ptBR })}</p>
                 </div>
               </div>
-              <Button size="sm" className="mt-4 w-full" variant="outline" disabled>
-                Disponível em breve
-              </Button>
             </Card>
           </div>
         </CardContent>
       </Card>
 
-      {reportData.length > 0 && (
-        <div className="hidden print:block print:bg-white print:text-black print:m-0 print:p-0 print-content-root">
+      <div className="absolute left-[-9999px] top-0 overflow-hidden">
+        <div id="report-to-print" className="bg-white text-black p-0 m-0 w-[210mm] leading-none">
           <ReportTemplate
             organization={organization}
             reportData={reportData}
             totalIncome={totalIncome}
             totalExpense={totalExpense}
             balance={balance}
+            periodLabel={getPeriodLabel()}
           />
         </div>
-      )}
+      </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-[820px] bg-zinc-100/90 dark:bg-zinc-900/90 border-border max-h-[90vh] overflow-y-auto p-0 backdrop-blur-sm print:hidden">
           <DialogHeader className="bg-background border-b border-border p-4 sticky top-0 z-10 print:hidden">
             <DialogTitle className="font-semibold flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Prévia do Relatório de Movimentações (A4)
+              Prévia do Relatório (A4)
             </DialogTitle>
           </DialogHeader>
 
@@ -241,6 +296,7 @@ export default function Reports() {
               totalIncome={totalIncome}
               totalExpense={totalExpense}
               balance={balance}
+              periodLabel={getPeriodLabel()}
             />
           </div>
 
