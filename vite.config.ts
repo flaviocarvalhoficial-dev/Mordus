@@ -6,7 +6,6 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
     port: 8080,
     hmr: {
       overlay: false,
@@ -29,8 +28,8 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#BC5D0B',
         background_color: '#ffffff',
         display: 'standalone',
-        scope: '/',
-        start_url: '/',
+        scope: './',
+        start_url: './',
         orientation: 'any',
         icons: [
           {

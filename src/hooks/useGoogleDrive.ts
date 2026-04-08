@@ -35,9 +35,8 @@ export function useGoogleDrive() {
             options: {
                 queryParams: {
                     access_type: 'offline',
-                    prompt: 'consent',
                 },
-                scopes: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.metadata.readonly',
+                scopes: 'https://www.googleapis.com/auth/drive.file',
                 redirectTo: window.location.origin + '/configuracoes',
             },
         });
