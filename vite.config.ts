@@ -17,7 +17,11 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt'],
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
       manifest: {
         name: 'Mordus — Gestão de Igrejas',
         short_name: 'Mordus',
@@ -25,12 +29,25 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#BC5D0B',
         background_color: '#ffffff',
         display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        orientation: 'any',
         icons: [
           {
             src: 'favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
             purpose: 'any maskable',
+          },
+          {
+            src: 'favicon.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+          },
+          {
+            src: 'favicon.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
           }
         ],
       }
