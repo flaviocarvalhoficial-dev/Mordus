@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { useMemo, useState, useEffect } from "react";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { UpdatesSheet } from "@/components/UpdatesSheet";
 
 interface RouteInfo {
   name: string;
@@ -60,18 +59,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const route = routeMap[location.pathname] || { name: "Página", section: "sistema" as const, icon: Home };
   const greeting = useMemo(() => getGreeting(), []);
   const SectionIcon = route.icon;
-  const [showUpdates, setShowUpdates] = useState(false);
-  const [lockUpdates, setLockUpdates] = useState(false);
-
-  useEffect(() => {
-    const handleOpenUpdates = (e: any) => {
-      setShowUpdates(true);
-      setLockUpdates(!!e.detail?.lock);
-    };
-    window.addEventListener("open-updates", handleOpenUpdates as any);
-    return () => window.removeEventListener("open-updates", handleOpenUpdates as any);
-  }, []);
-
   return (
     <div className="min-h-screen flex w-full overflow-hidden hide-all-scrollbars">
       <AppSidebar />
@@ -108,13 +95,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children || <Outlet />}
         </main>
       </div>
-
-      <UpdatesSheet
-        open={showUpdates}
-        onOpenChange={setShowUpdates}
-        defaultTab={route.section === 'secretaria' ? 'secretary' : 'treasury'}
-        lockTab={lockUpdates}
-      />
     </div>
   );
 }

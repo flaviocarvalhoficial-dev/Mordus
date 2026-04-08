@@ -50,6 +50,9 @@ export default defineConfig(({ mode }) => ({
             type: 'image/svg+xml',
           }
         ],
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000, // 5MB
       }
     })
   ].filter(Boolean),
@@ -58,5 +61,8 @@ export default defineConfig(({ mode }) => ({
       "@": "/src",
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+  },
+  build: {
+    chunkSizeWarningLimit: 3000,
   },
 }));

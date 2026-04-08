@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User, UserPlus, Bell } from "lucide-react";
+import { Users, Building2, UsersRound, CalendarDays, Crown, FileText, Heart, Handshake, Loader2, Plus, Home, Landmark, MapPinned, User, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -178,20 +178,6 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
-          <Card
-            className="bg-primary/5 border-primary/20 shadow-sm hover:bg-primary/10 transition-all cursor-pointer group rounded-2xl"
-            onClick={() => window.dispatchEvent(new CustomEvent('open-updates', { detail: { lock: true } }))}
-          >
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Bell className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[13px] font-bold leading-tight text-primary">Alertas de Secretaria</p>
-                <p className="text-[11px] text-primary/70 mt-1">Aniversariantes e novos membros</p>
-              </div>
-            </CardContent>
-          </Card>
 
           <Card
             className="bg-card border-border shadow-sm hover:border-primary/30 transition-all cursor-pointer group rounded-2xl"
