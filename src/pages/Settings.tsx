@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,7 +216,7 @@ export default function Settings() {
   if (!organization || !profile) return <div className="p-8 text-center text-muted-foreground font-mono">Carregando configurações...</div>;
 
   return (
-    <AppLayout>
+    <>
       <div className="animate-fade-in space-y-6 max-w-4xl">
         <div>
           <h1 className="text-xl font-bold text-foreground">Configurações</h1>
@@ -826,6 +825,6 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

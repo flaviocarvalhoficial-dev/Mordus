@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, UsersRound, CalendarDays, MapPinned, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AppLayout } from "@/components/AppLayout";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Area, AreaChart,
@@ -196,8 +195,8 @@ export default function Dashboard() {
   if (!organization) return null; // Modal de onboarding irá cobrir
 
   return (
-    <AppLayout>
-      <div className="animate-fade-in space-y-6">
+    <>
+      <div className="animate-fade-in space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Painel de Gestão</h1>
@@ -241,7 +240,7 @@ export default function Dashboard() {
         <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
           {visibleCards.map((card) => (
             <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
-              <CardContent className="p-5">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -279,8 +278,8 @@ export default function Dashboard() {
                   <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-4 px-2">
-                <div className="h-[280px]">
+              <CardContent className="pt-2 px-2">
+                <div className="h-[320px]">
                   {loading ? (
                     <div className="h-full flex flex-col gap-2 p-4">
                       <div className="flex h-full items-end gap-2">
@@ -291,7 +290,7 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                         <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
@@ -300,8 +299,8 @@ export default function Dashboard() {
                           contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                           formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]}
                         />
-                        <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[4, 4, 0, 0]} barSize={16} />
-                        <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={16} />
+                        <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[4, 4, 0, 0]} barSize={28} />
+                        <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={28} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -383,8 +382,8 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              <Link to="/lancamentos?tab=relatorios" className="block w-full mt-8">
-                <Button variant="outline" className="w-full h-9 text-[12px] border-border group">
+              <Link to="/lancamentos?tab=relatorios" className="block w-full mt-4">
+                <Button variant="outline" className="w-full h-8 text-[11px] border-border group">
                   <Eye className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
                   Visualizar Relatório
                 </Button>
@@ -398,8 +397,8 @@ export default function Dashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4 px-2">
-              <div className="h-[240px]">
+            <CardContent className="pt-2 px-2">
+              <div className="h-[280px]">
                 {loading ? (
                   <div className="h-full w-full flex items-end px-4 pb-2">
                     <Skeleton className="h-full w-full rounded-lg opacity-20" />
@@ -427,6 +426,6 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

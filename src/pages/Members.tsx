@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock, ChevronRight, ChevronLeft } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -497,12 +497,17 @@ function MembersList() {
 
 export default function Members() {
   const { organization } = useChurch();
-  const [activeTab, setActiveTab] = useState("resumo");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "resumo";
+
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
   if (!organization) return <div className="p-8 text-center text-muted-foreground font-mono">Carregando...</div>;
 
   return (
-    <AppLayout>
+    <>
       <PermissionGuard
         requireAccessSecretariat
         fallback={
@@ -529,38 +534,13 @@ export default function Members() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 flex-wrap overflow-x-auto justify-start inline-flex">
-              <TabsTrigger value="resumo" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Home className="h-3.5 w-3.5 mr-2" /> Início
-              </TabsTrigger>
-              <TabsTrigger value="membros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Users className="h-3.5 w-3.5 mr-2" /> Membros
-              </TabsTrigger>
-              <TabsTrigger value="lideranca" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Liderança
-              </TabsTrigger>
-              <TabsTrigger value="departamentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Users className="h-3.5 w-3.5 mr-2" /> Departamentos
-              </TabsTrigger>
-              <TabsTrigger value="patrimonio" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Landmark className="h-3.5 w-3.5 mr-2" /> Patrimônio
-              </TabsTrigger>
-              <TabsTrigger value="documentos" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <FileText className="h-3.5 w-3.5 mr-2" /> Documentos
-              </TabsTrigger>
-              <TabsTrigger value="congregacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <MapPinned className="h-3.5 w-3.5 mr-2" /> Congregações
-              </TabsTrigger>
-              <TabsTrigger value="calendario" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <CalendarDays className="h-3.5 w-3.5 mr-2" /> Calendário
-              </TabsTrigger>
-              <TabsTrigger value="social" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Heart className="h-3.5 w-3.5 mr-2" /> Ação Social
-              </TabsTrigger>
-              <TabsTrigger value="parceiros" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Handshake className="h-3.5 w-3.5 mr-2" /> Parcerias
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
+              <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => setActiveTab("resumo")}>
+                <Home className="h-3 w-3" /> Início
+              </span>
+              <ChevronRight className="h-3 w-3 opacity-30" />
+              <span className="text-foreground capitalize">{activeTab === 'resumo' ? 'Dashboard' : activeTab.replace(/-/g, ' ')}</span>
+            </div>
 
             <TabsContent value="resumo" className="mt-0 focus-visible:ring-0">
               <Summary onNavigate={setActiveTab} />
@@ -595,6 +575,6 @@ export default function Members() {
           </Tabs>
         </div>
       </PermissionGuard>
-    </AppLayout>
+    </>
   );
 }

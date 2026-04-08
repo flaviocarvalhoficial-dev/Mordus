@@ -1,7 +1,8 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { ContextSidebar } from "@/components/ContextSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import { Home, Bell, User, LayoutDashboard, ArrowUpDown, FolderOpen, Lock, FileText, Users, Building2, File as FileIcon, UsersRound, Heart, CalendarDays, Handshake, Settings, Church, Crown, Search, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,7 @@ function getGreeting(): string {
 }
 
 interface AppLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -60,10 +61,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const SectionIcon = route.icon;
 
   return (
-    <div className="min-h-screen flex w-full">
+    <div className="min-h-screen flex w-full overflow-hidden hide-all-scrollbars">
       <AppSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-12 flex items-center justify-between border-b border-border bg-background px-6 print:hidden">
+      <ContextSidebar />
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
+        <header className="h-12 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-6 sticky top-0 z-10 print:hidden">
           <div className="flex items-center gap-2 text-[13px] w-1/3">
             <SidebarTrigger className="mr-2" />
             <SectionIcon className="h-4 w-4 text-primary" />
@@ -94,8 +96,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 p-6 overflow-auto print:p-0 no-scrollbar">
-          {children}
+        <main className="flex-1 p-4 overflow-auto print:p-0 hide-all-scrollbars">
+          {children || <Outlet />}
         </main>
       </div>
     </div>

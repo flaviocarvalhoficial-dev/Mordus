@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -323,12 +322,14 @@ function TransactionsList() {
 
 export default function Transactions() {
   const { organization } = useChurch();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "movimentacoes";
 
   if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados...</div>;
 
   return (
-    <AppLayout>
+    <>
       <PermissionGuard
         requireFinance
         fallback={
@@ -359,20 +360,17 @@ export default function Transactions() {
             onValueChange={(v) => setSearchParams({ tab: v })}
             className="w-full"
           >
-            <TabsList className="bg-secondary/50 p-1 mb-4 h-10 border border-border/50 overflow-x-auto no-scrollbar justify-start print:hidden">
-              <TabsTrigger value="movimentacoes" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <ListFilter className="h-3.5 w-3.5 mr-2" /> Movimentações
-              </TabsTrigger>
-              <TabsTrigger value="categorias" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Type className="h-3.5 w-3.5 mr-2" /> Categorias
-              </TabsTrigger>
-              <TabsTrigger value="fechamento" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <Lock className="h-3.5 w-3.5 mr-2" /> Fechamentos
-              </TabsTrigger>
-              <TabsTrigger value="relatorios" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">
-                <FileBarChart className="h-3.5 w-3.5 mr-2" /> Relatórios
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 print:hidden">
+              <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => navigate("/")}>
+                <Home className="h-3 w-3" /> Dashboard
+              </span>
+              <ChevronRight className="h-3 w-3 opacity-30" />
+              <span className="text-foreground capitalize">
+                {activeTab === 'movimentacoes' ? 'Lançamentos' :
+                  activeTab === 'fechamento' ? 'Fechamentos' :
+                    activeTab.replace(/-/g, ' ')}
+              </span>
+            </div>
 
             <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0 outline-none">
               <TransactionsList />
@@ -389,6 +387,6 @@ export default function Transactions() {
           </Tabs>
         </div>
       </PermissionGuard>
-    </AppLayout>
+    </>
   );
 }

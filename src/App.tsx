@@ -46,15 +46,30 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <OnboardingModal />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
 
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/lancamentos" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-                <Route path="/membros" element={<ProtectedRoute><Members /></ProtectedRoute>} />
-                <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="/ajuda" element={<ProtectedRoute><AppLayout><Support /></AppLayout></ProtectedRoute>} />
+                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route path="/" element={<><OnboardingModal /><Dashboard /></>} />
+                  <Route path="/lancamentos" element={<Transactions />} />
+                  <Route path="/membros" element={<Members />} />
+                  <Route path="/configuracoes" element={<Settings />} />
+                  <Route path="/ajuda" element={<Support />} />
+
+                  <Route path="/categorias" element={<Navigate to="/lancamentos?tab=categorias" replace />} />
+                  <Route path="/fechamento" element={<Navigate to="/lancamentos?tab=fechamento" replace />} />
+                  <Route path="/relatorios" element={<Navigate to="/lancamentos?tab=relatorios" replace />} />
+
+                  <Route path="/secretaria" element={<Navigate to="/membros?tab=resumo" replace />} />
+                  <Route path="/lideranca" element={<Navigate to="/membros?tab=lideranca" replace />} />
+                  <Route path="/departamentos" element={<Navigate to="/membros?tab=departamentos" replace />} />
+                  <Route path="/patrimonio" element={<Navigate to="/membros?tab=patrimonio" replace />} />
+                  <Route path="/documentos" element={<Navigate to="/membros?tab=documentos" replace />} />
+                  <Route path="/congregacoes" element={<Navigate to="/membros?tab=congregacoes" replace />} />
+                  <Route path="/calendario" element={<Navigate to="/membros?tab=calendario" replace />} />
+                  <Route path="/servico-social" element={<Navigate to="/membros?tab=social" replace />} />
+                  <Route path="/parceiros" element={<Navigate to="/membros?tab=parceiros" replace />} />
+                </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

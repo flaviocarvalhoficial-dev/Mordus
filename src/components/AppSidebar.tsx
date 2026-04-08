@@ -22,7 +22,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { MordusLogo } from "@/components/MordusLogo";
@@ -105,63 +105,66 @@ export function AppSidebar() {
   const activeSocials = socialLinks.filter((s) => settings.socialMedia[s.key]);
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3"}`}>
-          <MordusLogo
-            variant={collapsed ? "icon" : "full"}
-            className={`${collapsed ? "h-8 w-8" : "w-[100px] h-auto"} transition-all duration-300 text-sidebar-foreground`}
-          />
-        </div>
+    <Sidebar collapsible="none" className="w-[72px] border-r border-sidebar-border bg-sidebar shrink-0">
+      <SidebarHeader className="p-0 h-16 flex items-center justify-center border-b border-sidebar-border">
+        <MordusLogo variant="icon" className="h-8 w-8 text-sidebar-foreground" />
       </SidebarHeader>
 
-      <SidebarContent>
-        {renderGroup("Navegação Principal", mainItems)}
+      <SidebarContent className="p-2 gap-4 pt-6">
+        <SidebarGroup className="p-0">
+          <SidebarMenu className="gap-4">
+            {mainItems.map((item) => {
+              const active = isActive(item.url);
+              return (
+                <SidebarMenuItem key={item.title} className="flex justify-center">
+                  <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300 relative group p-0 ${active
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                      }`}
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-5 w-5" />
+                      {active && (
+                        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+                      )}
+                      <div className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-md uppercase tracking-wider">
+                        {item.title}
+                      </div>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
-        <SidebarMenu>
+      <SidebarFooter className="p-2 pb-6 border-t border-sidebar-border gap-4 flex flex-col items-center">
+        <SidebarMenu className="gap-4">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/ajuda")}>
-              <NavLink
-                to="/ajuda"
-                className="text-sidebar-muted hover:text-primary transition-colors hover:bg-primary/5"
-              >
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/ajuda")}
+              className="h-10 w-10 p-0 flex items-center justify-center rounded-xl hover:bg-sidebar-accent text-sidebar-foreground/60"
+            >
+              <Link to="/ajuda">
                 <BookOpen className="h-4 w-4" />
-                {!collapsed && <span>Guia de Uso</span>}
-              </NavLink>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => logout()}
-              className="text-sidebar-muted hover:text-destructive hover:bg-destructive/10 transition-colors"
+              className="h-10 w-10 p-0 flex items-center justify-center rounded-xl hover:bg-destructive/10 text-sidebar-foreground/60 hover:text-destructive transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              {!collapsed && <span>Sair do Sistema</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-
-        {activeSocials.length > 0 && (
-          <div className={`flex ${collapsed ? "flex-col" : ""} items-center gap-2 ${collapsed ? "" : "justify-center"}`}>
-            {activeSocials.map((s) => (
-              <a
-                key={s.key}
-                href={`${s.baseUrl}${settings.socialMedia[s.key]}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sidebar-muted hover:text-primary transition-colors"
-              >
-                <s.icon className="h-4 w-4" />
-              </a>
-            ))}
-          </div>
-        )}
-        {!collapsed && activeSocials.length === 0 && (
-          <p className="text-[11px] text-muted-foreground text-center">v1.0 — MVP</p>
-        )}
       </SidebarFooter>
     </Sidebar>
   );
