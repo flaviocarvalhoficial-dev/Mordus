@@ -28,8 +28,8 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#BC5D0B',
         background_color: '#ffffff',
         display: 'standalone',
-        scope: './',
-        start_url: './',
+        scope: '/',
+        start_url: '/',
         orientation: 'any',
         icons: [
           {
