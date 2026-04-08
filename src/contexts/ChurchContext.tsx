@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Organization = Database["public"]["Tables"]["organizations"]["Row"];
@@ -23,8 +24,8 @@ interface ChurchContextType {
   profile: Profile | null;
   organization: Organization | null;
   settings: ChurchSettings;
-  updateSettings: (s: Partial<ChurchSettings>) => void;
-  updateSocialMedia: (s: Partial<ChurchSettings["socialMedia"]>) => void;
+  updateSettings: (s: Partial<ChurchSettings>) => Promise<void>;
+  updateSocialMedia: (s: Partial<ChurchSettings["socialMedia"]>) => Promise<void>;
   hasSeenOnboarding: boolean;
   setHasSeenOnboarding: (v: boolean) => void;
   loading: boolean;
@@ -52,106 +53,117 @@ const defaultSettings: ChurchSettings = {
 const ChurchContext = createContext<ChurchContextType | null>(null);
 
 export function ChurchProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [organization, setOrganization] = useState<Organization | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  const [settings, setSettings] = useState<ChurchSettings>(defaultSettings);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
     return localStorage.getItem("onboarding-done") === "true";
   });
 
   useEffect(() => {
+    localStorage.setItem("onboarding-done", String(hasSeenOnboarding));
+  }, [hasSeenOnboarding]);
+
+  // Auth Sync
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setLoading(false);
+      setAuthLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else {
-        setProfile(null);
-        setOrganization(null);
-        setLoading(false);
+      setAuthLoading(false);
+      if (!session) {
+        queryClient.clear();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data: profileData, error: profileError } = await supabase
+  // Profile Query
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", user.id)
         .single();
+      if (error) throw error;
+      return data as Profile;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1,
+  });
 
-      if (profileError) throw profileError;
-      setProfile(profileData);
+  // Organization Query
+  const { data: organization, isLoading: orgLoading } = useQuery({
+    queryKey: ["organization", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return null;
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("*")
+        .eq("id", profile.organization_id)
+        .single();
+      if (error) throw error;
+      return data as Organization;
+    },
+    enabled: !!profile?.organization_id,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1,
+  });
 
-      if (profileData.organization_id) {
-        const { data: orgData, error: orgError } = await supabase
-          .from("organizations")
-          .select("*")
-          .eq("id", profileData.organization_id)
-          .single();
-
-        if (orgError) throw orgError;
-        setOrganization(orgData);
-
-        // Map database columns to context settings
-        setSettings({
-          churchName: orgData.name,
-          displayName: orgData.name,
-          cnpj: (orgData as any).cnpj || "",
-          socialMedia: {
-            instagram: (orgData as any).instagram || "",
-            facebook: (orgData as any).facebook || "",
-            youtube: (orgData as any).youtube || "",
-            whatsapp: (orgData as any).whatsapp || "",
-          },
-        });
-      }
-    } catch (err) {
-      console.error("Erro ao carregar perfil:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    localStorage.setItem("onboarding-done", String(hasSeenOnboarding));
-  }, [hasSeenOnboarding]);
+  const settings = useMemo(() => {
+    if (!organization) return defaultSettings;
+    return {
+      churchName: organization.name,
+      displayName: organization.name,
+      cnpj: (organization as any).cnpj || "",
+      socialMedia: {
+        instagram: (organization as any).instagram || "",
+        facebook: (organization as any).facebook || "",
+        youtube: (organization as any).youtube || "",
+        whatsapp: (organization as any).whatsapp || "",
+      },
+    };
+  }, [organization]);
 
   const updateSettings = async (partial: Partial<ChurchSettings>) => {
-    setSettings((prev) => ({ ...prev, ...partial }));
     if (organization?.id) {
-      await supabase.from("organizations").update({
+      const { error } = await supabase.from("organizations").update({
         name: partial.churchName || settings.churchName,
         cnpj: partial.cnpj || settings.cnpj,
       }).eq("id", organization.id);
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["organization"] });
     }
   };
 
   const updateSocialMedia = async (partial: Partial<ChurchSettings["socialMedia"]>) => {
     const newSocial = { ...settings.socialMedia, ...partial };
-    setSettings((prev) => ({ ...prev, socialMedia: newSocial }));
     if (organization?.id) {
-      await supabase.from("organizations").update({
+      const { error } = await supabase.from("organizations").update({
         instagram: newSocial.instagram,
         facebook: newSocial.facebook,
         youtube: newSocial.youtube,
         whatsapp: newSocial.whatsapp
       }).eq("id", organization.id);
+
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["organization"] });
     }
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
+    queryClient.clear();
   };
 
   const isAdmin = profile?.role === "admin";
@@ -165,14 +177,19 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
   const canAccessSecretariat = canManageSecretariat || isLeader;
   const canWrite = !isViewer;
 
+  const loading = authLoading || (!!user && profileLoading);
+
   return (
     <ChurchContext.Provider value={{
-      user, profile, organization, settings, updateSettings,
+      user, profile: profile || null, organization: organization || null, settings, updateSettings,
       updateSocialMedia, hasSeenOnboarding, setHasSeenOnboarding,
       loading, logout,
       isAdmin, isTreasurer, isSecretary, isLeader, isViewer,
       canManageFinances, canManageSecretariat, canAccessSecretariat, canWrite,
-      refreshOrganization: () => user ? fetchProfile(user.id) : Promise.resolve()
+      refreshOrganization: async () => {
+        await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        await queryClient.invalidateQueries({ queryKey: ["organization"] });
+      }
     }}>
       {children}
     </ChurchContext.Provider>
@@ -184,3 +201,4 @@ export function useChurch() {
   if (!ctx) throw new Error("useChurch must be used within ChurchProvider");
   return ctx;
 }
+

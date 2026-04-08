@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
-import { TrendingUp, TrendingDown, Wallet, Receipt, Loader2, Plus, Download, Users, Layers, CalendarDays, MapPinned, Eye } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { TrendingUp, TrendingDown, Wallet, Loader2, Plus, Users, Layers, CalendarDays, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Area, AreaChart,
@@ -9,7 +8,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QuickEntryDialog } from "@/components/QuickEntryDialog";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
@@ -17,6 +15,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -28,30 +27,30 @@ const formatYAxis = (v: number) => {
 
 const Counter = ({ value, prefix = "", suffix = "", decimals = 0 }: { value: number, prefix?: string, suffix?: string, decimals?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const previousValue = useRef(0);
 
   useEffect(() => {
-    let start = 0;
-    const end = value;
-    if (end === 0) {
-      setDisplayValue(0);
-      return;
-    }
+    let startTimestamp: number | null = null;
     const duration = 800; // 0.8 seconds
-    const stepTime = 20; // 50fps
-    const totalSteps = duration / stepTime;
-    const increment = end / totalSteps;
+    const startValue = previousValue.current;
+    const endValue = value;
 
-    const timer = setInterval(() => {
-      start += increment;
-      if ((increment > 0 && start >= end) || (increment < 0 && start <= end)) {
-        setDisplayValue(end);
-        clearInterval(timer);
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeOutQuad = (t: number) => t * (2 - t);
+      const current = easeOutQuad(progress) * (endValue - startValue) + startValue;
+
+      setDisplayValue(current);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
       } else {
-        setDisplayValue(start);
+        previousValue.current = endValue;
       }
-    }, stepTime);
+    };
 
-    return () => clearInterval(timer);
+    const animFrame = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(animFrame);
   }, [value]);
 
   return (
@@ -68,9 +67,9 @@ const Counter = ({ value, prefix = "", suffix = "", decimals = 0 }: { value: num
 
 export default function Dashboard() {
   const { organization, canManageFinances } = useChurch();
+  const queryClient = useQueryClient();
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [month, setMonth] = useState("all");
-  const [loading, setLoading] = useState(true);
   const [showExpenses, setShowExpenses] = useState(() => {
     return localStorage.getItem("dashboard-show-expenses") === "true";
   });
@@ -78,110 +77,115 @@ export default function Dashboard() {
   useEffect(() => {
     localStorage.setItem("dashboard-show-expenses", String(showExpenses));
   }, [showExpenses]);
-  const [stats, setStats] = useState({
-    entradas: 0,
-    saidas: 0,
-    dizimos: 0,
-    ofertas: 0,
-    count: 0,
-    memberCount: 0,
-    deptCount: 0,
-    eventCount: 0
-  });
-  const [chartData, setChartData] = useState<{ month: string; entradas: number; saidas: number; dizimos: number; ofertas: number }[]>([]);
 
-  useEffect(() => {
-    if (organization?.id) {
-      fetchDashboardData();
-    }
-  }, [organization?.id, year, month]);
-
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
+  // Fetch Transactions and Categories
+  const { data: txs, isLoading: txsLoading, error: txsError } = useQuery({
+    queryKey: ["dashboard-transactions", organization?.id, year, month],
+    queryFn: async () => {
+      if (!organization?.id) return [];
       let query = supabase
         .from("transactions")
         .select(`*, categories!category_id(name)`)
-        .eq("organization_id", organization!.id);
-
-      // Filtro de ano aproximado (Supabase range ou raw filter)
-      query = query.gte("date", `${year}-01-01`).lte("date", `${year}-12-31`);
+        .eq("organization_id", organization.id)
+        .gte("date", `${year}-01-01`)
+        .lte("date", `${year}-12-31`);
 
       if (month !== "all") {
         query = query.gte("date", `${year}-${month}-01`).lte("date", `${year}-${month}-31`);
       }
 
-      const { data: txs, error } = await query;
+      const { data, error } = await query;
       if (error) throw error;
+      return data || [];
+    },
+    enabled: !!organization?.id && canManageFinances,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
 
-      // Fetch Secretariat counts
+  // Fetch Secretariat Counts
+  const { data: counts, isLoading: countsLoading } = useQuery({
+    queryKey: ["dashboard-counts", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return { memberCount: 0, deptCount: 0, eventCount: 0 };
       const [
         { count: mCount },
         { count: dCount },
         { count: eCount }
       ] = await Promise.all([
-        supabase.from("members").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id).eq("status", "active"),
-        supabase.from("departments").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id),
-        supabase.from("events").select("*", { count: "exact", head: true }).eq("organization_id", organization!.id),
+        supabase.from("members").select("*", { count: "exact", head: true }).eq("organization_id", organization.id).eq("status", "active"),
+        supabase.from("departments").select("*", { count: "exact", head: true }).eq("organization_id", organization.id),
+        supabase.from("events").select("*", { count: "exact", head: true }).eq("organization_id", organization.id),
       ]);
-
-      // Processar dados para estatísticas e gráficos
-      const newStats = {
-        entradas: 0,
-        saidas: 0,
-        dizimos: 0,
-        ofertas: 0,
-        count: txs?.length || 0,
+      return {
         memberCount: mCount || 0,
         deptCount: dCount || 0,
         eventCount: eCount || 0
       };
-      const monthlyAggr: Record<string, any> = {};
+    },
+    enabled: !!organization?.id,
+    staleTime: 1000 * 60 * 5,
+  });
 
-      monthNames.forEach(m => {
-        monthlyAggr[m] = { month: m, entradas: 0, saidas: 0, dizimos: 0, ofertas: 0 };
-      });
+  useEffect(() => {
+    if (txsError) toast.error("Erro ao carregar dados do financeiro");
+  }, [txsError]);
 
-      txs?.forEach(tx => {
-        const date = new Date(tx.date);
-        const mName = monthNames[date.getMonth()];
-        const amount = tx.amount || 0;
-        const isIncome = tx.type === "income";
-        const catName = tx.categories?.name?.toLowerCase() || "";
+  // Combined Data Processing
+  const { stats, chartData } = useMemo(() => {
+    const newStats = {
+      entradas: 0,
+      saidas: 0,
+      dizimos: 0,
+      ofertas: 0,
+      count: txs?.length || 0,
+      memberCount: counts?.memberCount || 0,
+      deptCount: counts?.deptCount || 0,
+      eventCount: counts?.eventCount || 0
+    };
 
-        if (isIncome) {
-          newStats.entradas += amount;
-          monthlyAggr[mName].entradas += amount;
-          if (catName.includes("dízimo")) {
-            newStats.dizimos += amount;
-            monthlyAggr[mName].dizimos += amount;
-          } else if (catName.includes("oferta")) {
-            newStats.ofertas += amount;
-            monthlyAggr[mName].ofertas += amount;
-          }
-        } else {
-          newStats.saidas += amount;
-          monthlyAggr[mName].saidas += amount;
+    const monthlyAggr: Record<string, any> = {};
+    monthNames.forEach(m => {
+      monthlyAggr[m] = { month: m, entradas: 0, saidas: 0, dizimos: 0, ofertas: 0 };
+    });
+
+    txs?.forEach(tx => {
+      const date = new Date(tx.date);
+      const mName = monthNames[date.getMonth()];
+      const amount = tx.amount || 0;
+      const isIncome = tx.type === "income";
+      const catName = tx.categories?.name?.toLowerCase() || "";
+
+      if (isIncome) {
+        newStats.entradas += amount;
+        monthlyAggr[mName].entradas += amount;
+        if (catName.includes("dízimo")) {
+          newStats.dizimos += amount;
+          monthlyAggr[mName].dizimos += amount;
+        } else if (catName.includes("oferta")) {
+          newStats.ofertas += amount;
+          monthlyAggr[mName].ofertas += amount;
         }
-      });
+      } else {
+        newStats.saidas += amount;
+        monthlyAggr[mName].saidas += amount;
+      }
+    });
 
-      setStats(newStats);
-      setChartData(Object.values(monthlyAggr));
-    } catch (err) {
-      toast.error("Erro ao carregar dados do painel");
-    } finally {
-      setLoading(false);
-    }
-  };
+    return {
+      stats: newStats,
+      chartData: Object.values(monthlyAggr)
+    };
+  }, [txs, counts]);
 
   const saldo = stats.entradas - stats.saidas;
+  const loading = txsLoading || countsLoading;
 
-  const summaryCards = [
+  const summaryCards = useMemo(() => [
     { title: "Membros Ativos", value: stats.memberCount, suffix: "", decimals: 0, icon: Users, color: "text-primary", primary: true, link: "/membros" },
     { title: "Saldo Líquido", value: saldo, prefix: "R$ ", decimals: 2, icon: Wallet, positive: saldo >= 0, primary: false },
     { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", decimals: 2, icon: TrendingUp, positive: true, muted: true },
     { title: "Total Saídas", value: stats.saidas, prefix: "R$ ", decimals: 2, icon: TrendingDown, positive: false, muted: true },
-  ];
+  ], [stats, saldo]);
 
   const periodLabel = month === "all"
     ? `Jan ${year} — Dez ${year}`
@@ -192,7 +196,12 @@ export default function Dashboard() {
     return summaryCards.filter(c => c.title === "Membros Ativos");
   }, [canManageFinances, summaryCards]);
 
-  if (!organization) return null; // Modal de onboarding irá cobrir
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-counts"] });
+  };
+
+  if (!organization) return null;
 
   return (
     <>
@@ -205,9 +214,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {canManageFinances && (
               <>
-                <QuickEntryDialog onSuccess={fetchDashboardData} />
+                <QuickEntryDialog onSuccess={refreshData} />
                 <TransactionsDialog
-                  onSuccess={fetchDashboardData}
+                  onSuccess={refreshData}
                   trigger={
                     <Button className="h-9 px-4 text-xs font-semibold gap-2 shadow-sm">
                       <Plus className="h-4 w-4" />
@@ -429,3 +438,4 @@ export default function Dashboard() {
     </>
   );
 }
+

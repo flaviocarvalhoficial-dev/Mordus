@@ -49,11 +49,11 @@ function calculateAge(birthDate: string) {
   return age;
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 function MembersList() {
   const { organization, profile } = useChurch();
-  const [members, setMembers] = useState<(Member & { congregations?: { name: string } | null })[]>([]);
-  const [congregations, setCongregations] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -63,21 +63,17 @@ function MembersList() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyMember);
+  const [currentStep, setCurrentStep] = useState(1);
 
-  useEffect(() => {
-    if (organization?.id) {
-      fetchMembers();
-      fetchCongregations();
-    }
-  }, [organization?.id]);
-
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
+  // Members Query
+  const { data: members = [], isLoading: loading } = useQuery({
+    queryKey: ["members", organization?.id, profile?.role, profile?.department_id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
       let query = supabase
         .from("members")
         .select("*, congregations(name)")
-        .eq("organization_id", organization!.id);
+        .eq("organization_id", organization.id);
 
       if (profile?.role === 'leader' && profile.department_id) {
         query = query.eq("department_id", profile.department_id);
@@ -85,27 +81,28 @@ function MembersList() {
 
       const { data, error } = await query.order("full_name");
       if (error) throw error;
-      setMembers(data as any || []);
-    } catch (err) {
-      toast.error("Erro ao carregar membros");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data as (Member & { congregations?: { name: string } | null })[];
+    },
+    enabled: !!organization?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  const fetchCongregations = async () => {
-    try {
+  // Congregations Query
+  const { data: congregations = [] } = useQuery({
+    queryKey: ["congregations", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
       const { data, error } = await supabase
         .from("congregations")
         .select("id, name")
-        .eq("organization_id", organization!.id)
+        .eq("organization_id", organization.id)
         .order("name");
       if (error) throw error;
-      setCongregations(data || []);
-    } catch (err) {
-      console.error("Erro ao carregar congregações:", err);
-    }
-  };
+      return data;
+    },
+    enabled: !!organization?.id,
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -135,8 +132,6 @@ function MembersList() {
       setUploading(false);
     }
   };
-
-  const [currentStep, setCurrentStep] = useState(1);
 
   const validateStep = (step: number) => {
     if (step === 1) {
@@ -175,9 +170,10 @@ function MembersList() {
         const { error } = await supabase.from("members").insert([payload]);
         if (error) throw error;
       }
+
+      await queryClient.invalidateQueries({ queryKey: ["members"] });
       setDialogOpen(false);
       setCurrentStep(1);
-      fetchMembers();
       toast.success(editingId ? "Membro atualizado" : "Membro cadastrado");
     } catch (err: any) {
       toast.error("Erro ao salvar membro: " + err.message);
@@ -186,11 +182,14 @@ function MembersList() {
     }
   };
 
-  const filtered = members.filter((m) => {
-    if (searchQuery && !m.full_name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    if (statusFilter !== "all" && m.status !== statusFilter) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return members.filter((m) => {
+      const matchesSearch = !searchQuery || m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || m.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || m.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [members, searchQuery, statusFilter]);
+
 
   return (
     <div className="space-y-6">

@@ -38,9 +38,17 @@ interface UpdatesSheetProps {
     lockTab?: boolean;
 }
 
+import { useQuery } from "@tanstack/react-query";
+
+interface UpdatesSheetProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    defaultTab?: "treasury" | "secretary";
+    lockTab?: boolean;
+}
+
 export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lockTab = false }: UpdatesSheetProps) {
     const { organization } = useChurch();
-    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<string>(defaultTab);
 
     useEffect(() => {
@@ -49,47 +57,28 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
         }
     }, [open, defaultTab]);
 
-    // Tesouraria States
-    const [treasuryData, setTreasuryData] = useState({
-        recentTransactions: [] as any[],
-        monthlySummary: { income: 0, expense: 0, balance: 0 },
-        isClosed: false,
-        nextClosureDate: ""
-    });
-
-    // Secretaria States
-    const [secretaryData, setSecretaryData] = useState({
-        recentMembers: [] as any[],
-        birthdays: [] as any[],
-        totalMembers: 0
-    });
-
-    useEffect(() => {
-        if (open && organization?.id) {
-            fetchUpdates();
-        }
-    }, [open, organization?.id]);
-
-    const fetchUpdates = async () => {
-        setLoading(true);
-        try {
+    // Treasury Data Query
+    const { data: treasuryData, isLoading: treasuryLoading } = useQuery({
+        queryKey: ["updates-treasury", organization?.id],
+        queryFn: async () => {
+            if (!organization?.id) return null;
             const now = new Date();
             const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
 
-            // 1. Fetch Treasury: Recent Transactions
+            // Fetch recent transactions
             const { data: txs } = await supabase
                 .from("transactions")
                 .select("*, categories!category_id(name)")
-                .eq("organization_id", organization!.id)
+                .eq("organization_id", organization.id)
                 .order("date", { ascending: false })
                 .limit(3);
 
-            // 2. Fetch Treasury: Monthly Summary
+            // Monthly stats
             const { data: stats } = await supabase
                 .from("transactions")
                 .select("amount, type")
-                .eq("organization_id", organization!.id)
+                .eq("organization_id", organization.id)
                 .gte("date", firstDay)
                 .lte("date", lastDay);
 
@@ -100,37 +89,43 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
                 else expense += s.amount;
             });
 
-            // 3. Fetch Treasury: Closure Status
+            // Closure status
             const { data: closure } = await supabase
                 .from("monthly_closures")
                 .select("id")
-                .eq("organization_id", organization!.id)
+                .eq("organization_id", organization.id)
                 .eq("end_date", lastDay.split('T')[0])
-                .single();
+                .maybeSingle();
 
-            // 4. Fetch Secretary: Total Members
-            const { count: memberCount } = await supabase
-                .from("members")
-                .select("*", { count: 'exact', head: true })
-                .eq("organization_id", organization!.id);
+            return {
+                recentTransactions: txs || [],
+                monthlySummary: { income, expense, balance: income - expense },
+                isClosed: !!closure,
+                nextClosureDate: format(new Date(now.getFullYear(), now.getMonth() + 1, 0), "dd 'de' MMMM", { locale: ptBR })
+            };
+        },
+        enabled: open && !!organization?.id && activeTab === 'treasury',
+        staleTime: 1000 * 60 * 5,
+    });
 
-            // 5. Fetch Secretary: Recent Members
-            const { data: recentMembers } = await supabase
-                .from("members")
-                .select("*")
-                .eq("organization_id", organization!.id)
-                .order("created_at", { ascending: false })
-                .limit(3);
+    // Secretary Data Query
+    const { data: secretaryData, isLoading: secretaryLoading } = useQuery({
+        queryKey: ["updates-secretary", organization?.id],
+        queryFn: async () => {
+            if (!organization?.id) return null;
+            const now = new Date();
 
-            // 6. Fetch Secretary: Birthdays this month
-            // We'll fetch all and filter in JS because birthday filtering in SQL can be tricky across years
+            const [
+                { count: memberCount },
+                { data: recentMembers },
+                { data: allMembers }
+            ] = await Promise.all([
+                supabase.from("members").select("*", { count: 'exact', head: true }).eq("organization_id", organization.id),
+                supabase.from("members").select("*").eq("organization_id", organization.id).order("created_at", { ascending: false }).limit(3),
+                supabase.from("members").select("full_name, birth_date").eq("organization_id", organization.id).not("birth_date", "is", null)
+            ]);
+
             const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
-            const { data: allMembers } = await supabase
-                .from("members")
-                .select("full_name, birth_date")
-                .eq("organization_id", organization!.id)
-                .not("birth_date", "is", null);
-
             const birthdays = allMembers?.filter(m => m.birth_date?.split('-')[1] === currentMonth)
                 .map(m => ({
                     ...m,
@@ -139,25 +134,18 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
                 .sort((a, b) => a.day - b.day)
                 .slice(0, 5) || [];
 
-            setTreasuryData({
-                recentTransactions: txs || [],
-                monthlySummary: { income, expense, balance: income - expense },
-                isClosed: !!closure,
-                nextClosureDate: format(new Date(now.getFullYear(), now.getMonth() + 1, 0), "dd 'de' MMMM", { locale: ptBR })
-            });
-
-            setSecretaryData({
+            return {
                 recentMembers: recentMembers || [],
                 birthdays,
                 totalMembers: memberCount || 0
-            });
+            };
+        },
+        enabled: open && !!organization?.id && activeTab === 'secretary',
+        staleTime: 1000 * 60 * 10,
+    });
 
-        } catch (err) {
-            console.error("Error fetching updates:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const loading = treasuryLoading || secretaryLoading;
+
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);

@@ -54,56 +54,57 @@ function formatDate(dateStr: string) {
   return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR");
 }
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 function TransactionsList() {
   const { organization } = useChurch();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [data, setData] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string; type: string }[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [sortField, setSortField] = useState<"date" | "description" | "amount">("date");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showTotals, setShowTotals] = useState(false);
 
-  useEffect(() => {
-    if (organization?.id) {
-      fetchData();
-      fetchCategories();
-    }
-  }, [organization?.id]);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const { data: txs, error } = await supabase
+  // Transactions Query
+  const { data: transactions = [], isLoading: loading } = useQuery({
+    queryKey: ["transactions", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      const { data, error } = await supabase
         .from("transactions")
         .select(`*, categories!category_id(name, color), payment_method_cat:categories!payment_method_id(name)`)
-        .eq("organization_id", organization!.id)
+        .eq("organization_id", organization.id)
         .order("date", { ascending: false });
 
       if (error) throw error;
-      setData(txs || []);
-    } catch (err) {
-      toast.error("Erro ao carregar lançamentos");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data as Transaction[];
+    },
+    enabled: !!organization?.id,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
 
-  const fetchCategories = async () => {
-    const { data: cats } = await supabase
-      .from("categories")
-      .select("id, name, type")
-      .eq("organization_id", organization!.id);
-    setCategories(cats || []);
-  };
+  // Categories Query
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, type")
+        .eq("organization_id", organization.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organization?.id,
+    staleTime: 1000 * 60 * 15,
+  });
 
   useEffect(() => {
     if (searchParams.get("new") === "true" && !dialogOpen) {
@@ -132,40 +133,45 @@ function TransactionsList() {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
       if (error) throw error;
       toast.success("Lançamento removido");
-      setData(prev => prev.filter(t => t.id !== id));
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
     } catch (err) {
       toast.error("Erro ao excluir lançamento");
     }
   };
 
-  const filtered = data.filter((tx) => {
-    if (typeFilter !== "all" && tx.type !== typeFilter) return false;
-    if (categoryFilter !== "all" && tx.category_id !== categoryFilter) return false;
-    if (yearFilter !== "all" && tx.date.split("-")[0] !== yearFilter) return false;
-    if (monthFilter !== "all" && tx.date.split("-")[1] !== monthFilter) return false;
-    if (searchQuery && !tx.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return transactions.filter((tx) => {
+      if (typeFilter !== "all" && tx.type !== typeFilter) return false;
+      if (categoryFilter !== "all" && tx.category_id !== categoryFilter) return false;
+      if (yearFilter !== "all" && tx.date.split("-")[0] !== yearFilter) return false;
+      if (monthFilter !== "all" && tx.date.split("-")[1] !== monthFilter) return false;
+      if (searchQuery && !tx.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+  }, [transactions, typeFilter, categoryFilter, yearFilter, monthFilter, searchQuery]);
 
-  const sortedData = [...filtered].sort((a, b) => {
-    let aVal: any;
-    let bVal: any;
+  const sortedData = useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
 
-    if (sortField === "date") {
-      aVal = new Date(a.date + "T12:00:00").getTime();
-      bVal = new Date(b.date + "T12:00:00").getTime();
-    } else if (sortField === "description") {
-      aVal = a.description.toLowerCase();
-      bVal = b.description.toLowerCase();
-    } else if (sortField === "amount") {
-      aVal = Number(a.amount);
-      bVal = Number(b.amount);
-    }
+      if (sortField === "date") {
+        aVal = new Date(a.date + "T12:00:00").getTime();
+        bVal = new Date(b.date + "T12:00:00").getTime();
+      } else if (sortField === "description") {
+        aVal = a.description.toLowerCase();
+        bVal = b.description.toLowerCase();
+      } else if (sortField === "amount") {
+        aVal = Number(a.amount);
+        bVal = Number(b.amount);
+      }
 
-    if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
-    return 0;
-  });
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filtered, sortField, sortOrder]);
 
   const totals = useMemo(() => {
     return sortedData.reduce((acc, tx) => {
@@ -174,6 +180,7 @@ function TransactionsList() {
       return acc;
     }, { income: 0, expense: 0 });
   }, [sortedData]);
+
 
   return (
     <div className="space-y-6">
@@ -192,7 +199,7 @@ function TransactionsList() {
       <TransactionsDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSuccess={fetchData}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["transactions"] })}
         editingTransaction={editingTransaction}
       />
 
