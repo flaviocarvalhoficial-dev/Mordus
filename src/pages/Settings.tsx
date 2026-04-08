@@ -6,14 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search, History, Eye, ArrowRight } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search, History, Eye, ArrowRight, Settings as SettingsIcon, ShieldCheck, Landmark, FileText, LayoutDashboard, ChevronRight, Home } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useChurch } from "@/contexts/ChurchContext";
 import { supabase } from "@/lib/supabase";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function Settings() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "perfil";
+
+  const setActiveTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
   const { organization, profile, user, canManageFinances, isAdmin, canWrite, refreshOrganization } = useChurch();
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
@@ -76,9 +84,9 @@ export default function Settings() {
     if (organization?.id) {
       fetchTeam();
       fetchDepartments();
-      if (isAdmin) fetchAuditLogs();
+      if (isAdmin && activeTab === 'auditoria') fetchAuditLogs();
     }
-  }, [organization?.id, isAdmin]);
+  }, [organization?.id, isAdmin, activeTab]);
 
   const fetchAuditLogs = async () => {
     if (!organization?.id || !isAdmin) return;
@@ -217,42 +225,25 @@ export default function Settings() {
 
   return (
     <>
-      <div className="animate-fade-in space-y-6 max-w-4xl">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Configurações</h1>
-          <p className="text-muted-foreground text-[13px] mt-1">Gerencie seu perfil, dados da igreja e preferências do sistema</p>
+      <div className="animate-fade-in space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+            <SettingsIcon className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Configurações do Sistema</h1>
+            <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+          </div>
         </div>
 
-        <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="bg-secondary/50 p-1 mb-6 h-10 border border-border/50 justify-start inline-flex overflow-x-auto max-w-full no-scrollbar">
-            <TabsTrigger value="perfil" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Meu Perfil
-            </TabsTrigger>
-            <TabsTrigger value="igreja" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Instituição
-            </TabsTrigger>
-            {canManageFinances && (
-              <TabsTrigger value="financeiro" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Financeiro
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="digital" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Digital
-            </TabsTrigger>
-            <TabsTrigger value="preferencias" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Configurações
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="equipe" className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Equipe
-              </TabsTrigger>
-            )}
-            {isAdmin && (
-              <TabsTrigger value="auditoria" onClick={fetchAuditLogs} className="px-6 py-2 text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Auditoria
-              </TabsTrigger>
-            )}
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
+            <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => setActiveTab("perfil")}>
+              <Home className="h-3 w-3" /> Sistema
+            </span>
+            <ChevronRight className="h-3 w-3 opacity-30" />
+            <span className="text-foreground capitalize">{activeTab.replace(/-/g, ' ')}</span>
+          </div>
 
           <TabsContent value="perfil" className="animate-in fade-in slide-in-from-left-2 duration-300">
             <div className="max-w-2xl">

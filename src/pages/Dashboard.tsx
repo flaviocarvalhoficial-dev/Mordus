@@ -278,8 +278,8 @@ export default function Dashboard() {
                   <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-2 px-2">
-                <div className="h-[320px]">
+              <CardContent className="pt-2 px-2 pb-0">
+                <div className="h-[260px]">
                   {loading ? (
                     <div className="h-full flex flex-col gap-2 p-4">
                       <div className="flex h-full items-end gap-2">
@@ -290,9 +290,9 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={4}>
+                      <BarChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }} barGap={4}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={20} />
                         <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                         <Tooltip
                           cursor={false}
@@ -397,17 +397,17 @@ export default function Dashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
             </CardHeader>
-            <CardContent className="pt-2 px-2">
-              <div className="h-[280px]">
+            <CardContent className="pt-2 px-2 pb-0">
+              <div className="h-[220px]">
                 {loading ? (
                   <div className="h-full w-full flex items-end px-4 pb-2">
                     <Skeleton className="h-full w-full rounded-lg opacity-20" />
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={20} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                       <Tooltip cursor={false} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} />
                       <defs>

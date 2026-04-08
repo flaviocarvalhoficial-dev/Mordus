@@ -20,6 +20,7 @@ import {
   MessageCircle,
   LogOut,
   BookOpen,
+  CircleDollarSign,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, Link } from "react-router-dom";
@@ -43,7 +44,7 @@ import {
 
 const mainItems = [
   { title: "Painel Geral", url: "/", icon: LayoutDashboard },
-  { title: "Tesouraria", url: "/lancamentos", icon: ArrowUpDown },
+  { title: "Tesouraria", url: "/lancamentos", icon: CircleDollarSign },
   { title: "Secretaria", url: "/membros", icon: Users },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
@@ -58,7 +59,7 @@ export function AppSidebar() {
   const mainItems = useMemo(() => {
     const items = [
       { title: "Painel Geral", url: "/", icon: LayoutDashboard, visible: true },
-      { title: "Tesouraria", url: "/lancamentos", icon: ArrowUpDown, visible: canManageFinances },
+      { title: "Tesouraria", url: "/lancamentos", icon: CircleDollarSign, visible: canManageFinances },
       { title: "Secretaria", url: "/membros", icon: Users, visible: canAccessSecretariat },
       { title: "Configurações", url: "/configuracoes", icon: Settings, visible: true },
     ];

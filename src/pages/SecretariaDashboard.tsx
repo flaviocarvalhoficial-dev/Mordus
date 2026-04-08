@@ -24,12 +24,14 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
   });
 
   const [incompleteProfiles, setIncompleteProfiles] = useState(0);
+  const [upcomingBirthdays, setUpcomingBirthdays] = useState<any[]>([]);
 
   useEffect(() => {
     if (organization?.id) {
       fetchCounts();
       fetchRecentActivity();
       fetchIncompleteProfiles();
+      fetchBirthdays();
     }
   }, [organization?.id]);
 
@@ -99,6 +101,29 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         .limit(5);
       if (error) throw error;
       setRecentMembers(data || []);
+    } catch (err) { }
+  };
+
+  const fetchBirthdays = async () => {
+    try {
+      const today = new Date();
+      const currentMonth = today.getMonth() + 1;
+
+      const { data, error } = await supabase
+        .from("members")
+        .select("full_name, birth_date")
+        .eq("organization_id", organization!.id);
+
+      if (error) throw error;
+
+      const monthly = (data || []).filter(m => {
+        if (!m.birth_date) return false;
+        const bDate = new Date(m.birth_date);
+        return (bDate.getMonth() + 1) === currentMonth;
+      })
+        .sort((a, b) => new Date(a.birth_date).getDate() - new Date(b.birth_date).getDate());
+
+      setUpcomingBirthdays(monthly);
     } catch (err) { }
   };
 
@@ -200,36 +225,46 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="md:col-span-1 lg:col-span-2 bg-card border-border shadow-sm rounded-2xl overflow-hidden">
-          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-4 border-t-primary/40">
+          <CardHeader className="bg-secondary/10 border-b border-border/50 py-4 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Home className="h-4 w-4 text-primary" /> Acesso Rápido aos Módulos
+              <CalendarDays className="h-4 w-4 text-primary" /> Aniversariantes do Mês
             </CardTitle>
+            <Badge variant="outline" className="text-[10px] font-bold bg-background uppercase">{new Date().toLocaleString('pt-BR', { month: 'long' })}</Badge>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {quickLinks.map((link) => (
-                <button
-                  key={link.title}
-                  onClick={() => onNavigate?.(link.tab)}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border border-border/50 bg-secondary/5 hover:bg-primary/5 hover:border-primary/20 transition-all group relative overflow-hidden"
-                >
-                  <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary/30 group-hover:scale-110 transition-all shadow-sm">
-                    <link.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div className="space-y-4">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-2 w-20" /></div></div>
+                ))
+              ) : upcomingBirthdays.length === 0 ? (
+                <div className="text-center py-10">
+                  <Heart className="h-8 w-8 text-muted-foreground mx-auto opacity-20" />
+                  <p className="text-xs text-muted-foreground mt-2">Nenhum aniversariante este mês</p>
+                </div>
+              ) : upcomingBirthdays.map((m, i) => (
+                <div key={i} className="flex items-center justify-between group p-2 hover:bg-secondary/5 rounded-xl transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:border-primary/30 transition-all font-bold text-primary text-xs">
+                      {new Date(m.birth_date).getDate()}
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase mt-1">Dia {new Date(m.birth_date).getDate()}</p>
+                    </div>
                   </div>
-                  <span className="text-[12px] font-bold text-foreground mt-3">{link.title}</span>
-                  <span className="text-[10px] text-muted-foreground mt-1 tabular-nums font-medium">{loading ? "..." : `${link.count} registros`}</span>
-                  <div className="absolute top-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Plus className="h-3 w-3 text-primary" />
+                  <div className="h-8 w-8 rounded-full bg-secondary/50 flex items-center justify-center">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] p-0 h-6 w-6 rounded-full flex items-center justify-center">🎂</Badge>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-l-4 border-l-primary/40">
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-4 border-t-primary/40">
           <CardHeader className="bg-secondary/10 border-b border-border/50 py-4">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" /> Últimas Admissões
@@ -242,7 +277,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   <div key={i} className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><div className="space-y-2"><Skeleton className="h-3 w-32" /><Skeleton className="h-2 w-20" /></div></div>
                 ))
               ) : recentMembers.map((m, i) => (
-                <div key={i} className="flex items-center justify-between group">
+                <div key={i} className="flex items-center justify-between group p-2 hover:bg-secondary/5 rounded-xl transition-all">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 group-hover:border-primary/30 transition-all">
                       <User className="h-5 w-5 text-primary/70" />

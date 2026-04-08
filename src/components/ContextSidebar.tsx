@@ -3,7 +3,7 @@ import {
     Users, Building2, FileText, MapPinned, UsersRound,
     Heart, CalendarDays, Handshake, Crown, LayoutDashboard,
     ArrowUpDown, FolderOpen, Lock, Bell, AlertCircle, TrendingUp,
-    ChevronRight, ArrowRight
+    ChevronRight, ArrowRight, User, Settings, ShieldCheck, History
 } from "lucide-react";
 import { useChurch } from "@/contexts/ChurchContext";
 import { Badge } from "@/components/ui/badge";
@@ -17,24 +17,34 @@ interface SubItem {
 }
 
 const SECRETARIA_ITEMS: SubItem[] = [
-    { title: "Dashboard", url: "/secretaria", icon: LayoutDashboard },
-    { title: "Membros", url: "/membros", icon: Users },
-    { title: "Liderança", url: "/lideranca", icon: Crown },
-    { title: "Departamentos", url: "/departamentos", icon: UsersRound },
-    { title: "Patrimônio", url: "/patrimonio", icon: Building2 },
-    { title: "Documentos", url: "/documentos", icon: FileText },
-    { title: "Congregações", url: "/congregacoes", icon: MapPinned },
-    { title: "Calendário", url: "/calendario", icon: CalendarDays },
-    { title: "Ação Social", url: "/servico-social", icon: Heart },
-    { title: "Parcerias", url: "/parceiros", icon: Handshake },
+    { title: "Dashboard", url: "/membros?tab=resumo", icon: LayoutDashboard },
+    { title: "Membros", url: "/membros?tab=membros", icon: Users },
+    { title: "Liderança", url: "/membros?tab=lideranca", icon: Crown },
+    { title: "Departamentos", url: "/membros?tab=departamentos", icon: UsersRound },
+    { title: "Patrimônio", url: "/membros?tab=patrimonio", icon: Building2 },
+    { title: "Documentos", url: "/membros?tab=documentos", icon: FileText },
+    { title: "Congregações", url: "/membros?tab=congregacoes", icon: MapPinned },
+    { title: "Calendário", url: "/membros?tab=calendario", icon: CalendarDays },
+    { title: "Ação Social", url: "/membros?tab=social", icon: Heart },
+    { title: "Parcerias", url: "/membros?tab=parceiros", icon: Handshake },
 ];
 
 const TESOURARIA_ITEMS: SubItem[] = [
     { title: "Resumo Financeiro", url: "/", icon: LayoutDashboard },
-    { title: "Lançamentos", url: "/lancamentos", icon: ArrowUpDown },
-    { title: "Categorias", url: "/categorias", icon: FolderOpen },
-    { title: "Fechamento", url: "/fechamento", icon: Lock, badge: "Novo" },
-    { title: "Relatórios", url: "/relatorios", icon: FileText },
+    { title: "Lançamentos", url: "/lancamentos?tab=movimentacoes", icon: ArrowUpDown },
+    { title: "Categorias", url: "/lancamentos?tab=categorias", icon: FolderOpen },
+    { title: "Fechamento", url: "/lancamentos?tab=fechamento", icon: Lock, badge: "Novo" },
+    { title: "Relatórios", url: "/lancamentos?tab=relatorios", icon: FileText },
+];
+
+const SISTEMA_ITEMS: SubItem[] = [
+    { title: "Meu Perfil", url: "/configuracoes?tab=perfil", icon: User },
+    { title: "Instituição", url: "/configuracoes?tab=igreja", icon: Building2 },
+    { title: "Financeiro", url: "/configuracoes?tab=financeiro", icon: ArrowUpDown },
+    { title: "Digital", url: "/configuracoes?tab=digital", icon: FileText },
+    { title: "Configurações", url: "/configuracoes?tab=preferencias", icon: Settings },
+    { title: "Equipe", url: "/configuracoes?tab=equipe", icon: ShieldCheck },
+    { title: "Auditoria", url: "/configuracoes?tab=auditoria", icon: History },
 ];
 
 export function ContextSidebar() {
@@ -43,7 +53,7 @@ export function ContextSidebar() {
     const path = location.pathname;
 
     const context = useMemo(() => {
-        if (path === "/configuracoes" || path === "/ajuda") return "sistema";
+        if (path.startsWith("/configuracoes") || path.startsWith("/ajuda")) return "sistema";
         if (path.startsWith("/membros") ||
             path.startsWith("/secretaria") ||
             path.startsWith("/patrimonio") ||
@@ -59,10 +69,55 @@ export function ContextSidebar() {
         return "tesouraria";
     }, [path]);
 
-    const items = context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : [];
-    const title = context === "secretaria" ? "Secretaria" : context === "tesouraria" ? "Tesouraria" : "Configurações";
+    const isItemActive = useMemo(() => {
+        const fullPath = location.pathname + location.search;
+        return (url: string) => {
+            // Dashboard case (default tab is resumo)
+            if (url === "/membros?tab=resumo") {
+                return location.pathname === "/membros" && (!location.search || location.search.includes("tab=resumo"));
+            }
+            // Settings profile case (default tab is perfil)
+            if (url === "/configuracoes?tab=perfil") {
+                return location.pathname === "/configuracoes" && (!location.search || location.search.includes("tab=perfil"));
+            }
+            // Transactions default case
+            if (url === "/lancamentos?tab=movimentacoes") {
+                return location.pathname === "/lancamentos" && (!location.search || location.search.includes("tab=movimentacoes"));
+            }
+            // Other tab cases
+            if (url.includes("?tab=")) {
+                return fullPath === url;
+            }
+            // General case
+            return location.pathname === url;
+        };
+    }, [location]);
 
-    if (context === "sistema") return null;
+    const items = context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : context === "sistema" ? SISTEMA_ITEMS : [];
+    const title = context === "secretaria" ? "Secretaria" : context === "tesouraria" ? "Tesouraria" : "Sistema";
+
+    // Special logic for Help page
+    if (path === "/ajuda") {
+        return (
+            <div className="w-64 border-r border-border bg-secondary/10 flex flex-col h-screen">
+                <div className="p-6 pb-2">
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">Suporte</h2>
+                </div>
+                <div className="flex-1 px-4 py-8 text-center space-y-4">
+                    <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                        <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold">Base de Conhecimento</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Consulte nossos manuais e tutoriais online.</p>
+                    </div>
+                    <Link to="/manual" className="block p-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity">
+                        Abrir Manual
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-64 border-r border-border bg-secondary/10 flex flex-col h-screen">
@@ -73,26 +128,26 @@ export function ContextSidebar() {
             <div className="flex-1 px-3 overflow-y-auto no-scrollbar">
                 <div className="space-y-1 py-2">
                     {items.map((item) => {
-                        const isActive = path === item.url;
+                        const active = isItemActive(item.url);
                         return (
                             <Link
                                 key={item.url}
                                 to={item.url}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${isActive
+                                className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${active
                                     ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
                                     : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <item.icon className={`h-4 w-4 transition-transform group-hover:scale-110 ${isActive ? "text-primary" : "text-muted-foreground/60"}`} />
-                                    <span className={`text-[13px] ${isActive ? "font-bold" : "font-medium"}`}>{item.title}</span>
+                                    <item.icon className={`h-4 w-4 transition-transform group-hover:scale-110 ${active ? "text-primary" : "text-muted-foreground/60"}`} />
+                                    <span className={`text-[13px] ${active ? "font-bold" : "font-medium"}`}>{item.title}</span>
                                 </div>
                                 {item.badge ? (
                                     <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black uppercase px-1.5 py-0 h-4 border-primary/20">
                                         {item.badge}
                                     </Badge>
                                 ) : (
-                                    isActive && <ChevronRight className="h-3 w-3 opacity-50" />
+                                    active && <ChevronRight className="h-3 w-3 opacity-50" />
                                 )}
                             </Link>
                         );
