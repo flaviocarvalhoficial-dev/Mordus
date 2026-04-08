@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle, Lock, BookOpen, AlertTriangle, ArrowRight, Wallet, History, Verified } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Support() {
     return (
@@ -30,39 +31,107 @@ export default function Support() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="bg-card border-border hover:border-primary/30 transition-all duration-300">
-                                <CardHeader className="pb-2">
-                                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                                        <History className="h-5 w-5 text-primary" />
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Card className="bg-card border-border hover:border-primary/30 transition-all duration-300 cursor-pointer group">
+                                        <CardHeader className="pb-2">
+                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                                <History className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <CardTitle className="text-sm font-bold">Fechamento Retroativo</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-[12px] text-muted-foreground leading-relaxed">
+                                                Esqueceu de fechar um mês no ano passado? Sem problemas. O Mordus permite selecionar qualquer período no passado para regularizar seu caixa.
+                                            </p>
+                                            <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary uppercase">
+                                                Passo a passo <ArrowRight className="h-3 w-3" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md rounded-2xl">
+                                    <DialogHeader>
+                                        <DialogTitle className="flex items-center gap-2">
+                                            <History className="h-5 w-5 text-primary" />
+                                            Tutorial: Fechamento Retroativo
+                                        </DialogTitle>
+                                        <DialogDescription className="text-xs">
+                                            Como regularizar meses anteriores de forma segura.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 pt-4">
+                                        {[
+                                            { title: "Selecione o Período", desc: "No topo da tela de Lançamentos ou Fechamento, use o seletor de mês e ano para voltar ao mês desejado." },
+                                            { title: "Verifique Lançamentos", desc: "Garanta que todas as entradas e saídas daquele mês específico foram registradas." },
+                                            { title: "Inicie o Fechamento", desc: "Clique em 'Realizar Fechamento'. O sistema calculará o saldo automaticamente." },
+                                            { title: "Propagação de Saldo", desc: "Ao fechar um mês antigo, o Mordus irá recalcular o saldo inicial de TODOS os meses seguintes até o dia de hoje." }
+                                        ].map((step, i) => (
+                                            <div key={i} className="flex gap-3">
+                                                <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</div>
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-bold">{step.title}</p>
+                                                    <p className="text-[11px] text-muted-foreground leading-relaxed">{step.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <CardTitle className="text-sm font-bold">Fechamento Retroativo</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[12px] text-muted-foreground leading-relaxed">
-                                        Esqueceu de fechar um mês no ano passado? Sem problemas. O Mordus permite selecionar qualquer período no passado para regularizar seu caixa.
-                                    </p>
-                                    <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary uppercase">
-                                        Passo a passo <ArrowRight className="h-3 w-3" />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                </DialogContent>
+                            </Dialog>
 
-                            <Card className="bg-card border-border hover:border-primary/30 transition-all duration-300">
-                                <CardHeader className="pb-2">
-                                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                                        <Wallet className="h-5 w-5 text-primary" />
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Card className="bg-card border-border hover:border-primary/30 transition-all duration-300 cursor-pointer group">
+                                        <CardHeader className="pb-2">
+                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                                <Wallet className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <CardTitle className="text-sm font-bold">Saldo de Transporte (Carry-over)</CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-[12px] text-muted-foreground leading-relaxed">
+                                                O saldo final de um mês é automaticamente levado como saldo inicial para o próximo. Isso cria uma corrente inquebrável de auditoria.
+                                            </p>
+                                            <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary uppercase">
+                                                Entenda a lógica <ArrowRight className="h-3 w-3" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md rounded-2xl">
+                                    <DialogHeader>
+                                        <DialogTitle className="flex items-center gap-2">
+                                            <Wallet className="h-5 w-5 text-primary" />
+                                            Entenda o Saldo de Transporte
+                                        </DialogTitle>
+                                        <DialogDescription className="text-xs">
+                                            A matemática por trás do seu fluxo de caixa.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 pt-4">
+                                        <div className="p-4 bg-muted/50 rounded-xl border border-dashed border-border space-y-2">
+                                            <p className="text-[11px] font-mono text-center text-muted-foreground">Fórmula Mordus:</p>
+                                            <p className="text-xs font-bold text-center tracking-tight">
+                                                Saldo Inicial + Entradas - Saídas = Saldo Final
+                                            </p>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex gap-3">
+                                                <Verified className="h-4 w-4 text-success shrink-0" />
+                                                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                                    <strong>Integridade:</strong> O saldo final do mês de Janeiro será, obrigatoriamente, o saldo inicial do mês de Fevereiro.
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <Verified className="h-4 w-4 text-success shrink-0" />
+                                                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                                    <strong>Auditabilidade:</strong> Isso impede que valores "surjam" ou "desapareçam" entre os meses sem uma transação registrada.
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <CardTitle className="text-sm font-bold">Saldo de Transporte (Carry-over)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[12px] text-muted-foreground leading-relaxed">
-                                        O saldo final de um mês é automaticamente levado como saldo inicial para o próximo. Isso cria uma corrente inquebrável de auditoria.
-                                    </p>
-                                    <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-primary uppercase">
-                                        Entenda a lógica <ArrowRight className="h-3 w-3" />
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </section>
 
@@ -113,7 +182,7 @@ export default function Support() {
                                 </AccordionContent>
                             </AccordionItem>
 
-                            <AccordionItem value="item-4" className="border rounded-xl px-4 bg-muted/30">
+                            <AccordionItem value="item-5" className="border rounded-xl px-4 bg-muted/30">
                                 <AccordionTrigger className="text-sm font-medium hover:no-underline py-4">
                                     Meus lançamentos não aparecem no fechamento, por que?
                                 </AccordionTrigger>

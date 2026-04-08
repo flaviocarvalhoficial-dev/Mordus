@@ -12,6 +12,7 @@ import Members from "./pages/Members";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import Support from "./pages/Support";
+import Manual from "./pages/Manual";
 import { Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 
@@ -60,6 +61,7 @@ const App = () => (
                 <Route path="/membros" element={<Members />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/ajuda" element={<Support />} />
+                <Route path="/manual" element={<Manual />} />
 
                 <Route path="/categorias" element={<Navigate to="/lancamentos?tab=categorias" replace />} />
                 <Route path="/fechamento" element={<Navigate to="/lancamentos?tab=fechamento" replace />} />
