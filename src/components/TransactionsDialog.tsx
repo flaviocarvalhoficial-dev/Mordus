@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Loader2, Calendar, FileText, Banknote, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Loader2, Calendar, FileText, Banknote, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle, Upload, Eye, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,7 @@ const OCCASIONS = [
     "Outros"
 ];
 
-const emptyItem = { category_id: "", amount: "", payment_method: "Dinheiro", payment_method_id: "", type: "income" as "income" | "expense" };
+const emptyItem = { category_id: "", amount: "", payment_method: "Dinheiro", payment_method_id: "", type: "income" as "income" | "expense", receipt_url: "" };
 const emptyForm = { date: new Date().toLocaleDateString('en-CA'), description: "", event_id: "", occasion: "", items: [{ ...emptyItem }] };
 
 interface TransactionsDialogProps {
@@ -69,7 +69,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                         category_id: editingTransaction.category_id || "",
                         amount: String(editingTransaction.amount),
                         payment_method: editingTransaction.payment_method || "Dinheiro",
-                        payment_method_id: editingTransaction.payment_method_id || ""
+                        payment_method_id: editingTransaction.payment_method_id || "",
+                        receipt_url: editingTransaction.receipt_url || ""
                     }]
                 });
                 setCurrentStep(1);
@@ -128,6 +129,32 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
         setForm({ ...form, items: newItems });
     };
 
+    const handleUpload = async (index: number, file: File) => {
+        try {
+            setIsSaving(true);
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${crypto.randomUUID()}.${fileExt}`;
+            const filePath = `${organization!.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('receipts')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('receipts')
+                .getPublicUrl(filePath);
+
+            updateItem(index, "receipt_url", publicUrl);
+            toast.success("Comprovante enviado!");
+        } catch (error: any) {
+            toast.error("Erro no upload: " + error.message);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const validateStep = (step: number) => {
         if (step === 1) {
             if (!form.description || !form.date) {
@@ -175,7 +202,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     payment_method: item.payment_method,
                     payment_method_id: item.payment_method_id || null,
                     event_id: eventId,
-                    occasion: form.occasion || null
+                    occasion: form.occasion || null,
+                    receipt_url: item.receipt_url || null
                 };
                 const { error } = await supabase.from("transactions").update(payload).eq("id", editingTransaction.id);
                 if (error) throw error;
@@ -191,7 +219,8 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     payment_method: item.payment_method,
                     payment_method_id: item.payment_method_id || null,
                     event_id: eventId as any,
-                    occasion: form.occasion || null
+                    occasion: form.occasion || null,
+                    receipt_url: item.receipt_url || null
                 }));
 
                 const { error } = await supabase.from("transactions").insert(payloads as any);
@@ -401,6 +430,61 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                                     className="h-9 text-xs font-mono font-bold bg-background text-primary"
                                                     onChange={(e) => updateItem(index, "amount", e.target.value)}
                                                 />
+                                            </div>
+
+                                            <div className="md:col-span-2 space-y-2">
+                                                <Label className="text-[11px] text-foreground uppercase font-black tracking-tighter">Comprovante</Label>
+                                                <div className="flex items-center gap-2">
+                                                    {item.receipt_url ? (
+                                                        <div className="flex-1 flex items-center justify-between p-2 bg-success/10 border border-success/30 rounded-xl">
+                                                            <div className="flex items-center gap-2">
+                                                                <CheckCircle2 className="h-4 w-4 text-success" />
+                                                                <span className="text-[11px] font-bold text-success/90">Arquivo anexado</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-success hover:bg-success/20"
+                                                                    onClick={() => window.open(item.receipt_url, '_blank')}
+                                                                >
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-destructive hover:bg-destructive/20"
+                                                                    onClick={() => updateItem(index, "receipt_url", "")}
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="relative flex-1">
+                                                            <input
+                                                                type="file"
+                                                                id={`receipt-${index}`}
+                                                                className="hidden"
+                                                                accept="image/*,application/pdf"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) handleUpload(index, file);
+                                                                }}
+                                                            />
+                                                            <Button
+                                                                variant="outline"
+                                                                className="w-full h-12 border-dashed border-2 bg-primary/5 border-primary/20 hover:bg-primary/10 hover:border-primary/50 transition-all rounded-2xl gap-2 text-xs font-black text-primary group"
+                                                                asChild
+                                                            >
+                                                                <label htmlFor={`receipt-${index}`} className="cursor-pointer">
+                                                                    <Upload className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+                                                                    Clique para Upload
+                                                                </label>
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

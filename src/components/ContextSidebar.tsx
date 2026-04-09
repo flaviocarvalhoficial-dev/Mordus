@@ -30,6 +30,10 @@ interface SubItem {
     badge?: string;
 }
 
+const GERAL_ITEMS: SubItem[] = [
+    { title: "Painel Geral", url: "/", icon: LayoutDashboard },
+];
+
 const SECRETARIA_ITEMS: SubItem[] = [
     { title: "Dashboard", url: "/membros?tab=resumo", icon: LayoutDashboard },
     { title: "Membros", url: "/membros?tab=membros", icon: Users },
@@ -44,7 +48,6 @@ const SECRETARIA_ITEMS: SubItem[] = [
 ];
 
 const TESOURARIA_ITEMS: SubItem[] = [
-    { title: "Resumo Financeiro", url: "/", icon: LayoutDashboard },
     { title: "Lançamentos", url: "/lancamentos?tab=movimentacoes", icon: ArrowUpDown },
     { title: "Categorias", url: "/lancamentos?tab=categorias", icon: FolderOpen },
     { title: "Fechamento", url: "/lancamentos?tab=fechamento", icon: Lock, badge: "Novo" },
@@ -70,6 +73,7 @@ export function ContextSidebar() {
     const isCollapsed = state === "collapsed";
 
     const context = useMemo(() => {
+        if (path === "/") return "geral";
         if (path.startsWith("/configuracoes") || path.startsWith("/ajuda")) return "sistema";
         if (path.startsWith("/membros") ||
             path.startsWith("/secretaria") ||
@@ -110,8 +114,8 @@ export function ContextSidebar() {
         };
     }, [location]);
 
-    const items = context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : context === "sistema" ? SISTEMA_ITEMS : [];
-    const title = context === "secretaria" ? "Secretaria" : context === "tesouraria" ? "Tesouraria" : "Sistema";
+    const items = context === "geral" ? GERAL_ITEMS : context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : context === "sistema" ? SISTEMA_ITEMS : [];
+    const title = context === "geral" ? "" : context === "secretaria" ? "Secretaria" : context === "tesouraria" ? "Tesouraria" : "Sistema";
 
     // Special logic for Help page
     if (path === "/ajuda") {
@@ -145,7 +149,11 @@ export function ContextSidebar() {
                     <div className="mb-4">
                         <MordusLogo variant="full" className="h-5 w-auto" />
                     </div>
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">{title}</h2>
+                    {title && (
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                            {title}
+                        </h2>
+                    )}
                 </div>
 
                 <div className="flex-1 px-3 overflow-y-auto no-scrollbar">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +27,7 @@ import Reports from "./Reports";
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
   payment_method_cat?: any;
+  receipt_url?: string | null;
 };
 
 const months = [
@@ -72,6 +74,26 @@ function TransactionsList() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showTotals, setShowTotals] = useState(false);
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+
+  const handleDownload = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      const fileName = url.split('/').pop() || 'comprovante';
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      // Se falhar o fetch (CORS), abre em nova aba como fallback
+      window.open(url, '_blank');
+    }
+  };
 
   // Transactions Query
   const { data: transactions = [], isLoading: loading } = useQuery({
@@ -204,6 +226,84 @@ function TransactionsList() {
         editingTransaction={editingTransaction}
       />
 
+      <Dialog open={!!viewingReceipt} onOpenChange={(o) => !o && setViewingReceipt(null)}>
+        <DialogContent className="sm:max-w-4xl bg-card p-0 overflow-hidden border-border shadow-2xl ring-1 ring-primary/10">
+          <DialogHeader className="p-6 border-b border-border bg-secondary/10 flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
+                <FileCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold tracking-tight">Visualizar Comprovante</DialogTitle>
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Documento de Lançamento</p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-secondary/5 relative">
+            <ScrollArea className="h-[65vh] w-full">
+              <div className="p-8 flex items-center justify-center min-h-full">
+                {viewingReceipt && (
+                  <div className="w-full flex items-center justify-center">
+                    {viewingReceipt.toLowerCase().includes('.pdf') ? (
+                      <div className="flex flex-col items-center gap-8 py-16 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="h-28 w-28 rounded-[2.5rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/5">
+                          <FileText className="h-14 w-14 text-primary" />
+                        </div>
+                        <div className="text-center space-y-3">
+                          <p className="text-2xl font-black text-foreground uppercase tracking-tight">Documento PDF</p>
+                          <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mx-auto">Este arquivo está em formato PDF. Clique em "Baixar" para visualizar o conteúdo completo no navegador.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative group rounded-xl overflow-hidden border border-border shadow-2xl bg-background w-fit mx-auto animate-in fade-in zoom-in-95 duration-500">
+                        <img
+                          src={viewingReceipt}
+                          alt="Comprovante"
+                          className="max-w-full h-auto object-contain cursor-zoom-in"
+                          onClick={() => window.open(viewingReceipt, '_blank')}
+                          onLoad={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.opacity = "1";
+                          }}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "https://placehold.co/800x600/f3ede4/e69b1a?text=Erro+ao+carregar+imagem";
+                          }}
+                        />
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
+                          <p className="text-white text-[11px] font-black uppercase tracking-widest">Clique para ver tamanho original</p>
+                          <p className="text-white/60 text-[9px] mt-1 uppercase font-bold tracking-tighter">Use o scroll para navegar em documentos longos</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <DialogFooter className="p-6 bg-secondary/10 border-t border-border flex flex-row items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              className="h-11 px-8 font-bold border-border/50 bg-background transition-all"
+              onClick={() => setViewingReceipt(null)}
+            >
+              Fechar
+            </Button>
+            {viewingReceipt && (
+              <Button
+                className="h-11 px-10 gap-3 font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all bg-gradient-to-r from-primary to-primary/80"
+                onClick={() => handleDownload(viewingReceipt)}
+              >
+                <Download className="h-5 w-5" />
+                Baixar Arquivo
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card className="bg-card border-border shadow-sm overflow-hidden">
         <CardHeader className="pb-3 bg-secondary/10">
           <div className="flex flex-col gap-3">
@@ -235,7 +335,7 @@ function TransactionsList() {
             </div>
             <div className="flex flex-wrap gap-2 items-center">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-32 h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Tipo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="income">Entradas</SelectItem>
@@ -243,18 +343,18 @@ function TransactionsList() {
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                <SelectTrigger className="w-52 h-8 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Categorias</SelectItem>
                   {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={yearFilter} onValueChange={setYearFilter}>
-                <SelectTrigger className="w-24 h-8 text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="Ano" /></SelectTrigger>
                 <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>
               </Select>
               <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="w-24 h-8 text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
+                <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Mês" /></SelectTrigger>
                 <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
               </Select>
 
@@ -284,12 +384,13 @@ function TransactionsList() {
             <Table>
               <TableHeader className="sticky top-0 bg-secondary/10 backdrop-blur-sm z-10">
                 <TableRow className="hover:bg-transparent border-b border-border/50">
-                  <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
-                  <TableHead className="w-[35%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
-                  <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
-                  <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
-                  <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
-                  <TableHead className="w-[5%]"></TableHead>
+                  <TableHead className="w-[10%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
+                  <TableHead className="w-[30%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
+                  <TableHead className="w-[15%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
+                  <TableHead className="w-[8%] text-[11px] uppercase font-bold text-muted-foreground text-center">Doc</TableHead>
+                  <TableHead className="w-[15%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
+                  <TableHead className="w-[14%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
+                  <TableHead className="w-[8%]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,6 +405,17 @@ function TransactionsList() {
                         <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center">{formatDate(tx.date)}</TableCell>
                         <TableCell className="text-[13px] font-medium text-center">{tx.description}</TableCell>
                         <TableCell className="text-center"><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                        <TableCell className="text-center">
+                          {tx.receipt_url && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm border border-primary/20"
+                              title="Ver Comprovante"
+                            >
+                              <FileCheck className="h-4 w-4" />
+                            </button>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
                             {tx.payment_method_cat?.name || tx.payment_method || "-"}
