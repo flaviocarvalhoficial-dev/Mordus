@@ -47,6 +47,8 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          purple: "hsl(var(--accent-purple))",
+          orange: "hsl(var(--accent-orange))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -68,12 +70,15 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
           muted: "hsl(var(--sidebar-muted))",
+          context: "hsl(var(--sidebar-context-background))",
         },
       },
       borderRadius: {
+        xl: "calc(var(--radius) + 8px)",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 6px)",
+        sm: "calc(var(--radius) - 10px)",
+        full: "999px",
       },
       keyframes: {
         "accordion-down": {

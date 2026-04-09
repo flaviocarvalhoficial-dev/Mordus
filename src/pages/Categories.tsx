@@ -140,12 +140,12 @@ export default function Categories() {
       {loading ? (
         <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 max-w-6xl">
           <Card className="bg-card border-border border-l-4 border-l-success shadow-sm">
-            <CardHeader className="pb-3 border-b border-border/50 bg-secondary/5"><CardTitle className="text-sm font-bold uppercase tracking-wider text-success">Entradas</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-3">
+            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-success">Entradas</CardTitle></CardHeader>
+            <CardContent className="space-y-1 p-2">
               {entradas.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 hover:bg-secondary/30 transition-colors group">
+                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-success/60" />
                     <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>
@@ -161,10 +161,10 @@ export default function Categories() {
           </Card>
 
           <Card className="bg-card border-border border-l-4 border-l-destructive shadow-sm">
-            <CardHeader className="pb-3 border-b border-border/50 bg-secondary/5"><CardTitle className="text-sm font-bold uppercase tracking-wider text-destructive">Saídas</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-3">
+            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-destructive">Saídas</CardTitle></CardHeader>
+            <CardContent className="space-y-1 p-2">
               {saidas.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 hover:bg-secondary/30 transition-colors group">
+                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-destructive/60" />
                     <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>
@@ -180,10 +180,10 @@ export default function Categories() {
           </Card>
 
           <Card className="bg-card border-border border-l-4 border-l-primary shadow-sm">
-            <CardHeader className="pb-3 border-b border-border/50 bg-secondary/5"><CardTitle className="text-sm font-bold uppercase tracking-wider text-primary">Meios de Pagamento</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-3">
+            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-primary">Meios de Pagamento</CardTitle></CardHeader>
+            <CardContent className="space-y-1 p-2">
               {meios.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 hover:bg-secondary/30 transition-colors group">
+                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
                   <div className="flex items-center gap-3">
                     <div className="h-2 w-2 rounded-full bg-primary/60" />
                     <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>

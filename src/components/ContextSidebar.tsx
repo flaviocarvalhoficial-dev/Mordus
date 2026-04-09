@@ -116,7 +116,7 @@ export function ContextSidebar() {
     // Special logic for Help page
     if (path === "/ajuda") {
         return (
-            <div className={`border-r border-border bg-secondary/10 flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
+            <div className={`border-r border-sidebar-border bg-sidebar-context flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
                 <div className="w-64">
                     <div className="p-6 pb-2">
                         <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">Suporte</h2>
@@ -139,7 +139,7 @@ export function ContextSidebar() {
     }
 
     return (
-        <div className={`border-r border-border bg-secondary/10 flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
+        <div className={`border-r border-sidebar-border bg-sidebar-context flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
             <div className="w-64 flex flex-col h-full">
                 <div className="p-6 pb-2">
                     <div className="mb-4">
@@ -157,7 +157,7 @@ export function ContextSidebar() {
                                     key={item.url}
                                     to={item.url}
                                     className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${active
-                                        ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
+                                        ? "bg-primary/10 text-primary"
                                         : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                                         }`}
                                 >
@@ -179,7 +179,7 @@ export function ContextSidebar() {
                 </div>
 
                 <div className="p-4 mt-auto">
-                    <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm relative overflow-hidden group">
+                    <div className="bg-white/50 border border-border/50 rounded-2xl p-4 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <TrendingUp className="h-12 w-12 text-primary" />
                         </div>

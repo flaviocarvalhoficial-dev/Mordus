@@ -280,15 +280,15 @@ export default function Dashboard() {
 
         <div className={`grid gap-4 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
           {canManageFinances && (
-            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
               <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-[15px] font-semibold">Fluxo de Caixa Mensal</CardTitle>
                   <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
                 </div>
               </CardHeader>
-              <CardContent className="pt-2 px-2 pb-0">
-                <div className="h-[260px]">
+              <CardContent className="pt-2 px-2 pb-2">
+                <div className="h-[300px]">
                   {loading ? (
                     <div className="h-full flex flex-col gap-2 p-4">
                       <div className="flex h-full items-end gap-2">
@@ -299,9 +299,9 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }} barGap={4}>
+                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }} barGap={4}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={20} />
+                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
                         <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                         <Tooltip
                           cursor={false}
@@ -402,21 +402,21 @@ export default function Dashboard() {
         </div>
 
         {canManageFinances && (
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
             <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
               <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
             </CardHeader>
-            <CardContent className="pt-2 px-2 pb-0">
-              <div className="h-[220px]">
+            <CardContent className="pt-2 px-2 pb-2">
+              <div className="h-[260px]">
                 {loading ? (
                   <div className="h-full w-full flex items-end px-4 pb-2">
                     <Skeleton className="h-full w-full rounded-lg opacity-20" />
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }}>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={20} />
+                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
                       <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                       <Tooltip cursor={false} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} />
                       <defs>
@@ -426,7 +426,7 @@ export default function Dashboard() {
                         </linearGradient>
                       </defs>
                       <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={3} fill="url(#gradAreaBlue)" dot={false} />
-                      <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(210, 85%, 70%)" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
+                      <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}

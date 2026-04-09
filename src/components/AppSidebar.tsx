@@ -107,11 +107,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="none" className="w-[72px] border-r border-sidebar-border bg-sidebar shrink-0">
-      <SidebarHeader className="p-0 h-16 flex items-center justify-center border-b border-sidebar-border">
-        <MordusLogo variant="icon" className="h-8 w-8 text-sidebar-foreground" />
-      </SidebarHeader>
-
-      <SidebarContent className="p-2 gap-4 pt-6">
+      <SidebarContent className="p-2 gap-4 pt-4">
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-4">
             {mainItems.map((item) => {
@@ -121,17 +117,17 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={active}
-                    className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300 relative group p-0 ${active
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 relative group p-0 ${active
+                      ? "bg-primary/10 text-primary"
                       : "hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground"
                       }`}
                   >
                     <Link to={item.url}>
                       <item.icon className="h-5 w-5" />
                       {active && (
-                        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+                        <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full" />
                       )}
-                      <div className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-md uppercase tracking-wider">
+                      <div className="absolute left-full ml-4 px-2 py-1 bg-popover text-popover-foreground text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 uppercase tracking-wider border border-border">
                         {item.title}
                       </div>
                     </Link>
