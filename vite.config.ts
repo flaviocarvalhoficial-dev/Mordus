@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
         name: 'Mordus — Gestão de Igrejas',
         short_name: 'Mordus',
         description: 'Gerenciamento financeiro e administrativo de igrejas em um só lugar.',
-        theme_color: '#F67748',
+        theme_color: '#E69B1A',
         background_color: '#F3EDE4',
         display: 'standalone',
         display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],

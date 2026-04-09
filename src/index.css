@@ -143,18 +143,29 @@
   }
 }
 
-/* Global scrollbar hide for the whole app */
-html,
-body {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* Global scrollbar style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
 }
 
 .hide-all-scrollbars *::-webkit-scrollbar {
