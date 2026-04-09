@@ -11,11 +11,12 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QuickEntryDialog } from "@/components/QuickEntryDialog";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import SecretariaDashboard from "./SecretariaDashboard";
 
 const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -73,6 +74,8 @@ export default function Dashboard() {
   const [showExpenses, setShowExpenses] = useState(() => {
     return localStorage.getItem("dashboard-show-expenses") === "true";
   });
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get("view") || "tesouraria";
 
   useEffect(() => {
     localStorage.setItem("dashboard-show-expenses", String(showExpenses));
@@ -246,193 +249,201 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
-          {visibleCards.map((card) => (
-            <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground/60'}`} />
-                    <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
-                  </div>
-                  {card.link && (
-                    <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">VER TODOS</Link>
-                  )}
-                </div>
-                <div className="flex items-end justify-between">
-                  {loading ? (
-                    <Skeleton className="h-7 w-[100px]" />
-                  ) : (
-                    <span className={`text-xl font-black font-mono tabular-nums text-foreground`}>
-                      <Counter
-                        value={card.value}
-                        prefix={card.prefix}
-                        suffix={card.suffix}
-                        decimals={card.decimals}
-                      />
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className={`grid gap-4 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
-          {canManageFinances && (
-            <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
-              <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-[15px] font-semibold">Fluxo de Caixa Mensal</CardTitle>
-                  <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-2 px-2 pb-2">
-                <div className="h-[300px]">
-                  {loading ? (
-                    <div className="h-full flex flex-col gap-2 p-4">
-                      <div className="flex h-full items-end gap-2">
-                        {Array.from({ length: 12 }).map((_, i) => (
-                          <Skeleton key={i} className="w-full" style={{ height: `${Math.random() * 80 + 20}%` }} />
-                        ))}
+        {activeTab === "tesouraria" ? (
+          <div className="space-y-4 animate-in fade-in duration-500">
+            <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
+              {visibleCards.map((card) => (
+                <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground/60'}`} />
+                        <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
                       </div>
+                      {card.link && (
+                        <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">VER TODOS</Link>
+                      )}
                     </div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }} barGap={4}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
-                        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
-                        <Tooltip
-                          cursor={false}
-                          contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                          formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]}
-                        />
-                        <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[4, 4, 0, 0]} barSize={28} />
-                        <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={28} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
-            <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-semibold">Detalhamento</CardTitle>
-              {canManageFinances && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">Exibir Saídas</span>
-                  <Switch
-                    checked={showExpenses}
-                    onCheckedChange={setShowExpenses}
-                    className="scale-75 origin-right data-[state=checked]:bg-destructive"
-                  />
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 pt-2">
-                {canManageFinances && (
-                  <>
-                    {showExpenses && (
-                      <div className="flex justify-between items-center pb-2 border-b border-border animate-in slide-in-from-top-1 duration-300">
-                        <span className="text-[12px] text-muted-foreground">Total Saídas</span>
-                        <span className="text-[13px] font-bold font-mono text-destructive">
-                          {loading ? <Skeleton className="h-4 w-20" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center pb-2 border-b border-border">
-                      <span className="text-[12px] text-muted-foreground">Dízimos</span>
-                      <span className="text-[13px] font-bold font-mono text-foreground">
-                        {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-border">
-                      <span className="text-[12px] text-muted-foreground">Ofertas</span>
-                      <span className="text-[13px] font-bold font-mono text-foreground">
-                        {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-[12px] font-semibold text-foreground">Total Líquido</span>
+                    <div className="flex items-end justify-between">
                       {loading ? (
-                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-7 w-[100px]" />
                       ) : (
-                        <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-primary" : "text-destructive"}`}>
-                          {`R$ ${saldo.toLocaleString("pt-BR")}`}
+                        <span className={`text-xl font-black font-mono tabular-nums text-foreground`}>
+                          <Counter
+                            value={card.value}
+                            prefix={card.prefix}
+                            suffix={card.suffix}
+                            decimals={card.decimals}
+                          />
                         </span>
                       )}
                     </div>
-                  </>
-                )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-                <div className={`mt-6 pt-6 border-t border-border space-y-4 ${!canManageFinances ? 'mt-0 pt-0 border-t-0' : ''}`}>
-                  <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Secretaria</h4>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-3.5 w-3.5 text-primary/60" />
-                      <span className="text-[12px] text-muted-foreground">Departamentos</span>
+            <div className={`grid gap-4 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
+              {canManageFinances && (
+                <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
+                  <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-[15px] font-semibold">Fluxo de Caixa Mensal</CardTitle>
+                      <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
                     </div>
-                    <span className="text-[13px] font-bold font-mono text-foreground">
-                      {loading ? <Skeleton className="h-4 w-10" /> : stats.deptCount}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
-                      <span className="text-[12px] text-muted-foreground">Eventos</span>
+                  </CardHeader>
+                  <CardContent className="pt-2 px-2 pb-2">
+                    <div className="h-[300px]">
+                      {loading ? (
+                        <div className="h-full flex flex-col gap-2 p-4">
+                          <div className="flex h-full items-end gap-2">
+                            {Array.from({ length: 12 }).map((_, i) => (
+                              <Skeleton key={i} className="w-full" style={{ height: `${Math.random() * 80 + 20}%` }} />
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }} barGap={4}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
+                            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
+                            <Tooltip
+                              cursor={false}
+                              contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                              formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]}
+                            />
+                            <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[4, 4, 0, 0]} barSize={28} />
+                            <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={28} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
-                    <span className="text-[13px] font-bold font-mono text-foreground">
-                      {loading ? <Skeleton className="h-4 w-10" /> : stats.eventCount}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <Link to="/lancamentos?tab=relatorios" className="block w-full mt-4">
-                <Button variant="outline" className="w-full h-8 text-[11px] border-border group">
-                  <Eye className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
-                  Visualizar Relatório
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+                  </CardContent>
+                </Card>
+              )}
 
-        {canManageFinances && (
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
-            <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
-              <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-2 px-2 pb-2">
-              <div className="h-[260px]">
-                {loading ? (
-                  <div className="h-full w-full flex items-end px-4 pb-2">
-                    <Skeleton className="h-full w-full rounded-lg opacity-20" />
+              <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+                <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-sm font-semibold">Detalhamento</CardTitle>
+                  {canManageFinances && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">Exibir Saídas</span>
+                      <Switch
+                        checked={showExpenses}
+                        onCheckedChange={setShowExpenses}
+                        className="scale-75 origin-right data-[state=checked]:bg-destructive"
+                      />
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 pt-2">
+                    {canManageFinances && (
+                      <>
+                        {showExpenses && (
+                          <div className="flex justify-between items-center pb-2 border-b border-border animate-in slide-in-from-top-1 duration-300">
+                            <span className="text-[12px] text-muted-foreground">Total Saídas</span>
+                            <span className="text-[13px] font-bold font-mono text-destructive">
+                              {loading ? <Skeleton className="h-4 w-20" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center pb-2 border-b border-border">
+                          <span className="text-[12px] text-muted-foreground">Dízimos</span>
+                          <span className="text-[13px] font-bold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pb-2 border-b border-border">
+                          <span className="text-[12px] text-muted-foreground">Ofertas</span>
+                          <span className="text-[13px] font-bold font-mono text-foreground">
+                            {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2">
+                          <span className="text-[12px] font-semibold text-foreground">Total Líquido</span>
+                          {loading ? (
+                            <Skeleton className="h-5 w-24" />
+                          ) : (
+                            <span className={`text-[14px] font-bold font-mono ${saldo >= 0 ? "text-primary" : "text-destructive"}`}>
+                              {`R$ ${saldo.toLocaleString("pt-BR")}`}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <div className={`mt-6 pt-6 border-t border-border space-y-4 ${!canManageFinances ? 'mt-0 pt-0 border-t-0' : ''}`}>
+                      <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Secretaria</h4>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Layers className="h-3.5 w-3.5 text-primary/60" />
+                          <span className="text-[12px] text-muted-foreground">Departamentos</span>
+                        </div>
+                        <span className="text-[13px] font-bold font-mono text-foreground">
+                          {loading ? <Skeleton className="h-4 w-10" /> : stats.deptCount}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
+                          <span className="text-[12px] text-muted-foreground">Eventos</span>
+                        </div>
+                        <span className="text-[13px] font-bold font-mono text-foreground">
+                          {loading ? <Skeleton className="h-4 w-10" /> : stats.eventCount}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
-                      <Tooltip cursor={false} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} />
-                      <defs>
-                        <linearGradient id="gradAreaBlue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--chart-blue))" stopOpacity={0.2} />
-                          <stop offset="100%" stopColor="hsl(var(--chart-blue))" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={3} fill="url(#gradAreaBlue)" dot={false} />
-                      <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  <Link to="/lancamentos?tab=relatorios" className="block w-full mt-4">
+                    <Button variant="outline" className="w-full h-8 text-[11px] border-border group">
+                      <Eye className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
+                      Visualizar Relatório
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+
+            {canManageFinances && (
+              <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
+                <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
+                  <CardTitle className="text-[15px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-2 px-2 pb-2">
+                  <div className="h-[260px]">
+                    {loading ? (
+                      <div className="h-full w-full flex items-end px-4 pb-2">
+                        <Skeleton className="h-full w-full rounded-lg opacity-20" />
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                          <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 10 }} axisLine={false} tickLine={false} height={30} />
+                          <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
+                          <Tooltip cursor={false} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} />
+                          <defs>
+                            <linearGradient id="gradAreaBlue" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="hsl(var(--chart-blue))" stopOpacity={0.2} />
+                              <stop offset="100%" stopColor="hsl(var(--chart-blue))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={3} fill="url(#gradAreaBlue)" dot={false} />
+                          <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={2} fill="none" dot={false} strokeDasharray="5 5" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            <SecretariaDashboard />
+          </div>
         )}
       </div>
     </>

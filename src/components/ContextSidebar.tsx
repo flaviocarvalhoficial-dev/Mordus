@@ -1,6 +1,6 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useSearchParams } from "react-router-dom";
 import {
-    Users, Building2, FileText, MapPinned,
+    Users, UsersRound, Building2, FileText, MapPinned,
     Heart, CalendarDays, Handshake, Crown, LayoutDashboard,
     ArrowUpDown, FolderOpen, Lock, Bell, AlertCircle, TrendingUp,
     ChevronRight, ArrowRight, User, Settings, ShieldCheck, History, HardDrive, Layers
@@ -31,7 +31,8 @@ interface SubItem {
 }
 
 const GERAL_ITEMS: SubItem[] = [
-    { title: "Painel Geral", url: "/", icon: LayoutDashboard },
+    { title: "Painel Tesouraria", url: "/", icon: LayoutDashboard },
+    { title: "Painel Secretaria", url: "/?view=secretaria", icon: UsersRound },
 ];
 
 const SECRETARIA_ITEMS: SubItem[] = [
@@ -67,10 +68,18 @@ const SISTEMA_ITEMS: SubItem[] = [
 
 export function ContextSidebar() {
     const location = useLocation();
-    const { organization } = useChurch();
+    const [searchParams] = useSearchParams();
+    const { settings, user, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
     const path = location.pathname;
     const { state } = useSidebar();
     const isCollapsed = state === "collapsed";
+
+    const filteredGeralItems = useMemo(() => {
+        return GERAL_ITEMS.filter(item => {
+            if (item.url === "/?view=secretaria") return canAccessSecretariat;
+            return true;
+        });
+    }, [canAccessSecretariat]);
 
     const context = useMemo(() => {
         if (path === "/") return "geral";
@@ -93,7 +102,16 @@ export function ContextSidebar() {
     const isItemActive = useMemo(() => {
         const fullPath = location.pathname + location.search;
         return (url: string) => {
-            // Dashboard case (default tab is resumo)
+            const [urlPath, urlSearch] = url.split("?");
+
+            // Dashboard case (Geral context)
+            if (urlPath === "/" && path === "/") {
+                const currentView = searchParams.get("view") || "tesouraria";
+                const targetView = urlSearch ? new URLSearchParams(urlSearch).get("view") : "tesouraria";
+                return currentView === targetView;
+            }
+
+            // Dashboard case inside member module
             if (url === "/membros?tab=resumo") {
                 return location.pathname === "/membros" && (!location.search || location.search.includes("tab=resumo"));
             }
@@ -112,9 +130,9 @@ export function ContextSidebar() {
             // General case
             return location.pathname === url;
         };
-    }, [location]);
+    }, [location, searchParams, path]);
 
-    const items = context === "geral" ? GERAL_ITEMS : context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : context === "sistema" ? SISTEMA_ITEMS : [];
+    const items = context === "geral" ? filteredGeralItems : context === "secretaria" ? SECRETARIA_ITEMS : context === "tesouraria" ? TESOURARIA_ITEMS : context === "sistema" ? SISTEMA_ITEMS : [];
     const title = context === "geral" ? "" : context === "secretaria" ? "Secretaria" : context === "tesouraria" ? "Tesouraria" : "Sistema";
 
     // Special logic for Help page

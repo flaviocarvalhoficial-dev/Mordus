@@ -23,7 +23,7 @@ import {
   CircleDollarSign,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { MordusLogo } from "@/components/MordusLogo";
@@ -53,6 +53,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const currentPath = location.pathname;
   const { settings, user, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
 

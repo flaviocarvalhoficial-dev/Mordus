@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart
+} from "recharts";
 
 export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { organization } = useChurch();
@@ -25,6 +29,11 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
   const [incompleteProfiles, setIncompleteProfiles] = useState(0);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState<any[]>([]);
+  const [growthData, setGrowthData] = useState<any[]>([]);
+  const [genderData, setGenderData] = useState<any[]>([]);
+  const [ageData, setAgeData] = useState<any[]>([]);
+
+  const COLORS = ["hsl(var(--chart-blue))", "hsl(var(--chart-pink))", "hsl(var(--chart-amber))", "hsl(var(--chart-emerald))"];
 
   useEffect(() => {
     if (organization?.id) {
@@ -32,8 +41,74 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
       fetchRecentActivity();
       fetchIncompleteProfiles();
       fetchBirthdays();
+      fetchGrowthData();
+      fetchDemographics();
     }
   }, [organization?.id]);
+
+  const fetchGrowthData = async () => {
+    try {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+      twelveMonthsAgo.setDate(1);
+
+      const { data, error } = await supabase
+        .from("members")
+        .select("created_at")
+        .eq("organization_id", organization!.id)
+        .gte("created_at", twelveMonthsAgo.toISOString());
+
+      if (error) throw error;
+
+      const months = Array.from({ length: 12 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - (11 - i));
+        return {
+          month: d.toLocaleString('pt-BR', { month: 'short' }),
+          count: 0,
+          fullDate: d
+        };
+      });
+
+      data?.forEach(m => {
+        const d = new Date(m.created_at);
+        const mIdx = months.findIndex(mo => mo.fullDate.getMonth() === d.getMonth() && mo.fullDate.getFullYear() === d.getFullYear());
+        if (mIdx !== -1) months[mIdx].count++;
+      });
+
+      // Accumulate for a "Total Growth" line
+      let total = counts.members - (data?.length || 0);
+      const accumulated = months.map(m => {
+        total += m.count;
+        return { ...m, total };
+      });
+
+      setGrowthData(accumulated);
+    } catch (err) { }
+  };
+
+  const fetchDemographics = async () => {
+    try {
+      // @ts-ignore
+      const { data, error } = await supabase
+        .from("members")
+        .select("gender, age_group")
+        .eq("organization_id", organization!.id);
+
+      if (error) throw error;
+
+      const genders: Record<string, number> = {};
+      const ages: Record<string, number> = {};
+
+      (data as any[])?.forEach(m => {
+        if (m.gender) genders[m.gender] = (genders[m.gender] || 0) + 1;
+        if (m.age_group) ages[m.age_group] = (ages[m.age_group] || 0) + 1;
+      });
+
+      setGenderData(Object.entries(genders).map(([name, value]) => ({ name, value })));
+      setAgeData(Object.entries(ages).map(([name, value]) => ({ name, value })));
+    } catch (err) { }
+  };
 
   const fetchIncompleteProfiles = async () => {
     try {
@@ -224,6 +299,102 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10 lg:col-span-2">
+          <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary/60" /> Crescimento de Membros
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={growthData}>
+                  <defs>
+                    <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-blue))" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-blue))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                  />
+                  <Area type="monotone" dataKey="total" name="Total de Membros" stroke="hsl(var(--chart-blue))" fillOpacity={1} fill="url(#colorCount)" strokeWidth={3} />
+                  <Bar dataKey="count" name="Novas Admissões" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={20} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
+          <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <UsersRound className="h-4 w-4 text-primary/60" /> Distribuição por Sexo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {genderData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              {genderData.map((entry, index) => (
+                <div key={entry.name} className="flex items-center gap-1.5">
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground">{entry.name}: {entry.value}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10 lg:col-span-3">
+          <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary/60" /> Distribuição por Faixa Etária
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="h-[180px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={ageData} layout="vertical" margin={{ left: 30 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={80} />
+                  <Tooltip
+                    cursor={{ fill: 'hsl(var(--secondary)/0.1)' }}
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
+                  />
+                  <Bar dataKey="value" name="Membros" fill="hsl(var(--chart-amber))" radius={[0, 4, 4, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
