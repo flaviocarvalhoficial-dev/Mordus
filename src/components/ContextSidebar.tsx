@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useChurch } from "@/contexts/ChurchContext";
 import { Badge } from "@/components/ui/badge";
+import { MordusLogo } from "@/components/MordusLogo";
 import { useMemo } from "react";
 import {
     Sidebar,
@@ -141,6 +142,9 @@ export function ContextSidebar() {
         <div className={`border-r border-border bg-secondary/10 flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
             <div className="w-64 flex flex-col h-full">
                 <div className="p-6 pb-2">
+                    <div className="mb-4">
+                        <MordusLogo variant="full" className="h-5 w-auto" />
+                    </div>
                     <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 mb-4">{title}</h2>
                 </div>
 
