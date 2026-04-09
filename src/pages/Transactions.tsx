@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -279,54 +280,56 @@ function TransactionsList() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
-                <TableHead className="w-[35%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
-                <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
-                <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
-                <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
-                <TableHead className="w-[5%]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
-                ))
-              ) : (
-                <>
-                  {sortedData.map((tx) => (
-                    <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/20">
-                      <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center">{formatDate(tx.date)}</TableCell>
-                      <TableCell className="text-[13px] font-medium text-center">{tx.description}</TableCell>
-                      <TableCell className="text-center"><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
-                          {tx.payment_method_cat?.name || tx.payment_method || "-"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                        {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <PermissionGuard requireWrite>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                            <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                          </div>
-                        </PermissionGuard>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {!loading && sortedData.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
-                  )}
-                </>
-              )}
-            </TableBody>
-          </Table>
+          <ScrollArea className="h-[calc(100vh-340px)] w-full">
+            <Table>
+              <TableHeader className="sticky top-0 bg-secondary/10 backdrop-blur-sm z-10">
+                <TableRow className="hover:bg-transparent border-b border-border/50">
+                  <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
+                  <TableHead className="w-[35%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
+                  <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
+                  <TableHead className="w-[18%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
+                  <TableHead className="w-[12%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
+                  <TableHead className="w-[5%]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  ))
+                ) : (
+                  <>
+                    {sortedData.map((tx) => (
+                      <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/20">
+                        <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center">{formatDate(tx.date)}</TableCell>
+                        <TableCell className="text-[13px] font-medium text-center">{tx.description}</TableCell>
+                        <TableCell className="text-center"><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
+                            {tx.payment_method_cat?.name || tx.payment_method || "-"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                          {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <PermissionGuard requireWrite>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                              <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
+                              <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                            </div>
+                          </PermissionGuard>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!loading && sortedData.length === 0 && (
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
+                    )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>

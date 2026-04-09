@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { useMemo, useState, useEffect } from "react";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RouteInfo {
   name: string;
@@ -60,7 +61,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const greeting = useMemo(() => getGreeting(), []);
   const SectionIcon = route.icon;
   return (
-    <div className="min-h-screen flex w-full overflow-hidden hide-all-scrollbars">
+    <div className="h-screen flex w-full overflow-hidden">
       <AppSidebar />
       <ContextSidebar />
       <div className="flex-1 flex flex-col min-w-0 bg-background">
@@ -91,8 +92,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 p-4 overflow-auto print:p-0 hide-all-scrollbars">
-          {children || <Outlet />}
+        <main className="flex-1 overflow-hidden print:overflow-visible">
+          <ScrollArea className="h-full w-full" scrollHideDelay={0}>
+            <div className="p-4 print:p-0">
+              {children || <Outlet />}
+            </div>
+          </ScrollArea>
         </main>
       </div>
     </div>

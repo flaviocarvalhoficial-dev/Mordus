@@ -106,7 +106,7 @@ export function AppSidebar() {
   const activeSocials = socialLinks.filter((s) => settings.socialMedia[s.key]);
 
   return (
-    <Sidebar collapsible="none" className="w-[72px] border-r border-sidebar-border bg-sidebar shrink-0">
+    <Sidebar collapsible="none" className="w-[72px] h-screen sticky top-0 border-r border-sidebar-border bg-sidebar shrink-0">
       <SidebarContent className="p-2 gap-4 pt-4">
         <SidebarGroup className="p-0">
           <SidebarMenu className="gap-4">

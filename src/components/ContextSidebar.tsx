@@ -139,7 +139,7 @@ export function ContextSidebar() {
     }
 
     return (
-        <div className={`border-r border-sidebar-border bg-sidebar-context flex flex-col h-screen transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
+        <div className={`border-r border-sidebar-border bg-sidebar-context flex flex-col h-screen sticky top-0 transition-all duration-300 ease-in-out overflow-hidden ${isCollapsed ? "w-0 opacity-0" : "w-64 opacity-100"}`}>
             <div className="w-64 flex flex-col h-full">
                 <div className="p-6 pb-2">
                     <div className="mb-4">
