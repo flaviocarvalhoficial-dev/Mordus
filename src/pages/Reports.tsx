@@ -202,10 +202,7 @@ export default function Reports() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="print:hidden">
-        <h2 className="text-lg font-semibold text-foreground">Relatórios</h2>
-        <p className="text-muted-foreground text-[12px] mt-1">Prestação de contas corporativa — {organization?.name}</p>
-      </div>
+
 
       <Card className="bg-card border-border print:hidden">
         <CardHeader>

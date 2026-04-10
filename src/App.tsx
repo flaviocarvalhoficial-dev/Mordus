@@ -61,7 +61,7 @@ const App = () => (
                 <Route path="/membros" element={<Members />} />
                 <Route path="/configuracoes" element={<Settings />} />
                 <Route path="/ajuda" element={<Support />} />
-                <Route path="/manual" element={<Manual />} />
+                <Route path="/manual" element={<Navigate to="/ajuda" replace />} />
 
                 <Route path="/categorias" element={<Navigate to="/lancamentos?tab=categorias" replace />} />
                 <Route path="/fechamento" element={<Navigate to="/lancamentos?tab=fechamento" replace />} />

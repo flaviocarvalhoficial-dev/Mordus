@@ -258,7 +258,7 @@ export default function Settings() {
                 <CardContent className="p-6 space-y-6">
                   <div className="flex items-center gap-6">
                     <div
-                      className="relative h-24 w-24 rounded-2xl bg-secondary flex items-center justify-center border-2 border-border overflow-hidden cursor-pointer group shadow-inner"
+                      className="relative h-24 w-24 rounded-full bg-secondary flex items-center justify-center border-2 border-border overflow-hidden cursor-pointer group shadow-inner"
                       onClick={() => document.getElementById("avatar-upload")?.click()}
                     >
                       {profile.avatar_url ? (

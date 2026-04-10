@@ -105,11 +105,7 @@ export default function Categories() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground tracking-tight">Canais & Classificações</h2>
-          <p className="text-muted-foreground text-[12px] mt-0.5 font-medium opacity-70">Estrutura de Lançamentos — {organization.name}</p>
-        </div>
+      <div className="flex items-center justify-end flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <Select value={activeFilter} onValueChange={setActiveFilter}>
             <SelectTrigger className="w-36 h-9 text-xs font-bold bg-secondary/20 border-border/50">
@@ -164,9 +160,9 @@ export default function Categories() {
           <Table className="border-collapse border border-border/50">
             <TableHeader className="bg-secondary/20 border-b border-border">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[45%] text-[10px] font-black text-muted-foreground border-r border-border/50 px-4">Classificação / Nome</TableHead>
-                <TableHead className="w-[35%] text-[10px] font-black text-muted-foreground border-r border-border/50 px-4">Tipo de Registro</TableHead>
-                <TableHead className="w-[20%] text-[10px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
+                <TableHead className="w-[45%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4">Classificação / Nome</TableHead>
+                <TableHead className="w-[35%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4">Tipo de Registro</TableHead>
+                <TableHead className="w-[20%] text-[11px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,7 +173,7 @@ export default function Categories() {
                     <TableCell className="border-r border-border/50 px-4 py-2">
                       <div className="flex items-center gap-3">
                         <div className={`h-2 w-2 rounded-full ${info.dot}`} />
-                        <span className="text-[13px] font-semibold text-foreground/70">{cat.name}</span>
+                        <span className="text-[14px] font-semibold text-foreground/70">{cat.name}</span>
                       </div>
                     </TableCell>
                     <TableCell className="border-r border-border/50 px-4 py-2">

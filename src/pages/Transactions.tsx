@@ -207,11 +207,7 @@ function TransactionsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Movimentações</h2>
-          <p className="text-muted-foreground text-[12px] mt-0.5">Listagem detalhada de entradas e saídas</p>
-        </div>
+      <div className="flex items-center justify-end">
         <PermissionGuard requireWrite>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6 shadow-sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />Novo Lançamento
@@ -384,13 +380,13 @@ function TransactionsList() {
             <Table className="border-collapse border border-border/50">
               <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[10%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Data</TableHead>
-                  <TableHead className="w-[30%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Descrição</TableHead>
-                  <TableHead className="w-[15%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Categoria</TableHead>
-                  <TableHead className="w-[8%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Doc</TableHead>
-                  <TableHead className="w-[15%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Meio</TableHead>
-                  <TableHead className="w-[14%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Valor</TableHead>
-                  <TableHead className="w-[8%] text-[10px] font-black text-muted-foreground text-center">Ações</TableHead>
+                  <TableHead className="w-[10%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Data</TableHead>
+                  <TableHead className="w-[30%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Descrição</TableHead>
+                  <TableHead className="w-[15%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Categoria</TableHead>
+                  <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Doc</TableHead>
+                  <TableHead className="w-[15%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Meio</TableHead>
+                  <TableHead className="w-[14%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Valor</TableHead>
+                  <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -402,10 +398,10 @@ function TransactionsList() {
                   <>
                     {sortedData.map((tx) => (
                       <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
-                        <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
-                        <TableCell className="text-[13px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
+                        <TableCell className="font-mono text-[14px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
+                        <TableCell className="text-[14px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
                         <TableCell className="text-center border-r border-border/50 py-2">
-                          <Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none border-border/50 text-foreground/70">
+                          <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
                             {tx.categories?.name || "Geral"}
                           </Badge>
                         </TableCell>
@@ -421,11 +417,11 @@ function TransactionsList() {
                           )}
                         </TableCell>
                         <TableCell className="text-center border-r border-border/50 py-2">
-                          <Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none border-border/50 text-foreground/70">
+                          <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
                             {tx.payment_method_cat?.name || tx.payment_method || "-"}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center border-r border-border/50 py-2 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                        <TableCell className={`font-bold font-mono text-[14px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                           {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                         </TableCell>
                         <TableCell className="py-2">
@@ -477,13 +473,25 @@ export default function Transactions() {
         }
       >
         <div className="animate-fade-in space-y-6 print:space-y-0 print:m-0 print:p-0">
-          <div className="flex items-center gap-3 print:hidden">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
-              <Banknote className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">Tesouraria & Finanças</h1>
-              <p className="text-muted-foreground text-[11px] font-medium tracking-[0.1em]">{organization.name}</p>
+          <div className="flex items-center justify-between pb-2 border-b border-border/50 print:hidden">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+                <Banknote className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex flex-col text-left items-start">
+                <div className="flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
+                  <Home className="h-2.5 w-2.5" />
+                  <ChevronRight className="h-2.5 w-2.5 opacity-30" />
+                  Tesouraria
+                  <ChevronRight className="h-2.5 w-2.5 opacity-30" />
+                  {organization.name}
+                </div>
+                <h1 className="text-xl font-black text-foreground tracking-tight capitalize mt-0.5">
+                  {activeTab === 'movimentacoes' ? 'Lançamentos' :
+                    activeTab === 'fechamento' ? 'Fechamentos' :
+                      activeTab.replace(/-/g, ' ')}
+                </h1>
+              </div>
             </div>
           </div>
 
@@ -492,17 +500,6 @@ export default function Transactions() {
             onValueChange={(v) => setSearchParams({ tab: v })}
             className="w-full"
           >
-            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold tracking-wider text-muted-foreground/60 print:hidden">
-              <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => navigate("/")}>
-                <Home className="h-3 w-3" /> Dashboard
-              </span>
-              <ChevronRight className="h-3 w-3 opacity-30" />
-              <span className="text-foreground capitalize">
-                {activeTab === 'movimentacoes' ? 'Lançamentos' :
-                  activeTab === 'fechamento' ? 'Fechamentos' :
-                    activeTab.replace(/-/g, ' ')}
-              </span>
-            </div>
 
             <TabsContent value="movimentacoes" className="mt-0 focus-visible:ring-0 outline-none">
               <TransactionsList />

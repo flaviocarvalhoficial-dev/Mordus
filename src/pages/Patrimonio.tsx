@@ -122,12 +122,8 @@ export default function Patrimonio() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Patrimônio</h2>
-          <p className="text-muted-foreground text-[12px] mt-1">Controle de ativos fixos — {organization.name}</p>
-        </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+      <div className="flex items-center justify-end">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6" onClick={openCreate}>
           <Plus className="h-4 w-4 mr-2" />Novo Bem
         </Button>
       </div>
@@ -199,10 +195,10 @@ export default function Patrimonio() {
                 ))
               ) : filtered.map((item) => (
                 <TableRow key={item.id} className="group transition-colors">
-                  <TableCell className="font-medium text-[13px]">{item.name}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-[9px] font-medium px-2 py-0 h-4 border-border/50">{typeLabels[item.type || ""] || item.type}</Badge></TableCell>
-                  <TableCell className="text-[11px] text-muted-foreground max-w-[200px] truncate">{item.description}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-[13px] font-bold">{formatCurrency(item.value || 0)}</TableCell>
+                  <TableCell className="font-medium text-[14px]">{item.name}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-5 border-border/50">{typeLabels[item.type || ""] || item.type}</Badge></TableCell>
+                  <TableCell className="text-[12px] text-muted-foreground max-w-[200px] truncate">{item.description}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums text-[14px] font-bold">{formatCurrency(item.value || 0)}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
                       <button onClick={() => openEdit(item)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary"><Pencil className="h-3.5 w-3.5" /></button>

@@ -77,11 +77,7 @@ export default function ServicoSocial() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Diretoria de Ação Social</h2>
-          <p className="text-muted-foreground text-[12px] mt-1">Gestão de auxílio humanitário e apoio a famílias</p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex gap-2">
           <Button size="sm" variant="outline" className="h-9 text-xs rounded-full px-5" onClick={() => { setMode("family"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Família</Button>
           <Button size="sm" className="h-9 text-xs rounded-full px-5" onClick={() => { setMode("assistance"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Registrar Auxílio</Button>

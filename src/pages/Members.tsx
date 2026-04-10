@@ -193,13 +193,9 @@ function MembersList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Gestão de Membros</h2>
-          <p className="text-muted-foreground text-[12px] mt-0.5">Listagem e cadastro completo do rol de membros</p>
-        </div>
+      <div className="flex items-center justify-end">
         <PermissionGuard requireWrite>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}>
             <Plus className="h-4 w-4 mr-2" />Novo Membro
           </Button>
         </PermissionGuard>
@@ -459,21 +455,21 @@ function MembersList() {
                         {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
                       </div>
                       <div>
-                        <p className="text-[13px] font-bold text-foreground leading-tight">{m.full_name}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
+                        <p className="text-[14px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                        <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-primary/40" />
-                      <span className="text-[12px] font-medium text-muted-foreground">
+                      <span className="text-[14px] font-medium text-muted-foreground">
                         {m.congregations?.name || "Sede (Matriz)"}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell><Badge variant="outline" className={`text-[9px] font-bold px-2 py-0 h-4 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
-                  <TableCell><Badge variant="secondary" className={`text-[9px] font-bold px-2 py-0 h-4 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
+                  <TableCell><Badge variant="outline" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
                   <TableCell>
                     <PermissionGuard requireWrite>
                       <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
@@ -522,24 +518,27 @@ export default function Members() {
         }
       >
         <div className="animate-fade-in space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">Secretaria Geral</h1>
-              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+          <div className="flex items-center justify-between pb-2 border-b border-border/50">
+            <div className="flex items-center gap-4 text-left">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex flex-col text-left items-start">
+                <div className="flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70">
+                  <Home className="h-2.5 w-2.5" />
+                  <ChevronRight className="h-2.5 w-2.5 opacity-30" />
+                  Secretaria Geral
+                  <ChevronRight className="h-2.5 w-2.5 opacity-30" />
+                  {organization.name}
+                </div>
+                <h1 className="text-xl font-black text-foreground tracking-tight capitalize mt-0.5">
+                  {activeTab === 'resumo' ? 'Painel Principal' : activeTab.replace(/-/g, ' ')}
+                </h1>
+              </div>
             </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60">
-              <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => setActiveTab("resumo")}>
-                <Home className="h-3 w-3" /> Início
-              </span>
-              <ChevronRight className="h-3 w-3 opacity-30" />
-              <span className="text-foreground capitalize">{activeTab === 'resumo' ? 'Dashboard' : activeTab.replace(/-/g, ' ')}</span>
-            </div>
 
             <TabsContent value="resumo" className="mt-0 focus-visible:ring-0">
               <Summary onNavigate={setActiveTab} />

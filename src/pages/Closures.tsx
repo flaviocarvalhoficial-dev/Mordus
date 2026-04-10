@@ -8,6 +8,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
@@ -371,7 +372,8 @@ export default function Closures() {
             ))}
           </div>
         ) : (
-          <div className="space-y-3">
+          <ScrollArea className="max-h-[520px] pr-4">
+            <div className="space-y-3">
             {closures.map((closure) => (
               <Card key={closure.id} className="bg-card border-border border-l-4 border-l-secondary/40">
                 <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
@@ -456,7 +458,8 @@ export default function Closures() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          </ScrollArea>
         )}
       </div>
     </div>
