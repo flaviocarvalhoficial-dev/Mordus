@@ -65,7 +65,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <AppSidebar />
       <ContextSidebar />
       <div className="flex-1 flex flex-col min-w-0 bg-background">
-        <header className="h-12 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-6 sticky top-0 z-10 print:hidden">
+        <header className="h-16 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-6 md:px-10 sticky top-0 z-10 print:hidden">
           <div className="flex items-center gap-2 text-[13px] w-1/3">
             <SidebarTrigger className="mr-2" />
             <SectionIcon className="h-4 w-4 text-primary" />
@@ -94,7 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </header>
         <main className="flex-1 overflow-hidden print:overflow-visible">
           <ScrollArea className="h-full w-full" scrollHideDelay={0}>
-            <div className="p-4 print:p-0">
+            <div className="px-6 py-6 md:px-10 md:py-8 print:p-0 max-w-[1600px] mx-auto w-full">
               {children || <Outlet />}
             </div>
           </ScrollArea>

@@ -208,7 +208,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="animate-fade-in space-y-4">
+      <div className="animate-fade-in space-y-8">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-xl font-semibold text-foreground">Painel de Gestão</h1>
@@ -261,7 +261,7 @@ export default function Dashboard() {
                         <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
                       </div>
                       {card.link && (
-                        <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">VER TODOS</Link>
+                        <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">Ver todos</Link>
                       )}
                     </div>
                     <div className="flex items-end justify-between">
@@ -328,7 +328,7 @@ export default function Dashboard() {
                   <CardTitle className="text-sm font-semibold">Detalhamento</CardTitle>
                   {canManageFinances && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground uppercase hidden sm:inline">Exibir Saídas</span>
+                      <span className="text-[10px] text-muted-foreground hidden sm:inline">Exibir saídas</span>
                       <Switch
                         checked={showExpenses}
                         onCheckedChange={setShowExpenses}
@@ -351,13 +351,13 @@ export default function Dashboard() {
                         )}
                         <div className="flex justify-between items-center pb-2 border-b border-border">
                           <span className="text-[12px] text-muted-foreground">Dízimos</span>
-                          <span className="text-[13px] font-bold font-mono text-foreground">
+                          <span className="text-[13px] font-bold font-mono text-emerald-500">
                             {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
                           </span>
                         </div>
                         <div className="flex justify-between items-center pb-2 border-b border-border">
                           <span className="text-[12px] text-muted-foreground">Ofertas</span>
-                          <span className="text-[13px] font-bold font-mono text-foreground">
+                          <span className="text-[13px] font-bold font-mono text-emerald-500">
                             {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
                           </span>
                         </div>
@@ -375,7 +375,7 @@ export default function Dashboard() {
                     )}
 
                     <div className={`mt-6 pt-6 border-t border-border space-y-4 ${!canManageFinances ? 'mt-0 pt-0 border-t-0' : ''}`}>
-                      <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Secretaria</h4>
+                      <h4 className="text-[10px] font-black text-muted-foreground">Secretaria</h4>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Layers className="h-3.5 w-3.5 text-primary/60" />

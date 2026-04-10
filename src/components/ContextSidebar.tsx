@@ -36,7 +36,6 @@ const GERAL_ITEMS: SubItem[] = [
 ];
 
 const SECRETARIA_ITEMS: SubItem[] = [
-    { title: "Dashboard", url: "/membros?tab=resumo", icon: LayoutDashboard },
     { title: "Membros", url: "/membros?tab=membros", icon: Users },
     { title: "Liderança", url: "/membros?tab=lideranca", icon: Crown },
     { title: "Departamentos", url: "/membros?tab=departamentos", icon: Layers },
@@ -205,7 +204,7 @@ export function ContextSidebar() {
                 </div>
 
                 <div className="p-4 mt-auto">
-                    <div className="bg-white/50 border border-border/50 rounded-2xl p-4 relative overflow-hidden group">
+                    <div className="bg-secondary/20 border border-border/50 rounded-2xl p-4 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <TrendingUp className="h-12 w-12 text-primary" />
                         </div>
