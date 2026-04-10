@@ -83,8 +83,8 @@ export default function ServicoSocial() {
           <p className="text-muted-foreground text-[12px] mt-1">Gestão de auxílio humanitário e apoio a famílias</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="h-9 text-xs" onClick={() => { setMode("family"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Família</Button>
-          <Button size="sm" className="h-9 text-xs" onClick={() => { setMode("assistance"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Registrar Auxílio</Button>
+          <Button size="sm" variant="outline" className="h-9 text-xs rounded-full px-5" onClick={() => { setMode("family"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Família</Button>
+          <Button size="sm" className="h-9 text-xs rounded-full px-5" onClick={() => { setMode("assistance"); setDialogOpen(true); }}><Plus className="h-4 w-4 mr-2" />Registrar Auxílio</Button>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function ServicoSocial() {
                 </div>
               </>
             )}
-            <Button className="w-full h-11 text-base font-bold shadow-lg shadow-primary/10 mt-2" onClick={handleSave} disabled={isSaving}>
+            <Button className="w-full h-11 text-sm font-bold shadow-lg shadow-primary/10 mt-2 rounded-full" onClick={handleSave} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {mode === "family" ? "Salvar Cadastro" : "Confirmar Entrega"}
             </Button>
           </div>
@@ -141,10 +141,10 @@ export default function ServicoSocial() {
               <Table>
                 <TableHeader className="bg-secondary/10">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider pl-6">Família Beneficiada</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-center">Data</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-center">Volume</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-right pr-6">Status</TableHead>
+                    <TableHead className="text-[11px] font-bold pl-6">Família Beneficiada</TableHead>
+                    <TableHead className="text-[11px] font-bold text-center">Data</TableHead>
+                    <TableHead className="text-[11px] font-bold text-center">Volume</TableHead>
+                    <TableHead className="text-[11px] font-bold text-right pr-6">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -167,11 +167,11 @@ export default function ServicoSocial() {
                       </TableCell>
                       <TableCell className="text-center text-[12px] font-mono font-medium text-muted-foreground">{new Date(a.delivery_date + 'T12:00:00').toLocaleDateString("pt-BR")}</TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary" className="bg-secondary/50 text-foreground font-mono text-[10px] h-5">{a.items_count} ITENS</Badge>
+                        <Badge variant="secondary" className="bg-secondary/50 text-foreground font-mono text-[10px] h-5">{a.items_count} itens</Badge>
                       </TableCell>
                       <TableCell className="text-right pr-6">
-                        <Badge variant="outline" className={`text-[9px] font-bold px-2 py-0 h-4 border-0 ${a.status === "delivered" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"}`}>
-                          {a.status === "delivered" ? "ENTREGUE" : "PENDENTE"}
+                        <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0 h-5 border-0 rounded-full ${a.status === "delivered" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"}`}>
+                          {a.status === "delivered" ? "Entregue" : "Pendente"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -189,10 +189,10 @@ export default function ServicoSocial() {
               <Table>
                 <TableHeader className="bg-secondary/10">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider pl-6">Família / Responsável</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider">Endereço</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider text-center">Membros</TableHead>
-                    <TableHead className="text-[11px] font-bold uppercase tracking-wider pr-6">Necessidades</TableHead>
+                    <TableHead className="text-[11px] font-bold pl-6">Família / Responsável</TableHead>
+                    <TableHead className="text-[11px] font-bold">Endereço</TableHead>
+                    <TableHead className="text-[11px] font-bold text-center">Membros</TableHead>
+                    <TableHead className="text-[11px] font-bold pr-6">Necessidades</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

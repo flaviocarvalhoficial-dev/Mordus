@@ -173,10 +173,12 @@ export default function Departamentos() {
                 <SelectContent>{colorOptions.map((c) => <SelectItem key={c.label} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingId ? "Atualizar" : "Salvar"}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button className="w-full sm:w-[140px]" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingId ? "Atualizar" : "Salvar"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -184,7 +186,7 @@ export default function Departamentos() {
       {loading ? (
         <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {items.map((dep) => (
             <Card key={dep.id} className="bg-card border-border border-l-4 border-l-primary/40">
               <CardContent className="p-5">
@@ -220,9 +222,11 @@ export default function Departamentos() {
                 )}
 
                 <PermissionGuard requireWrite>
-                  <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-full border border-dashed border-border hover:bg-secondary/50 group" onClick={() => setSubGroupDialog(dep.id)}>
-                    <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar Sub-grupo
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-fit px-4 border border-dashed border-border hover:bg-secondary/50 group" onClick={() => setSubGroupDialog(dep.id)}>
+                      <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar Sub-grupo
+                    </Button>
+                  </div>
                 </PermissionGuard>
 
                 <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
@@ -242,7 +246,9 @@ export default function Departamentos() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button className="w-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
+                      <div className="flex justify-center pt-2">
+                        <Button className="w-full sm:w-[140px]" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
+                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>

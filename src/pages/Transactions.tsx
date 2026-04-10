@@ -213,7 +213,7 @@ function TransactionsList() {
           <p className="text-muted-foreground text-[12px] mt-0.5">Listagem detalhada de entradas e saídas</p>
         </div>
         <PermissionGuard requireWrite>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6 shadow-sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />Novo Lançamento
           </Button>
         </PermissionGuard>
@@ -235,7 +235,7 @@ function TransactionsList() {
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold tracking-tight">Visualizar Comprovante</DialogTitle>
-                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Documento de Lançamento</p>
+                <p className="text-[10px] text-muted-foreground font-black mt-1">Documento de Lançamento</p>
               </div>
             </div>
           </DialogHeader>
@@ -315,17 +315,17 @@ function TransactionsList() {
               {showTotals && sortedData.length > 0 && (
                 <div className="flex items-center gap-4 px-4 py-1.5 bg-background rounded-xl border border-border/50 shadow-sm animate-in fade-in slide-in-from-right-2 duration-300">
                   <div className="flex flex-col items-center">
-                    <span className="text-[9px] uppercase font-black text-success/70 leading-none mb-1 tracking-tighter">Entradas</span>
+                    <span className="text-[9px] font-black text-success/70 leading-none mb-1">Entradas</span>
                     <span className="text-[11px] font-mono font-black text-success">+{formatCurrency(totals.income)}</span>
                   </div>
                   <Separator orientation="vertical" className="h-6 opacity-30" />
                   <div className="flex flex-col items-center">
-                    <span className="text-[9px] uppercase font-black text-destructive/70 leading-none mb-1 tracking-tighter">Saídas</span>
+                    <span className="text-[9px] font-black text-destructive/70 leading-none mb-1">Saídas</span>
                     <span className="text-[11px] font-mono font-black text-destructive">-{formatCurrency(totals.expense)}</span>
                   </div>
                   <Separator orientation="vertical" className="h-6 opacity-30" />
                   <div className="flex flex-col items-center">
-                    <span className="text-[9px] uppercase font-black text-muted-foreground leading-none mb-1 tracking-tighter">Saldo</span>
+                    <span className="text-[9px] font-black text-muted-foreground leading-none mb-1">Saldo</span>
                     <span className={`text-[11px] font-mono font-black ${totals.income - totals.expense >= 0 ? 'text-foreground' : 'text-destructive'}`}>
                       {formatCurrency(totals.income - totals.expense)}
                     </span>
@@ -369,7 +369,7 @@ function TransactionsList() {
               </div>
 
               <div className="flex items-center gap-2 ml-2 border-l border-border pl-3">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">Totais</span>
+                <span className="text-[10px] text-muted-foreground font-bold">Totais</span>
                 <Switch
                   checked={showTotals}
                   onCheckedChange={setShowTotals}
@@ -381,16 +381,16 @@ function TransactionsList() {
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-340px)] w-full">
-            <Table>
-              <TableHeader className="sticky top-0 bg-secondary/10 backdrop-blur-sm z-10">
-                <TableRow className="hover:bg-transparent border-b border-border/50">
-                  <TableHead className="w-[10%] text-[11px] uppercase font-bold text-muted-foreground text-center">Data</TableHead>
-                  <TableHead className="w-[30%] text-[11px] uppercase font-bold text-muted-foreground text-center">Descrição</TableHead>
-                  <TableHead className="w-[15%] text-[11px] uppercase font-bold text-muted-foreground text-center">Categoria</TableHead>
-                  <TableHead className="w-[8%] text-[11px] uppercase font-bold text-muted-foreground text-center">Doc</TableHead>
-                  <TableHead className="w-[15%] text-[11px] uppercase font-bold text-muted-foreground text-center">Meio</TableHead>
-                  <TableHead className="w-[14%] text-[11px] uppercase font-bold text-muted-foreground text-center">Valor</TableHead>
-                  <TableHead className="w-[8%]"></TableHead>
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[10%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Data</TableHead>
+                  <TableHead className="w-[30%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Descrição</TableHead>
+                  <TableHead className="w-[15%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Categoria</TableHead>
+                  <TableHead className="w-[8%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Doc</TableHead>
+                  <TableHead className="w-[15%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Meio</TableHead>
+                  <TableHead className="w-[14%] text-[10px] font-black text-muted-foreground text-center border-r border-border/50">Valor</TableHead>
+                  <TableHead className="w-[8%] text-[10px] font-black text-muted-foreground text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -401,34 +401,38 @@ function TransactionsList() {
                 ) : (
                   <>
                     {sortedData.map((tx) => (
-                      <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/20">
-                        <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center">{formatDate(tx.date)}</TableCell>
-                        <TableCell className="text-[13px] font-medium text-center">{tx.description}</TableCell>
-                        <TableCell className="text-center"><Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none">{tx.categories?.name || "Geral"}</Badge></TableCell>
-                        <TableCell className="text-center">
+                      <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
+                        <TableCell className="font-mono text-[11px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
+                        <TableCell className="text-[13px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2">
+                          <Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none border-border/50 text-foreground/70">
+                            {tx.categories?.name || "Geral"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2">
                           {tx.receipt_url && (
                             <button
                               onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm border border-primary/20"
+                              className="inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all"
                               title="Ver Comprovante"
                             >
-                              <FileCheck className="h-4 w-4" />
+                              <FileCheck className="h-3 w-3" />
                             </button>
                           )}
                         </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-5 leading-none bg-orange-500/10 text-orange-500 border-orange-500/20">
+                        <TableCell className="text-center border-r border-border/50 py-2">
+                          <Badge variant="outline" className="text-[10px] font-medium px-2 py-0 h-5 leading-none border-border/50 text-foreground/70">
                             {tx.payment_method_cat?.name || tx.payment_method || "-"}
                           </Badge>
                         </TableCell>
-                        <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                        <TableCell className={`font-bold font-mono text-[13px] tabular-nums text-center border-r border-border/50 py-2 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                           {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-2">
                           <PermissionGuard requireWrite>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                              <button onClick={() => openEdit(tx)} className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                              <button onClick={() => handleDelete(tx.id)} className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                              <button onClick={() => openEdit(tx)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                              <button onClick={() => handleDelete(tx.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
                             </div>
                           </PermissionGuard>
                         </TableCell>
@@ -479,7 +483,7 @@ export default function Transactions() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground tracking-tight">Tesouraria & Finanças</h1>
-              <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-[0.1em]">{organization.name}</p>
+              <p className="text-muted-foreground text-[11px] font-medium tracking-[0.1em]">{organization.name}</p>
             </div>
           </div>
 
@@ -488,7 +492,7 @@ export default function Transactions() {
             onValueChange={(v) => setSearchParams({ tab: v })}
             className="w-full"
           >
-            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/60 print:hidden">
+            <div className="flex items-center gap-2 mb-6 px-1 text-[11px] font-bold tracking-wider text-muted-foreground/60 print:hidden">
               <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer" onClick={() => navigate("/")}>
                 <Home className="h-3 w-3" /> Dashboard
               </span>

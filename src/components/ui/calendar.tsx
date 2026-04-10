@@ -76,7 +76,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
 }
 
 function YearEditor({ displayMonth }: { displayMonth: Date }) {
-  const { goToMonth, locale, onMonthChange } = useDayPicker();
+  const { locale, onMonthChange } = useDayPicker();
   const [isEditing, setIsEditing] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(displayMonth.getFullYear().toString());
 
@@ -94,7 +94,6 @@ function YearEditor({ displayMonth }: { displayMonth: Date }) {
       newMonth.setDate(1);
 
       onMonthChange?.(newMonth);
-      goToMonth(newMonth);
 
       setIsEditing(false);
     } else {

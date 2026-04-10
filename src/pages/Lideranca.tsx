@@ -157,22 +157,24 @@ export default function Lideranca() {
                 })}
               />
             </div>
-            <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingId ? "Atualizar" : "Salvar"}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button className="w-full sm:w-[140px]" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingId ? "Atualizar" : "Salvar"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="bg-card border-border"><CardContent className="p-5"><Skeleton className="h-24 w-full" /></CardContent></Card>
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {sorted.map((leader) => {
             const roleInfo = roleLabels[leader.role || "auxiliar"] || roleLabels.auxiliar;
             return (

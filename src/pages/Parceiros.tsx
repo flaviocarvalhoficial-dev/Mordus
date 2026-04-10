@@ -90,6 +90,21 @@ export default function Parceiros() {
     }
   };
 
+  const isMonetary = (val: string | null) => {
+    if (!val) return false;
+    const numericOnly = val.replace(/[^0-9]/g, "");
+    return numericOnly.length > 0 && /^[0-9., \s]+$/.test(val.replace("R$", "").trim());
+  };
+
+  const formatSupportValue = (val: string | null) => {
+    if (!val) return "Sob demanda";
+    if (isMonetary(val)) {
+      const hasCurrency = val.includes("R$");
+      return `${hasCurrency ? "" : "R$ "}${val}`;
+    }
+    return val;
+  };
+
   if (!organization) return null;
 
   return (
@@ -120,10 +135,16 @@ export default function Parceiros() {
                 <SelectContent><SelectItem value="Ativo">Ativo</SelectItem><SelectItem value="Inativo">Inativo</SelectItem></SelectContent>
               </Select>
             </div>
-            <Button className="w-full h-11 text-base font-bold shadow-lg shadow-primary/10 mt-2" onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingId ? "Atualizar Cadastro" : "Salvar Parceiro"}
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button
+                className="w-full sm:w-[160px] h-11 text-sm font-bold shadow-lg shadow-primary/10 mt-2"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingId ? "Atualizar" : "Salvar Parceiro"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -131,7 +152,7 @@ export default function Parceiros() {
       {loading ? (
         <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {items.map((p) => (
             <Card key={p.id} className="bg-card border-border hover:bg-secondary/20 transition-all border-l-4 border-l-primary/40 group overflow-hidden shadow-sm">
               <CardContent className="p-5">
@@ -153,8 +174,15 @@ export default function Parceiros() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                  <Badge variant="secondary" className={`border-0 text-[9px] font-bold h-4 px-2 ${p.status === "Ativo" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{p.status?.toUpperCase()}</Badge>
-                  <span className="text-[12px] font-black font-mono tabular-nums text-foreground bg-secondary/50 px-2.5 py-0.5 rounded-full border border-border/50">{p.support || "Sob demanda"}</span>
+                  <Badge variant="secondary" className={`border-0 text-[11px] font-bold h-4 px-2 ${p.status === "Ativo" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{p.status?.toUpperCase()}</Badge>
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    {isMonetary(p.support) && (
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight whitespace-nowrap">Apoio:</span>
+                    )}
+                    <span className="text-[11px] font-black text-foreground bg-secondary/50 px-2 py-0.5 rounded-full border border-border/50 truncate">
+                      {formatSupportValue(p.support)}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

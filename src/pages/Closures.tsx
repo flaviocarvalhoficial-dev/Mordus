@@ -336,7 +336,7 @@ export default function Closures() {
               {loading ? <Skeleton className="h-6 w-24" /> : <p className={`text-lg font-bold font-mono ${saldoProjetado >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(saldoProjetado)}</p>}
             </div>
             <div className="flex flex-col justify-end">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" onClick={handleClosePeriod} disabled={isClosingId === "current" || currentPeriodStats.error !== null || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full px-6" onClick={handleClosePeriod} disabled={isClosingId === "current" || currentPeriodStats.error !== null || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
                 {isClosingId === "current" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
                 Finalizar Mês
               </Button>

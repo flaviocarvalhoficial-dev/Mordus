@@ -214,7 +214,7 @@ export default function Reports() {
         <CardContent className="space-y-6">
           <div className="flex flex-col md:flex-row items-end gap-4">
             <div className="flex-1 space-y-2">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Período do Relatório</label>
+              <label className="text-[11px] font-bold text-muted-foreground ml-1">Período do Relatório</label>
               <DateRangePicker
                 date={dateRange}
                 onDateChange={setDateRange}
@@ -222,31 +222,31 @@ export default function Reports() {
               />
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <Button variant="outline" className="flex-1 md:w-32" onClick={() => fetchReportData(true)} disabled={loading}>
+              <Button variant="outline" className="flex-1 md:w-32 rounded-full" onClick={() => fetchReportData(true)} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ver Prévia"}
               </Button>
-              <Button className="flex-1 md:w-32 bg-primary text-primary-foreground" onClick={generatePDF} disabled={isGenerating}>
+              <Button className="flex-1 md:w-32 bg-primary text-primary-foreground rounded-full" onClick={generatePDF} disabled={isGenerating}>
                 {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Gerar PDF"}
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-            <Card className="p-4 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group" onClick={() => {
+          <div className="flex flex-wrap gap-4 pt-2">
+            <Card className="p-2.5 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group w-fit min-w-[180px]" onClick={() => {
               setDateRange({ from: subDays(new Date(), 30), to: new Date() });
             }}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary" />
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold">Últimos 30 Dias</p>
-                  <p className="text-[11px] text-muted-foreground">Configuração rápida</p>
+                  <p className="text-[12px] font-bold">Últimos 30 Dias</p>
+                  <p className="text-[10px] text-muted-foreground">Configuração rápida</p>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-4 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group" onClick={() => {
+            <Card className="p-2.5 bg-secondary/10 border-border hover:bg-secondary/20 transition-all cursor-pointer group w-fit min-w-[180px]" onClick={() => {
               const now = new Date();
               setDateRange({
                 from: new Date(now.getFullYear(), now.getMonth(), 1),
@@ -254,12 +254,12 @@ export default function Reports() {
               });
             }}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary" />
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <FileText className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold">Mês Atual</p>
-                  <p className="text-[11px] text-muted-foreground">Movimentações de {format(new Date(), "MMMM", { locale: ptBR })}</p>
+                  <p className="text-[12px] font-bold">Mês Atual</p>
+                  <p className="text-[10px] text-muted-foreground">Lançamentos de {format(new Date(), "MMMM", { locale: ptBR })}</p>
                 </div>
               </div>
             </Card>

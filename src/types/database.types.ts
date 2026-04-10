@@ -101,7 +101,7 @@ export type Database = {
                     address: string | null
                     created_at: string
                     id: string
-                    leader_name: string | null
+                    responsible_name: string | null
                     member_count: number | null
                     name: string
                     organization_id: string
@@ -110,7 +110,7 @@ export type Database = {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    leader_name?: string | null
+                    responsible_name?: string | null
                     member_count?: number | null
                     name: string
                     organization_id: string
@@ -119,7 +119,7 @@ export type Database = {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    leader_name?: string | null
+                    responsible_name?: string | null
                     member_count?: number | null
                     name?: string
                     organization_id?: string

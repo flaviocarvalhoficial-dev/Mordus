@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Tag, Pencil, Trash2, Loader2 } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -10,11 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { Badge } from "@/components/ui/badge";
 import type { Database } from "@/types/database.types";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 const emptyForm = { name: "", type: "income" };
+
+const typeMap = {
+  income: { label: "Entrada", color: "bg-success/15", text: "text-foreground/70", dot: "bg-success/40" },
+  expense: { label: "Saída", color: "bg-destructive/15", text: "text-foreground/70", dot: "bg-destructive/40" },
+  method: { label: "Meio de Pagamento", color: "bg-primary/15", text: "text-foreground/70", dot: "bg-primary/40" },
+};
 
 export default function Categories() {
   const { organization } = useChurch();
@@ -24,6 +31,7 @@ export default function Categories() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
@@ -37,6 +45,7 @@ export default function Categories() {
         .from("categories")
         .select("*")
         .eq("organization_id", organization!.id)
+        .order("type")
         .order("name");
       if (error) throw error;
       setCategories(data || []);
@@ -92,22 +101,31 @@ export default function Categories() {
     }
   };
 
-  const entradas = categories.filter((c) => c.type === "income");
-  const saidas = categories.filter((c) => c.type === "expense");
-  const meios = categories.filter((c) => c.type === "method");
-
   if (!organization) return <div className="p-8 text-center text-muted-foreground">Carregando dados da igreja...</div>;
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Categorias & Meios</h2>
-          <p className="text-muted-foreground text-[12px] mt-1">Gestão de categorias financeiras e meios de pagamento — {organization.name}</p>
+          <h2 className="text-lg font-semibold text-foreground tracking-tight">Canais & Classificações</h2>
+          <p className="text-muted-foreground text-[12px] mt-0.5 font-medium opacity-70">Estrutura de Lançamentos — {organization.name}</p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />Novo Registro
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={activeFilter} onValueChange={setActiveFilter}>
+            <SelectTrigger className="w-36 h-9 text-xs font-bold bg-secondary/20 border-border/50">
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os tipos</SelectItem>
+              <SelectItem value="income">Entradas</SelectItem>
+              <SelectItem value="expense">Saídas</SelectItem>
+              <SelectItem value="method">Meios</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 font-bold px-6 rounded-full shadow-sm" size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />Novo Registro
+          </Button>
+        </div>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -129,10 +147,12 @@ export default function Categories() {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="w-full font-bold" onClick={handleSave} disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingId ? "Atualizar" : "Salvar"} Registro
-            </Button>
+            <div className="flex justify-center pt-2">
+              <Button className="w-full sm:w-[140px] font-bold" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingId ? "Atualizar" : "Salvar"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -140,64 +160,50 @@ export default function Categories() {
       {loading ? (
         <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3 max-w-6xl">
-          <Card className="bg-card border-border border-l-4 border-l-success shadow-sm">
-            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-success">Entradas</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-2">
-              {entradas.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-success/60" />
-                    <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3 w-3" /></button>
-                    <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                  </div>
-                </div>
-              ))}
-              {entradas.length === 0 && <p className="text-[11px] text-muted-foreground p-3 italic">Nenhuma configurada</p>}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border border-l-4 border-l-destructive shadow-sm">
-            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-destructive">Saídas</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-2">
-              {saidas.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-destructive/60" />
-                    <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3 w-3" /></button>
-                    <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                  </div>
-                </div>
-              ))}
-              {saidas.length === 0 && <p className="text-[11px] text-muted-foreground p-3 italic">Nenhuma configurada</p>}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border border-l-4 border-l-primary shadow-sm">
-            <CardHeader className="pb-2 border-b border-border/50 bg-secondary/5"><CardTitle className="text-[11px] font-bold uppercase tracking-wider text-primary">Meios de Pagamento</CardTitle></CardHeader>
-            <CardContent className="space-y-1 p-2">
-              {meios.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between py-1.5 px-2 rounded-md border border-border/50 hover:bg-secondary/30 transition-colors group">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-primary/60" />
-                    <span className="text-[12px] font-semibold text-foreground">{cat.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3 w-3" /></button>
-                    <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded hover:bg-background text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                  </div>
-                </div>
-              ))}
-              {meios.length === 0 && <p className="text-[11px] text-muted-foreground p-3 italic">Defina meios como PIX, Dinheiro, etc.</p>}
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="bg-card border-border shadow-sm overflow-hidden w-full">
+          <Table className="border-collapse border border-border/50">
+            <TableHeader className="bg-secondary/20 border-b border-border">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[45%] text-[10px] font-black text-muted-foreground border-r border-border/50 px-4">Classificação / Nome</TableHead>
+                <TableHead className="w-[35%] text-[10px] font-black text-muted-foreground border-r border-border/50 px-4">Tipo de Registro</TableHead>
+                <TableHead className="w-[20%] text-[10px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.filter(c => activeFilter === "all" || c.type === activeFilter).map((cat) => {
+                const info = typeMap[cat.type as keyof typeof typeMap] || typeMap.income;
+                return (
+                  <TableRow key={cat.id} className="group hover:bg-secondary/10 transition-colors border-b border-border/50">
+                    <TableCell className="border-r border-border/50 px-4 py-2">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-2 w-2 rounded-full ${info.dot}`} />
+                        <span className="text-[13px] font-semibold text-foreground/70">{cat.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-border/50 px-4 py-2">
+                      <Badge variant="secondary" className={`${info.color} ${info.text} border-0 text-[10px] font-black h-5 px-3`}>
+                        {info.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-4 py-2 text-center">
+                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3 w-3" /></button>
+                        <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors border border-transparent hover:border-border"><Trash2 className="h-3 w-3" /></button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {categories.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-12 text-muted-foreground italic text-xs">
+                    Nenhuma classificação configurada ainda.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );
