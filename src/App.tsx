@@ -17,6 +17,7 @@ import { Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -46,40 +47,42 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
 
-              <Route element={
-                <ProtectedRoute>
-                  <SidebarProvider>
-                    <AppLayout />
-                  </SidebarProvider>
-                </ProtectedRoute>
-              }>
-                <Route path="/" element={<><OnboardingModal /><Dashboard /></>} />
-                <Route path="/lancamentos" element={<Transactions />} />
-                <Route path="/membros" element={<Members />} />
-                <Route path="/configuracoes" element={<Settings />} />
-                <Route path="/ajuda" element={<Support />} />
-                <Route path="/manual" element={<Navigate to="/ajuda" replace />} />
+                <Route element={
+                  <ProtectedRoute>
+                    <SidebarProvider>
+                      <AppLayout />
+                    </SidebarProvider>
+                  </ProtectedRoute>
+                }>
+                  <Route path="/" element={<><OnboardingModal /><Dashboard /></>} />
+                  <Route path="/lancamentos" element={<Transactions />} />
+                  <Route path="/membros" element={<Members />} />
+                  <Route path="/configuracoes" element={<Settings />} />
+                  <Route path="/ajuda" element={<Support />} />
+                  <Route path="/manual" element={<Navigate to="/ajuda" replace />} />
 
-                <Route path="/categorias" element={<Navigate to="/lancamentos?tab=categorias" replace />} />
-                <Route path="/fechamento" element={<Navigate to="/lancamentos?tab=fechamento" replace />} />
-                <Route path="/relatorios" element={<Navigate to="/lancamentos?tab=relatorios" replace />} />
+                  <Route path="/categorias" element={<Navigate to="/lancamentos?tab=categorias" replace />} />
+                  <Route path="/fechamento" element={<Navigate to="/lancamentos?tab=fechamento" replace />} />
+                  <Route path="/relatorios" element={<Navigate to="/lancamentos?tab=relatorios" replace />} />
 
-                <Route path="/secretaria" element={<Navigate to="/membros?tab=resumo" replace />} />
-                <Route path="/lideranca" element={<Navigate to="/membros?tab=lideranca" replace />} />
-                <Route path="/departamentos" element={<Navigate to="/membros?tab=departamentos" replace />} />
-                <Route path="/patrimonio" element={<Navigate to="/membros?tab=patrimonio" replace />} />
-                <Route path="/documentos" element={<Navigate to="/membros?tab=documentos" replace />} />
-                <Route path="/congregacoes" element={<Navigate to="/membros?tab=congregacoes" replace />} />
-                <Route path="/calendario" element={<Navigate to="/membros?tab=calendario" replace />} />
-                <Route path="/servico-social" element={<Navigate to="/membros?tab=social" replace />} />
-                <Route path="/parceiros" element={<Navigate to="/membros?tab=parceiros" replace />} />
-              </Route>
+                  <Route path="/secretaria" element={<Navigate to="/membros?tab=resumo" replace />} />
+                  <Route path="/lideranca" element={<Navigate to="/membros?tab=lideranca" replace />} />
+                  <Route path="/departamentos" element={<Navigate to="/membros?tab=departamentos" replace />} />
+                  <Route path="/patrimonio" element={<Navigate to="/membros?tab=patrimonio" replace />} />
+                  <Route path="/documentos" element={<Navigate to="/membros?tab=documentos" replace />} />
+                  <Route path="/congregacoes" element={<Navigate to="/membros?tab=congregacoes" replace />} />
+                  <Route path="/calendario" element={<Navigate to="/membros?tab=calendario" replace />} />
+                  <Route path="/servico-social" element={<Navigate to="/membros?tab=social" replace />} />
+                  <Route path="/parceiros" element={<Navigate to="/membros?tab=parceiros" replace />} />
+                </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </ChurchProvider>

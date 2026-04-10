@@ -208,7 +208,7 @@ function MembersList() {
         <DialogContent className="sm:max-w-xl bg-card border-border p-0 overflow-hidden shadow-2xl ring-1 ring-primary/10">
           <div className="bg-gradient-to-r from-primary/10 via-background to-primary/5 p-6 border-b border-border/50">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+              <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
                 <UserPlus className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -343,7 +343,7 @@ function MembersList() {
                     <Label className="text-[13px] font-semibold">Igreja de Procedência</Label>
                     <Input value={form.previous_church || ""} placeholder="Qual igreja frequentava?" className="h-10 bg-secondary/10" onChange={(e) => setForm({ ...form, previous_church: e.target.value })} />
                   </div>
-                  <div className="md:col-span-2 flex items-center space-x-3 h-12 px-4 bg-primary/5 rounded-2xl border border-primary/20 transition-all hover:bg-primary/10">
+                  <div className="md:col-span-2 flex items-center space-x-3 h-12 px-4 bg-primary/5 rounded-full border border-primary/20 transition-all hover:bg-primary/10">
                     <Checkbox
                       id="is_baptized"
                       checked={form.is_baptized}
@@ -357,9 +357,9 @@ function MembersList() {
                   </div>
                 </div>
 
-                <Card className="bg-secondary/10 border-border/50 overflow-hidden rounded-2xl mt-8">
+                <Card className="bg-secondary/10 border-border/50 overflow-hidden rounded-xl mt-8">
                   <div className="bg-secondary/20 p-4 border-b border-border/50">
-                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Resumo do Cadastro</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Resumo do cadastro</p>
                   </div>
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between text-sm">
@@ -507,7 +507,7 @@ export default function Members() {
         requireAccessSecretariat
         fallback={
           <div className="h-[60vh] flex flex-col items-center justify-center text-center space-y-4">
-            <div className="h-16 w-16 rounded-3xl bg-primary/10 flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Lock className="h-8 w-8 text-primary" />
             </div>
             <div>
@@ -520,7 +520,7 @@ export default function Members() {
         <div className="animate-fade-in space-y-6">
           <div className="flex items-center justify-between pb-2 border-b border-border/50">
             <div className="flex items-center gap-4 text-left">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0">
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-col text-left items-start">

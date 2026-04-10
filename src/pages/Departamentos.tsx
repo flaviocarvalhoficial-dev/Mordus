@@ -97,6 +97,7 @@ export default function Departamentos() {
       fetchDepartments();
       toast.success(editingId ? "Departamento atualizado" : "Departamento criado");
     } catch (err) {
+      console.error("Error saving department:", err);
       toast.error("Erro ao salvar departamento");
     } finally {
       setIsSaving(false);
@@ -151,8 +152,8 @@ export default function Departamentos() {
           <p className="text-muted-foreground text-[12px] mt-1">Gestão de ministérios — {organization.name}</p>
         </div>
         <PermissionGuard requireSecretariat>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />Novo Departamento
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />Novo departamento
           </Button>
         </PermissionGuard>
       </div>
@@ -174,7 +175,7 @@ export default function Departamentos() {
               </Select>
             </div>
             <div className="flex justify-center pt-2">
-              <Button className="w-full sm:w-[140px]" onClick={handleSave} disabled={isSaving}>
+              <Button className="w-full sm:w-[140px] rounded-full" onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingId ? "Atualizar" : "Salvar"}
               </Button>
@@ -223,8 +224,8 @@ export default function Departamentos() {
 
                 <PermissionGuard requireWrite>
                   <div className="flex justify-center">
-                    <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-fit px-4 border border-dashed border-border hover:bg-secondary/50 group" onClick={() => setSubGroupDialog(dep.id)}>
-                      <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar Sub-grupo
+                    <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-fit px-4 border border-dashed border-border hover:bg-secondary/50 group rounded-full" onClick={() => setSubGroupDialog(dep.id)}>
+                      <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar sub-grupo
                     </Button>
                   </div>
                 </PermissionGuard>
@@ -247,7 +248,7 @@ export default function Departamentos() {
                         </Select>
                       </div>
                       <div className="flex justify-center pt-2">
-                        <Button className="w-full sm:w-[140px]" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
+                        <Button className="w-full sm:w-[140px] rounded-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
                       </div>
                     </div>
                   </DialogContent>
