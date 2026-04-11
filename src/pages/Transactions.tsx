@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -396,44 +397,53 @@ function TransactionsList() {
                   ))
                 ) : (
                   <>
-                    {sortedData.map((tx) => (
-                      <TableRow key={tx.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
-                        <TableCell className="font-mono text-[14px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
-                        <TableCell className="text-[14px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2">
-                          <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
-                            {tx.categories?.name || "Geral"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2">
-                          {tx.receipt_url && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
-                              className="inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all"
-                              title="Ver Comprovante"
-                            >
-                              <FileCheck className="h-3 w-3" />
-                            </button>
+                    {sortedData.map((tx) => {
+                      const isHighlighted = searchParams.get("highlight") === tx.id;
+                      return (
+                        <TableRow
+                          key={tx.id}
+                          className={cn(
+                            "group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50",
+                            isHighlighted && "animate-highlight-orange z-20"
                           )}
-                        </TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2">
-                          <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
-                            {tx.payment_method_cat?.name || tx.payment_method || "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className={`font-bold font-mono text-[14px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                          {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                        </TableCell>
-                        <TableCell className="py-2">
-                          <PermissionGuard requireWrite>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
-                              <button onClick={() => openEdit(tx)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
-                              <button onClick={() => handleDelete(tx.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                            </div>
-                          </PermissionGuard>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                        >
+                          <TableCell className="font-mono text-[14px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
+                          <TableCell className="text-[14px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
+                              {tx.categories?.name || "Geral"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            {tx.receipt_url && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
+                                className="inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all"
+                                title="Ver Comprovante"
+                              >
+                                <FileCheck className="h-3 w-3" />
+                              </button>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
+                              {tx.payment_method_cat?.name || tx.payment_method || "-"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className={`font-bold font-mono text-[14px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <PermissionGuard requireWrite>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                                <button onClick={() => openEdit(tx)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                                <button onClick={() => handleDelete(tx.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                              </div>
+                            </PermissionGuard>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                     {!loading && sortedData.length === 0 && (
                       <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
                     )}

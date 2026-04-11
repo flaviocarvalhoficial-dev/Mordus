@@ -23,6 +23,7 @@ import {
     SidebarFooter,
     useSidebar
 } from "@/components/ui/sidebar";
+import { CopilotSidebarAlert } from "@/components/Copilot/CopilotSidebarAlert";
 
 interface SubItem {
     title: string;
@@ -234,7 +235,9 @@ export function ContextSidebar() {
                     </div>
                 </div>
 
-                <div className="p-4 mt-auto">
+                <div className="px-4 pb-4 mt-auto space-y-3">
+                    <CopilotSidebarAlert />
+
                     <div className="bg-secondary/20 border border-border/50 rounded-2xl p-4 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <TrendingUp className="h-12 w-12 text-primary" />

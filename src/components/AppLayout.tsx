@@ -10,6 +10,8 @@ import { useChurch } from "@/contexts/ChurchContext";
 import { useMemo, useState, useEffect } from "react";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CopilotFAB } from "@/components/Copilot/CopilotFAB";
+import { CopilotAlertHandler } from "@/components/Copilot/CopilotAlertHandler";
 
 interface RouteInfo {
   name: string;
@@ -99,6 +101,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </ScrollArea>
         </main>
+        <CopilotFAB />
+        <CopilotAlertHandler />
       </div>
     </div>
   );

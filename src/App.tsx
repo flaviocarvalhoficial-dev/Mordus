@@ -15,6 +15,7 @@ import Support from "./pages/Support";
 import Manual from "./pages/Manual";
 import { Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
+import { CopilotProvider } from "@/contexts/CopilotContext";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -53,9 +54,11 @@ const App = () => (
 
                 <Route element={
                   <ProtectedRoute>
-                    <SidebarProvider>
-                      <AppLayout />
-                    </SidebarProvider>
+                    <CopilotProvider>
+                      <SidebarProvider>
+                        <AppLayout />
+                      </SidebarProvider>
+                    </CopilotProvider>
                   </ProtectedRoute>
                 }>
                   <Route path="/" element={<><OnboardingModal /><Dashboard /></>} />

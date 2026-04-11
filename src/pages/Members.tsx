@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock, ChevronRight, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function MembersList() {
   const { organization, profile } = useChurch();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -447,38 +449,47 @@ function MembersList() {
                     <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
                   </TableRow>
                 ))
-              ) : filtered.map((m) => (
-                <TableRow key={m.id} className="group hover:bg-secondary/5 transition-colors">
-                  <TableCell className="pl-6 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border shadow-sm ring-2 ring-transparent group-hover:ring-primary/10 transition-all">
-                        {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
+              ) : filtered.map((m) => {
+                const isHighlighted = searchParams.get("highlight") === m.id;
+                return (
+                  <TableRow
+                    key={m.id}
+                    className={cn(
+                      "group hover:bg-secondary/5 transition-colors",
+                      isHighlighted && "animate-highlight-orange z-10"
+                    )}
+                  >
+                    <TableCell className="pl-6 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border shadow-sm ring-2 ring-transparent group-hover:ring-primary/10 transition-all">
+                          {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
+                        </div>
+                        <div>
+                          <p className="text-[14px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                          <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-[14px] font-bold text-foreground leading-tight">{m.full_name}</p>
-                        <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary/40" />
+                        <span className="text-[14px] font-medium text-muted-foreground">
+                          {m.congregations?.name || "Sede (Matriz)"}
+                        </span>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-full bg-primary/40" />
-                      <span className="text-[14px] font-medium text-muted-foreground">
-                        {m.congregations?.name || "Sede (Matriz)"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="outline" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
-                  <TableCell><Badge variant="secondary" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
-                  <TableCell>
-                    <PermissionGuard requireWrite>
-                      <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
-                        <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-background rounded-md text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3.5 w-3.5" /></button>
-                      </div>
-                    </PermissionGuard>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell><Badge variant="outline" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
+                    <TableCell>
+                      <PermissionGuard requireWrite>
+                        <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
+                          <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-background rounded-md text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </PermissionGuard>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {!loading && filtered.length === 0 && (
                 <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic">Nenhum membro encontrado</TableCell></TableRow>
               )}
