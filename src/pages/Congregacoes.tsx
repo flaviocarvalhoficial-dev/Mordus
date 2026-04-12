@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MapPin, Pencil, Trash2, Loader2, Users, Search } from "lucide-react";
+import { Plus, MapPin, Pencil, Trash2, Loader2, Users, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,6 +28,10 @@ export default function Congregacoes() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [congregationMembers, setCongregationMembers] = useState<Record<string, any[]>>({});
+  const [membersLoading, setMembersLoading] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     if (organization?.id) fetchCongregations();
   }, [organization?.id]);
@@ -46,6 +50,32 @@ export default function Congregacoes() {
       toast.error("Erro ao carregar congregações");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMembersForCongregation = async (congId: string) => {
+    if (congregationMembers[congId]) return;
+    try {
+      setMembersLoading(prev => ({ ...prev, [congId]: true }));
+      const { data, error } = await supabase
+        .from("members")
+        .select("*")
+        .eq("congregation_id", congId)
+        .order("full_name");
+      if (error) throw error;
+      setCongregationMembers(prev => ({ ...prev, [congId]: data || [] }));
+    } catch (err) {
+      toast.error("Erro ao carregar membros");
+    } finally {
+      setMembersLoading(prev => ({ ...prev, [congId]: false }));
+    }
+  };
+
+  const handleToggleExpand = (congId: string) => {
+    const isExpanding = expandedId !== congId;
+    setExpandedId(isExpanding ? congId : null);
+    if (isExpanding) {
+      fetchMembersForCongregation(congId);
     }
   };
 
@@ -91,7 +121,8 @@ export default function Congregacoes() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!confirm("Deseja realmente remover esta congregação?")) return;
     try {
       const { error } = await supabase.from("congregations").delete().eq("id", id);
@@ -153,7 +184,8 @@ export default function Congregacoes() {
             <Table className="border-collapse border border-border/50">
               <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Nome</TableHead>
+                  <TableHead className="w-10 text-center border-r border-border/50 px-2"></TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Nome</TableHead>
                   <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Responsável</TableHead>
                   <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Endereço</TableHead>
                   <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Membros</TableHead>
@@ -164,46 +196,104 @@ export default function Congregacoes() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell className="pl-6 border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
-                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
-                      <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-full" /></TableCell>
-                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
+                      <TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <>
                     {items.map((c) => (
-                      <TableRow
-                        key={c.id}
-                        className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50"
-                      >
-                        <TableCell className="pl-6 py-2 border-r border-border/50 text-center font-bold text-[14px]">
-                          {c.name}
-                        </TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2 font-medium text-[13px]">
-                          {c.responsible_name || "-"}
-                        </TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2 text-[12px] text-muted-foreground max-w-[200px] truncate">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <MapPin className="h-3 w-3 opacity-50" /> {c.address || "-"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px] font-bold">
-                          <Badge variant="outline" className="h-5 px-2 text-[10px] font-mono tabular-nums border-border/50">
-                            {(c.member_count || 0)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="py-2">
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
-                            <button onClick={() => openEdit(c)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
-                            <button onClick={() => handleDelete(c.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <React.Fragment key={c.id}>
+                        <TableRow
+                          className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50 cursor-pointer"
+                          onClick={() => handleToggleExpand(c.id)}
+                        >
+                          <TableCell className="border-r border-border/50 text-center px-2">
+                            {expandedId === c.id ? <ChevronUp className="h-4 w-4 mx-auto text-primary" /> : <ChevronDown className="h-4 w-4 mx-auto text-muted-foreground opacity-50" />}
+                          </TableCell>
+                          <TableCell className="pl-6 py-2 border-r border-border/50 text-center font-bold text-[14px]">
+                            {c.name}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2 font-medium text-[13px]">
+                            {c.responsible_name || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2 text-[12px] text-muted-foreground max-w-[200px] truncate">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <MapPin className="h-3 w-3 opacity-50" /> {c.address || "-"}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px] font-bold">
+                            <Badge variant="outline" className="h-5 px-2 text-[10px] font-mono tabular-nums border-border/50">
+                              {(c.member_count || 0)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                              <button onClick={(e) => { e.stopPropagation(); openEdit(c); }} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                              <button onClick={(e) => handleDelete(c.id, e)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+
+                        {expandedId === c.id && (
+                          <TableRow className="bg-secondary/5 border-b border-border">
+                            <TableCell colSpan={6} className="p-0">
+                              <div className="p-4 px-6 animate-in slide-in-from-top-2 duration-300">
+                                <div className="rounded-lg border border-border/50 overflow-hidden shadow-sm bg-card">
+                                  <Table className="border-collapse">
+                                    <TableHeader className="bg-secondary/20">
+                                      <TableRow className="hover:bg-transparent h-8">
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center uppercase">Perfil</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center uppercase">Batizado</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center uppercase">Status</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground text-center uppercase">Contato</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {membersLoading[c.id] ? (
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                          <TableRow key={i}><TableCell colSpan={4}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                                        ))
+                                      ) : !congregationMembers[c.id] || congregationMembers[c.id].length === 0 ? (
+                                        <TableRow><TableCell colSpan={4} className="text-center py-6 text-[12px] italic text-muted-foreground">Nenhum membro vinculado</TableCell></TableRow>
+                                      ) : congregationMembers[c.id].map((m) => (
+                                        <TableRow key={m.id} className="hover:bg-secondary/10 transition-colors border-b border-border/50 h-10">
+                                          <TableCell className="border-r border-border/50 py-1 pl-4">
+                                            <div className="flex items-center gap-2">
+                                              <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center shrink-0 border border-border">
+                                                {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover rounded-full" /> : <Users className="h-2 w-2 text-muted-foreground opacity-30" />}
+                                              </div>
+                                              <div className="text-left">
+                                                <p className="text-[12px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono">{m.email || 'Sem e-mail'}</p>
+                                              </div>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="text-center border-r border-border/50 py-1">
+                                            <Badge variant="outline" className={`text-[10px] font-black px-1.5 py-0 h-4 border-border/50 ${m.is_baptized ? "text-success bg-success/5" : "text-muted-foreground bg-muted/5"}`}>
+                                              {m.is_baptized ? "SIM" : "NÃO"}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className="text-center border-r border-border/50 py-1">
+                                            <Badge variant="outline" className={`text-[10px] font-black px-1.5 py-0 h-4 border-border/50 ${m.status === "active" ? "text-primary bg-primary/5" : "text-muted-foreground bg-muted/5"}`}>
+                                              {m.status === "active" ? "ATIVO" : "INATIVO"}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className="text-center py-1 font-mono text-[11px] font-bold text-muted-foreground">
+                                            {m.phone || "-"}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     ))}
                     {!loading && items.length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhuma congregação registrada</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhuma congregação registrada</TableCell></TableRow>
                     )}
                   </>
                 )}

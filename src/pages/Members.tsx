@@ -160,8 +160,9 @@ function MembersList() {
     if (!form.full_name || !organization?.id) return;
     setIsSaving(true);
     try {
+      const { congregations, created_at, updated_at, ...formData } = form as any;
       const payload: any = {
-        ...form,
+        ...formData,
         organization_id: organization.id,
         is_baptized: !!form.is_baptized
       };
