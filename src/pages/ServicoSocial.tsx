@@ -8,6 +8,7 @@ import { Plus, Loader2, Heart, Users, ClipboardCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -133,88 +134,112 @@ export default function ServicoSocial() {
 
         <TabsContent value="asst" className="mt-0 focus-visible:ring-0">
           <Card className="border-border shadow-sm overflow-hidden border-primary/5">
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-secondary/10">
+            <ScrollArea className="h-[calc(100vh-450px)] w-full">
+              <Table className="border-collapse border border-border/50">
+                <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-[11px] font-bold pl-6">Família Beneficiada</TableHead>
-                    <TableHead className="text-[11px] font-bold text-center">Data</TableHead>
-                    <TableHead className="text-[11px] font-bold text-center">Volume</TableHead>
-                    <TableHead className="text-[11px] font-bold text-right pr-6">Status</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center pl-6">Família Beneficiada</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Data</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Volume</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground px-4 text-center pr-6">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}><TableCell colSpan={4} className="py-8"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                      <TableRow key={i}><TableCell colSpan={4} className="py-2"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                     ))
-                  ) : assistances.map(a => (
-                    <TableRow key={a.id} className="group hover:bg-secondary/5 transition-colors">
-                      <TableCell className="pl-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                            <Heart className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-[13px] font-bold text-foreground leading-tight">{a.families?.name || "Desconhecido"}</p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5">{a.assistance_type}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center text-[12px] font-mono font-medium text-muted-foreground">{new Date(a.delivery_date + 'T12:00:00').toLocaleDateString("pt-BR")}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="secondary" className="bg-secondary/50 text-foreground font-mono text-[10px] h-5">{a.items_count} itens</Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0 h-5 border-0 rounded-full ${a.status === "delivered" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"}`}>
-                          {a.status === "delivered" ? "Entregue" : "Pendente"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {!loading && assistances.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">Nenhum auxílio registrado ainda</TableCell></TableRow>}
+                  ) : (
+                    <>
+                      {assistances.map(a => (
+                        <TableRow key={a.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
+                          <TableCell className="pl-6 py-2 border-r border-border/50 text-center">
+                            <div className="flex items-center gap-3 justify-center text-center">
+                              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                                <Heart className="h-4 w-4 text-primary" />
+                              </div>
+                              <div className="text-center">
+                                <p className="text-[13px] font-bold text-foreground leading-tight">{a.families?.name || "Desconhecido"}</p>
+                                <p className="text-[11px] text-muted-foreground mt-0.5">{a.assistance_type}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center text-[12px] font-mono font-medium text-muted-foreground border-r border-border/50 py-2">
+                            {new Date(a.delivery_date + 'T12:00:00').toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            <Badge variant="outline" className="bg-secondary/20 text-foreground font-black text-[10px] h-5 border-border/50">
+                              {a.items_count} ITENS
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center pr-6 py-2">
+                            <Badge variant="outline" className={`text-[10px] font-black px-2 py-0 h-5 border-border/50 rounded-full ${a.status === "delivered" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"}`}>
+                              {a.status === "delivered" ? "ENTREGUE" : "PENDENTE"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {!loading && assistances.length === 0 && (
+                        <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum auxílio registrado ainda</TableCell></TableRow>
+                      )}
+                    </>
+                  )}
                 </TableBody>
               </Table>
-            </CardContent>
+            </ScrollArea>
           </Card>
         </TabsContent>
 
         <TabsContent value="fam" className="mt-0 focus-visible:ring-0">
           <Card className="border-border shadow-sm overflow-hidden border-primary/5">
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-secondary/10">
+            <ScrollArea className="h-[calc(100vh-450px)] w-full">
+              <Table className="border-collapse border border-border/50">
+                <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-[11px] font-bold pl-6">Família / Responsável</TableHead>
-                    <TableHead className="text-[11px] font-bold">Endereço</TableHead>
-                    <TableHead className="text-[11px] font-bold text-center">Membros</TableHead>
-                    <TableHead className="text-[11px] font-bold pr-6">Necessidades</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center pl-6">Família / Responsável</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Endereço</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Membros</TableHead>
+                    <TableHead className="text-[11px] font-black text-muted-foreground px-4 text-center pr-6">Necessidades</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}><TableCell colSpan={4} className="py-8"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                      <TableRow key={i}><TableCell colSpan={4} className="py-2"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                     ))
-                  ) : families.map(f => (
-                    <TableRow key={f.id} className="group hover:bg-secondary/5 transition-colors">
-                      <TableCell className="pl-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center border border-border shrink-0">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <span className="text-[13px] font-bold text-foreground">{f.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[150px] truncate"><span className="text-[11px] text-muted-foreground">{f.address || "Sem endereço"}</span></TableCell>
-                      <TableCell className="text-center"><Badge variant="outline" className="font-mono text-[10px] h-5">{f.members_count}</Badge></TableCell>
-                      <TableCell className="pr-6"><p className="text-[11px] italic text-muted-foreground leading-snug line-clamp-1">{f.needs || "Nenhuma informada"}</p></TableCell>
-                    </TableRow>
-                  ))}
-                  {!loading && families.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">Nenhuma família mapeada</TableCell></TableRow>}
+                  ) : (
+                    <>
+                      {families.map(f => (
+                        <TableRow key={f.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
+                          <TableCell className="pl-6 py-2 border-r border-border/50 text-center">
+                            <div className="flex items-center gap-3 justify-center text-center">
+                              <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center border border-border shrink-0">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <span className="text-[13px] font-bold text-foreground">{f.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[150px] truncate border-r border-border/50 py-2 text-center">
+                            <span className="text-[11px] text-muted-foreground font-medium">{f.address || "Sem endereço"}</span>
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            <Badge variant="outline" className="font-mono text-[10px] font-black h-5 border-border/50">
+                              {f.members_count}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="pr-6 py-2 text-center">
+                            <p className="text-[11px] font-medium text-muted-foreground leading-snug line-clamp-1">{f.needs || "-"}</p>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {!loading && families.length === 0 && (
+                        <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhuma família mapeada</TableCell></TableRow>
+                      )}
+                    </>
+                  )}
                 </TableBody>
               </Table>
-            </CardContent>
+            </ScrollArea>
           </Card>
         </TabsContent>
       </Tabs>

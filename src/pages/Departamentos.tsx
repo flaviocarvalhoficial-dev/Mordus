@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Plus, Music, Trash2, Pencil, Loader2 } from "lucide-react";
+import { Users, Plus, Music, Trash2, Pencil, Loader2, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -184,85 +187,120 @@ export default function Departamentos() {
         </DialogContent>
       </Dialog>
 
-      {loading ? (
-        <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {items.map((dep) => (
-            <Card key={dep.id} className="bg-card border-border border-l-4 border-l-primary/40">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[15px] font-semibold text-foreground">{dep.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className={`${dep.color || colorOptions[0].value} border-0 text-[10px] h-4 px-2`}>{(dep.member_count || 0)} membros</Badge>
-                    <PermissionGuard requireWrite>
-                      <button onClick={() => openEdit(dep)} className="text-muted-foreground hover:text-primary transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                    </PermissionGuard>
-                    <PermissionGuard requireSecretariat>
-                      <button onClick={() => handleDelete(dep.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </PermissionGuard>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-3 text-[11px] text-muted-foreground">
-                  <Users className="h-3 w-3" />Líder: <span className="text-foreground font-medium">{dep.leader_name || "Não informado"}</span>
-                </div>
-
-                {Array.isArray(dep.subgroups) && dep.subgroups.length > 0 && (
-                  <div className="mt-4 space-y-2 border-t border-border pt-3">
-                    {dep.subgroups.map((sg: any) => (
-                      <div key={sg.id} className="flex items-center justify-between text-[11px] text-foreground pl-2 border-l-2 border-primary/40">
-                        <div className="flex items-center gap-2">
-                          <Music className="h-3 w-3 text-primary opacity-70" />
-                          <span>{sg.name}</span>
-                          <span className="text-muted-foreground text-[10px] uppercase font-mono italic">— {sg.role}</span>
-                        </div>
-                        <button onClick={() => handleDeleteSubGroup(dep, sg.id)} className="text-muted-foreground hover:text-destructive transition-all"><Trash2 className="h-2.5 w-2.5" /></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <PermissionGuard requireWrite>
-                  <div className="flex justify-center">
-                    <Button variant="ghost" size="sm" className="mt-4 h-7 text-[10px] w-fit px-4 border border-dashed border-border hover:bg-secondary/50 group rounded-full" onClick={() => setSubGroupDialog(dep.id)}>
-                      <Plus className="h-3 w-3 mr-1 transition-transform group-hover:rotate-90" />Adicionar sub-grupo
-                    </Button>
-                  </div>
-                </PermissionGuard>
-
-                <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
-                  <DialogContent className="bg-card border-border">
-                    <DialogHeader><DialogTitle className="text-sm">Novo Sub-grupo — {dep.name}</DialogTitle></DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="space-y-2"><Label className="text-[13px]">Nome</Label><Input placeholder="Ex: Cantores" value={newSubGroup.name} onChange={(e) => setNewSubGroup({ ...newSubGroup, name: e.target.value })} /></div>
-                      <div className="space-y-2">
-                        <Label className="text-[13px]">Função</Label>
-                        <Select value={newSubGroup.role} onValueChange={(v) => setNewSubGroup({ ...newSubGroup, role: v })}>
-                          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Cantores">Cantores</SelectItem>
-                            <SelectItem value="Músicos">Músicos</SelectItem>
-                            <SelectItem value="Mídia / Projeção">Mídia / Projeção</SelectItem>
-                            <SelectItem value="Técnico de Som">Técnico de Som</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex justify-center pt-2">
-                        <Button className="w-full sm:w-[140px] rounded-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          ))}
-          {items.length === 0 && (
-            <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
-              Nenhum departamento registrado
+      <Card className="bg-card border-border shadow-sm overflow-hidden">
+        <CardHeader className="pb-3 bg-secondary/10">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar departamentos..." className="pl-9 h-9 text-xs" />
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[calc(100vh-340px)] w-full">
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Nome</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Líder Principal</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Membros</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Sub-grupos</TableHead>
+                  <TableHead className="w-[6%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="pl-6 border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <>
+                    {items.map((dep) => (
+                      <TableRow
+                        key={dep.id}
+                        className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50"
+                      >
+                        <TableCell className="pl-6 py-2 border-r border-border/50 text-center">
+                          <Badge variant="outline" className={`${dep.color || colorOptions[0].value} border-border/50 text-[12px] font-bold h-6 px-3`}>
+                            {dep.name}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2 font-medium text-[14px]">
+                          {dep.leader_name || "NÃO INFORMADO"}
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px] font-bold text-primary">
+                          {dep.member_count || 0}
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2">
+                          <div className="flex flex-wrap gap-1 justify-center">
+                            {Array.isArray(dep.subgroups) && dep.subgroups.length > 0 ? (
+                              dep.subgroups.map((sg: any) => (
+                                <Badge key={sg.id} variant="secondary" className="text-[9px] h-4 px-1.5 bg-secondary/30 border-0 flex items-center gap-1 group/sg">
+                                  {sg.name}
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteSubGroup(dep, sg.id); }} className="hover:text-destructive"><X className="h-2 w-2" /></button>
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground italic">Nenhum</span>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSubGroupDialog(dep.id); }}
+                              className="ml-1 h-4 w-4 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                            >
+                              <Plus className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
+
+                          <Dialog open={subGroupDialog === dep.id} onOpenChange={(v) => setSubGroupDialog(v ? dep.id : null)}>
+                            <DialogContent className="bg-card border-border">
+                              <DialogHeader><DialogTitle className="text-sm">Novo Sub-grupo — {dep.name}</DialogTitle></DialogHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="space-y-2"><Label className="text-[13px]">Nome</Label><Input placeholder="Ex: Cantores" value={newSubGroup.name} onChange={(e) => setNewSubGroup({ ...newSubGroup, name: e.target.value })} /></div>
+                                <div className="space-y-2">
+                                  <Label className="text-[13px]">Função</Label>
+                                  <Select value={newSubGroup.role} onValueChange={(v) => setNewSubGroup({ ...newSubGroup, role: v })}>
+                                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Cantores">Cantores</SelectItem>
+                                      <SelectItem value="Músicos">Músicos</SelectItem>
+                                      <SelectItem value="Mídia / Projeção">Mídia / Projeção</SelectItem>
+                                      <SelectItem value="Técnico de Som">Técnico de Som</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="flex justify-center pt-2">
+                                  <Button className="w-full sm:w-[140px] rounded-full" onClick={() => handleAddSubGroup(dep)}>Adicionar</Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                            <button onClick={() => openEdit(dep)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                            <button onClick={() => handleDelete(dep.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!loading && items.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum departamento cadastrado</TableCell></TableRow>
+                    )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }

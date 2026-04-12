@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Crown, Pencil, Loader2, Phone, Calendar } from "lucide-react";
+import { Plus, Trash2, Crown, Pencil, Loader2, Phone, Calendar, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -167,60 +169,82 @@ export default function Lideranca() {
         </DialogContent>
       </Dialog>
 
-      {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="bg-card border-border"><CardContent className="p-5"><Skeleton className="h-24 w-full" /></CardContent></Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {sorted.map((leader) => {
-            const roleInfo = roleLabels[leader.role || "auxiliar"] || roleLabels.auxiliar;
-            return (
-              <Card key={leader.id} className="bg-card border-border hover:bg-secondary/20 transition-all border-l-4 border-l-primary/40">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                        <Crown className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-[14px] font-bold text-foreground leading-tight">{leader.name}</p>
-                        <Badge className={`${roleInfo.color} border-0 text-[10px] mt-1.5 uppercase tracking-wide px-2 py-0 h-4`}>{roleInfo.label}</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(leader)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => handleDelete(leader.id)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex flex-col gap-2">
-                    {leader.phone && (
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-mono">
-                        <Phone className="h-3 w-3 text-primary opacity-50" /> {leader.phone}
-                      </div>
+      <Card className="bg-card border-border shadow-sm overflow-hidden">
+        <CardHeader className="pb-3 bg-secondary/10">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar por nome..." className="pl-9 h-9 text-xs" onChange={(e) => {/* Add search logic if needed */ }} />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[calc(100vh-340px)] w-full">
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Nome</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Cargo</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Telefone</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Data de Posse</TableHead>
+                  <TableHead className="w-[6%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="pl-6 border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <>
+                    {sorted.map((leader) => {
+                      const roleInfo = roleLabels[leader.role || "auxiliar"] || roleLabels.auxiliar;
+                      return (
+                        <TableRow
+                          key={leader.id}
+                          className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50"
+                        >
+                          <TableCell className="pl-6 py-2 border-r border-border/50 text-center font-bold text-[14px]">
+                            {leader.name}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2">
+                            <Badge variant="outline" className={`${roleInfo.color} border-border/50 text-[11px] font-medium h-6 px-2 py-0`}>
+                              {roleInfo.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px]">
+                            {leader.phone || "-"}
+                          </TableCell>
+                          <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px]">
+                            {leader.appointment_date ? new Date(leader.appointment_date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                              <button onClick={() => openEdit(leader)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                              <button onClick={() => handleDelete(leader.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {!loading && sorted.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum líder cadastrado</TableCell></TableRow>
                     )}
-                    {leader.appointment_date && (
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <Calendar className="h-3 w-3 text-primary opacity-50" />
-                        Posse: {new Date(leader.appointment_date + 'T00:00:00').toLocaleDateString('pt-BR')}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-          {!loading && sorted.length === 0 && (
-            <div className="col-span-full py-20 text-center text-muted-foreground italic">Nenhum líder cadastrado</div>
-          )}
-        </div>
-      )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }

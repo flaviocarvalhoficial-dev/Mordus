@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -427,25 +428,25 @@ function MembersList() {
             <Input placeholder="Buscar por nome ou email..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           </div>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-secondary/5">
+        <ScrollArea className="h-[calc(100vh-440px)] w-full">
+          <Table className="border-collapse border border-border/50">
+            <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[11px] font-bold uppercase tracking-wider pl-6">Perfil</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase tracking-wider">Congregação</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase tracking-wider">Batizado</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase tracking-wider">Status</TableHead>
-                <TableHead className="w-16"></TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Perfil</TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Congregação</TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Batizado</TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Status</TableHead>
+                <TableHead className="w-16 text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell className="pl-6"><Skeleton className="h-10 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-[60px]" /></TableCell>
+                    <TableCell className="pl-6 border-r border-border/50"><Skeleton className="h-10 w-full" /></TableCell>
+                    <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[100px]" /></TableCell>
+                    <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[60px]" /></TableCell>
+                    <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[60px]" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
                   </TableRow>
                 ))
@@ -455,35 +456,43 @@ function MembersList() {
                   <TableRow
                     key={m.id}
                     className={cn(
-                      "group hover:bg-secondary/5 transition-colors",
+                      "group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50",
                       isHighlighted && "animate-highlight-orange z-10"
                     )}
                   >
-                    <TableCell className="pl-6 py-3">
+                    <TableCell className="pl-6 py-2 border-r border-border/50">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border shadow-sm ring-2 ring-transparent group-hover:ring-primary/10 transition-all">
                           {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
                         </div>
-                        <div>
+                        <div className="text-left">
                           <p className="text-[14px] font-bold text-foreground leading-tight">{m.full_name}</p>
                           <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="text-center border-r border-border/50 py-2">
+                      <div className="flex items-center gap-2 justify-center">
                         <div className="h-2 w-2 rounded-full bg-primary/40" />
                         <span className="text-[14px] font-medium text-muted-foreground">
                           {m.congregations?.name || "Sede (Matriz)"}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell><Badge variant="outline" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.is_baptized ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>{m.is_baptized ? "S" : "N"}</Badge></TableCell>
-                    <TableCell><Badge variant="secondary" className={`text-[12px] font-bold px-2 py-0 h-5 border-0 ${m.status === "active" ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{m.status === "active" ? "ATIVO" : "INATIVO"}</Badge></TableCell>
-                    <TableCell>
+                    <TableCell className="text-center border-r border-border/50 py-2">
+                      <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.is_baptized ? "text-success bg-success/5" : "text-muted-foreground bg-muted/5"}`}>
+                        {m.is_baptized ? "Sim" : "Não"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center border-r border-border/50 py-2">
+                      <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.status === "active" ? "text-primary bg-primary/5" : "text-muted-foreground bg-muted/5"}`}>
+                        {m.status === "active" ? "ATIVO" : "INATIVO"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-2">
                       <PermissionGuard requireWrite>
-                        <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity pr-4">
-                          <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-2 hover:bg-background rounded-md text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3.5 w-3.5" /></button>
+                        <div className="flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
                         </div>
                       </PermissionGuard>
                     </TableCell>
@@ -491,11 +500,11 @@ function MembersList() {
                 );
               })}
               {!loading && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic">Nenhum membro encontrado</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum membro encontrado</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
-        </CardContent>
+        </ScrollArea>
       </Card>
     </div>
   );

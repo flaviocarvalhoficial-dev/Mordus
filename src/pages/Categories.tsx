@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -21,6 +22,7 @@ const typeMap = {
   income: { label: "Entrada", color: "bg-success/15", text: "text-foreground/70", dot: "bg-success/40" },
   expense: { label: "Saída", color: "bg-destructive/15", text: "text-foreground/70", dot: "bg-destructive/40" },
   method: { label: "Meio de Pagamento", color: "bg-primary/15", text: "text-foreground/70", dot: "bg-primary/40" },
+  occasion: { label: "Ocasião / Evento", color: "bg-amber-500/15", text: "text-amber-700 font-bold", dot: "bg-amber-500/40" },
 };
 
 export default function Categories() {
@@ -116,6 +118,7 @@ export default function Categories() {
               <SelectItem value="income">Entradas</SelectItem>
               <SelectItem value="expense">Saídas</SelectItem>
               <SelectItem value="method">Meios</SelectItem>
+              <SelectItem value="occasion">Ocasiões</SelectItem>
             </SelectContent>
           </Select>
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 font-bold px-6 rounded-full shadow-sm" size="sm" onClick={openCreate}>
@@ -140,6 +143,7 @@ export default function Categories() {
                   <SelectItem value="income">Entrada (Receita)</SelectItem>
                   <SelectItem value="expense">Saída (Despesa)</SelectItem>
                   <SelectItem value="method">Meio de Pagamento</SelectItem>
+                  <SelectItem value="occasion">Ocasião (Culto, Reunião, Evento)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -157,48 +161,53 @@ export default function Categories() {
         <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
       ) : (
         <Card className="bg-card border-border shadow-sm overflow-hidden w-full">
-          <Table className="border-collapse border border-border/50">
-            <TableHeader className="bg-secondary/20 border-b border-border">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[45%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4">Classificação / Nome</TableHead>
-                <TableHead className="w-[35%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4">Tipo de Registro</TableHead>
-                <TableHead className="w-[20%] text-[11px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.filter(c => activeFilter === "all" || c.type === activeFilter).map((cat) => {
-                const info = typeMap[cat.type as keyof typeof typeMap] || typeMap.income;
-                return (
-                  <TableRow key={cat.id} className="group hover:bg-secondary/10 transition-colors border-b border-border/50">
-                    <TableCell className="border-r border-border/50 px-4 py-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-2 w-2 rounded-full ${info.dot}`} />
-                        <span className="text-[14px] font-semibold text-foreground/70">{cat.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="border-r border-border/50 px-4 py-2">
-                      <Badge variant="secondary" className={`${info.color} ${info.text} border-0 text-[10px] font-black h-5 px-3`}>
-                        {info.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-4 py-2 text-center">
-                      <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors border border-transparent hover:border-border"><Pencil className="h-3 w-3" /></button>
-                        <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors border border-transparent hover:border-border"><Trash2 className="h-3 w-3" /></button>
-                      </div>
+          <ScrollArea className="h-[calc(100vh-340px)] w-full">
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[45%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Classificação / Nome</TableHead>
+                  <TableHead className="w-[35%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Tipo de Registro</TableHead>
+                  <TableHead className="w-[20%] text-[11px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.filter(c => activeFilter === "all" || c.type === activeFilter).map((cat) => {
+                  const info = typeMap[cat.type as keyof typeof typeMap] || typeMap.income;
+                  return (
+                    <TableRow
+                      key={cat.id}
+                      className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50"
+                    >
+                      <TableCell className="border-r border-border/50 px-4 py-2 text-center">
+                        <div className="flex items-center gap-3 justify-center">
+                          <div className={`h-2 w-2 rounded-full ${info.dot}`} />
+                          <span className="text-[14px] font-bold text-foreground">{cat.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-border/50 px-4 py-2 text-center">
+                        <Badge variant="outline" className={`${info.color} ${info.text} border-border/50 text-[10px] font-black h-5 px-3`}>
+                          {info.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEdit(cat)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                          <button onClick={() => handleDelete(cat.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {categories.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-20 text-muted-foreground italic border-b border-border/50">
+                      Nenhuma classificação configurada ainda.
                     </TableCell>
                   </TableRow>
-                );
-              })}
-              {categories.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-12 text-muted-foreground italic text-xs">
-                    Nenhuma classificação configurada ainda.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </Card>
       )}
     </div>

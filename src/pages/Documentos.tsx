@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
@@ -205,56 +206,68 @@ export default function Documentos() {
         </Select>
       </div>
 
-      <Card className="bg-card border-border overflow-hidden shadow-sm">
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-secondary/20">
+      <Card className="bg-card border-border shadow-sm overflow-hidden w-full">
+        <ScrollArea className="h-[calc(100vh-400px)] w-full">
+          <Table className="border-collapse border border-border/50">
+            <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[11px] font-bold uppercase">Documento</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase">Categoria</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase">Referência</TableHead>
-                <TableHead className="text-[11px] font-bold uppercase text-center w-24">Acesso</TableHead>
-                <TableHead className="w-20"></TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Documento</TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Categoria</TableHead>
+                <TableHead className="text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Referência</TableHead>
+                <TableHead className="w-[10%] text-[11px] font-black text-muted-foreground border-r border-border/50 text-center px-4">Acesso</TableHead>
+                <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={5} className="py-8"><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                  <TableRow key={i}>
+                    <TableCell colSpan={5} className="py-2"><Skeleton className="h-6 w-full" /></TableCell>
+                  </TableRow>
                 ))
-              ) : filtered.map((doc) => (
-                <TableRow key={doc.id} className="group transition-colors">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                        <FileText className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="font-medium text-[13px]">{doc.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="outline" className="text-[9px] font-medium px-2 py-0 h-4 border-border/50 uppercase tracking-wide">{doc.category || "Legal"}</Badge></TableCell>
-                  <TableCell className="text-[11px] text-muted-foreground font-mono">
-                    {doc.date ? new Date(doc.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {doc.link && (
-                      <a href={doc.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center p-1.5 rounded-md bg-secondary/50 text-primary hover:bg-primary/10 transition-colors">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
-                      <button onClick={() => openEdit(doc)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground hover:text-primary"><Pencil className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => handleDelete(doc.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {!loading && filtered.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">Nenhum documento anexado</TableCell></TableRow>}
+              ) : (
+                <>
+                  {filtered.map((doc) => (
+                    <TableRow key={doc.id} className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50">
+                      <TableCell className="border-r border-border/50 px-4 py-2 text-center">
+                        <div className="flex items-center gap-3 justify-center">
+                          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                            <FileText className="h-4 w-4 text-primary" />
+                          </div>
+                          <span className="font-bold text-[13px] text-foreground">{doc.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-border/50 px-4 py-2 text-center">
+                        <Badge variant="outline" className="text-[10px] font-black px-2 py-0 h-5 border-border/50 uppercase tracking-wide">
+                          {doc.category || "Legal"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="border-r border-border/50 px-4 py-2 text-center text-[12px] text-muted-foreground font-mono">
+                        {doc.date ? new Date(doc.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}
+                      </TableCell>
+                      <TableCell className="border-r border-border/50 text-center px-4 py-2">
+                        {doc.link && (
+                          <a href={doc.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center p-1.5 rounded-md bg-secondary text-primary hover:bg-primary/10 transition-colors border border-border/50">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-2">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                          <button onClick={() => openEdit(doc)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                          <button onClick={() => handleDelete(doc.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!loading && filtered.length === 0 && (
+                    <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum documento anexado</TableCell></TableRow>
+                  )}
+                </>
+              )}
             </TableBody>
           </Table>
-        </CardContent>
+        </ScrollArea>
       </Card>
     </div>
   );

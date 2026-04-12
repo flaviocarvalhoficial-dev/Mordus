@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -361,106 +361,120 @@ export default function Closures() {
       </Card>
 
       <div className="pt-4">
-        <h3 className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Histórico de Fechamentos</h3>
+        <h3 className="text-[12px] font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+          <div className="h-1 w-1 rounded-full bg-primary" /> Histórico de Fechamentos
+        </h3>
 
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="bg-card border-border border-l-4 border-l-muted">
-                <CardContent className="p-4"><Skeleton className="h-10 w-full" /></CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <ScrollArea className="max-h-[520px] pr-4">
-            <div className="space-y-3">
-            {closures.map((closure) => (
-              <Card key={closure.id} className="bg-card border-border border-l-4 border-l-secondary/40">
-                <CardHeader className="py-3 flex flex-row items-center justify-between space-y-0">
-                  <div className="flex items-center gap-3">
-                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[13px] font-bold text-foreground">
-                      {formatDate(closure.start_date)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(closure.end_date)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-[11px] text-muted-foreground hover:bg-secondary/50"
-                      onClick={() => {
-                        const nextId = expandedId === closure.id ? null : closure.id;
-                        setExpandedId(nextId);
-                        if (nextId) fetchTransactionsForClosure(closure);
-                      }}
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" />
-                      {expandedId === closure.id ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeleteClosure(closure.id)}
-                      title="Excluir Fechamento"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-4 pt-0">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div><p className="text-[10px] text-muted-foreground uppercase">S. Anterior</p><p className="text-[13px] font-bold text-muted-foreground font-mono tabular-nums">{formatCurrency(Number(closure.initial_balance || 0))}</p></div>
-                    <div><p className="text-[10px] text-muted-foreground uppercase">Entradas</p><p className="text-[13px] font-bold text-success font-mono tabular-nums">{formatCurrency(Number(closure.total_income || 0))}</p></div>
-                    <div><p className="text-[10px] text-muted-foreground uppercase">Saídas</p><p className="text-[13px] font-bold text-destructive font-mono tabular-nums">{formatCurrency(Number(closure.total_expense || 0))}</p></div>
-                    <div><p className="text-[10px] text-muted-foreground uppercase">Saldo Final</p><p className="text-[13px] font-bold text-foreground font-mono tabular-nums">{formatCurrency(Number(closure.final_balance || 0))}</p></div>
-                  </div>
-
-                  {expandedId === closure.id && (
-                    <div className="mt-4 border-t border-border pt-4 animate-in slide-in-from-top-2 duration-300">
-                      <div className="overflow-x-auto rounded-lg border border-border">
-                        <Table>
-                          <TableHeader className="bg-secondary/20">
-                            <TableRow>
-                              <TableHead className="text-[10px] font-bold">DATA</TableHead>
-                              <TableHead className="text-[10px] font-bold">DESCRIÇÃO</TableHead>
-                              <TableHead className="text-[10px] font-bold">CAT.</TableHead>
-                              <TableHead className="text-[10px] font-bold text-right">VALOR</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {!expandedTxs[closure.id] ? (
-                              Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                  <TableCell><Skeleton className="h-3 w-16" /></TableCell>
-                                  <TableCell><Skeleton className="h-3 w-40" /></TableCell>
-                                  <TableCell><Skeleton className="h-3 w-20" /></TableCell>
-                                  <TableCell className="text-right"><Skeleton className="h-3 w-20 ml-auto" /></TableCell>
-                                </TableRow>
-                              ))
-                            ) : expandedTxs[closure.id].length === 0 ? (
-                              <TableRow><TableCell colSpan={4} className="text-center py-4 text-xs">Sem transações no período</TableCell></TableRow>
-                            ) : expandedTxs[closure.id].map((tx) => (
-                              <TableRow key={tx.id}>
-                                <TableCell className="text-[10px] font-mono whitespace-nowrap">{formatDate(tx.date)}</TableCell>
-                                <TableCell className="text-[11px] font-medium max-w-[150px] truncate">{tx.description}</TableCell>
-                                <TableCell><Badge variant="outline" className="text-[9px] border-border/50">{tx.categories?.name || "Geral"}</Badge></TableCell>
-                                <TableCell className={`text-[11px] text-right font-bold font-mono ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                                  {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-            </div>
+        <Card className="bg-card border-border shadow-sm overflow-hidden w-full">
+          <ScrollArea className="h-[calc(100vh-500px)] w-full">
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[4%] text-[10px]"></TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Período</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">S. Anterior</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Entradas</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Saídas</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Saldo Final</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <>
+                    {closures.map((closure) => (
+                      <React.Fragment key={closure.id}>
+                        <TableRow
+                          className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50 cursor-pointer"
+                          onClick={() => {
+                            const nextId = expandedId === closure.id ? null : closure.id;
+                            setExpandedId(nextId);
+                            if (nextId) fetchTransactionsForClosure(closure);
+                          }}
+                        >
+                          <TableCell className="border-r border-border/50 text-center">
+                            {expandedId === closure.id ? <ChevronUp className="h-3 w-3 mx-auto text-primary" /> : <ChevronDown className="h-3 w-3 mx-auto text-muted-foreground" />}
+                          </TableCell>
+                          <TableCell className="border-r border-border/50 text-center py-2">
+                            <span className="text-[13px] font-black text-foreground">
+                              {formatDate(closure.start_date)} <ArrowRight className="h-2 w-2 inline mx-1 opacity-40" /> {formatDate(closure.end_date)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="border-r border-border/50 text-center py-2 font-mono tabular-nums text-[13px] text-muted-foreground">
+                            {formatCurrency(Number(closure.initial_balance || 0))}
+                          </TableCell>
+                          <TableCell className="border-r border-border/50 text-center py-2 font-mono tabular-nums text-[13px] text-success font-bold">
+                            {formatCurrency(Number(closure.total_income || 0))}
+                          </TableCell>
+                          <TableCell className="border-r border-border/50 text-center py-2 font-mono tabular-nums text-[13px] text-destructive font-bold">
+                            {formatCurrency(Number(closure.total_expense || 0))}
+                          </TableCell>
+                          <TableCell className="border-r border-border/50 text-center py-2 font-mono tabular-nums text-[13px] font-black text-foreground">
+                            {formatCurrency(Number(closure.final_balance || 0))}
+                          </TableCell>
+                          <TableCell className="py-2 text-center">
+                            <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); handleDeleteClosure(closure.id); }} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {expandedId === closure.id && (
+                          <TableRow className="bg-secondary/5">
+                            <TableCell colSpan={7} className="p-0 border-b border-border">
+                              <div className="p-4 animate-in slide-in-from-top-2 duration-300">
+                                <div className="rounded-lg border border-border/50 overflow-hidden shadow-sm">
+                                  <Table className="border-collapse">
+                                    <TableHeader className="bg-secondary/20">
+                                      <TableRow className="hover:bg-transparent">
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center">DATA</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center">DESCRIÇÃO</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground border-r border-border/50 text-center">CATEGORIA</TableHead>
+                                        <TableHead className="text-[10px] font-black text-muted-foreground text-center">VALOR</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {!expandedTxs[closure.id] ? (
+                                        Array.from({ length: 3 }).map((_, i) => (
+                                          <TableRow key={i}><TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+                                        ))
+                                      ) : expandedTxs[closure.id].length === 0 ? (
+                                        <TableRow><TableCell colSpan={4} className="text-center py-8 text-xs italic text-muted-foreground">Sem transações no período</TableCell></TableRow>
+                                      ) : expandedTxs[closure.id].map((tx) => (
+                                        <TableRow key={tx.id} className="hover:bg-secondary/10 transition-colors border-b border-border/50">
+                                          <TableCell className="text-[11px] font-mono border-r border-border/50 text-center">{formatDate(tx.date)}</TableCell>
+                                          <TableCell className="text-[12px] font-bold border-r border-border/50 text-center">{tx.description}</TableCell>
+                                          <TableCell className="border-r border-border/50 text-center">
+                                            <Badge variant="outline" className="text-[9px] border-border/50 h-4 px-1.5 font-medium">{tx.categories?.name || "Geral"}</Badge>
+                                          </TableCell>
+                                          <TableCell className={`text-[12px] text-center font-bold font-mono ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    ))}
+                    {!loading && closures.length === 0 && (
+                      <TableRow><TableCell colSpan={7} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhum fechamento registrado</TableCell></TableRow>
+                    )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
           </ScrollArea>
-        )}
+        </Card>
       </div>
     </div>
   );

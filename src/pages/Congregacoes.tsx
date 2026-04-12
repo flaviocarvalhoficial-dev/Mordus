@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MapPin, Pencil, Trash2, Loader2, Users } from "lucide-react";
+import { Plus, MapPin, Pencil, Trash2, Loader2, Users, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -134,47 +137,81 @@ export default function Congregacoes() {
         </DialogContent>
       </Dialog>
 
-      {loading ? (
-        <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {items.map((c) => (
-            <Card key={c.id} className="bg-card border-border border-l-4 border-l-primary/40 hover:bg-secondary/20 transition-all group">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-                      <MapPin className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-[14px] font-bold text-foreground leading-tight group-hover:text-primary transition-colors">{c.name}</h3>
-                      <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{c.address || "Sem endereço cadastrado"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(c)} className="p-1.5 hover:bg-background rounded-md text-muted-foreground transition-colors"><Pencil className="h-3.5 w-3.5" /></button>
-                    <button onClick={() => handleDelete(c.id)} className="p-1.5 hover:bg-destructive/10 rounded-md text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                  </div>
-                </div>
-                <div className="mt-5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
-                      <Users className="h-3 w-3 text-muted-foreground" />
-                    </div>
-                    <span className="text-[11px] text-foreground font-medium">{c.responsible_name || "Sem líder"}</span>
-                  </div>
-                  <Badge variant="secondary" className="h-5 px-2 text-[10px] font-mono tabular-nums">{(c.member_count || 0)} membros</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {items.length === 0 && (
-            <div className="col-span-full py-20 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
-              Nenhuma congregação registrada
+      <Card className="bg-card border-border shadow-sm overflow-hidden">
+        <CardHeader className="pb-3 bg-secondary/10">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar congregações..." className="pl-9 h-9 text-xs" />
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[calc(100vh-340px)] w-full">
+            <Table className="border-collapse border border-border/50">
+              <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Nome</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Responsável</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Endereço</TableHead>
+                  <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Membros</TableHead>
+                  <TableHead className="w-[6%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="pl-6 border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-full" /></TableCell>
+                      <TableCell className="border-r border-border/50"><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <>
+                    {items.map((c) => (
+                      <TableRow
+                        key={c.id}
+                        className="group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50"
+                      >
+                        <TableCell className="pl-6 py-2 border-r border-border/50 text-center font-bold text-[14px]">
+                          {c.name}
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2 font-medium text-[13px]">
+                          {c.responsible_name || "-"}
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2 text-[12px] text-muted-foreground max-w-[200px] truncate">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <MapPin className="h-3 w-3 opacity-50" /> {c.address || "-"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center border-r border-border/50 py-2 font-mono text-[13px] font-bold">
+                          <Badge variant="outline" className="h-5 px-2 text-[10px] font-mono tabular-nums border-border/50">
+                            {(c.member_count || 0)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
+                            <button onClick={() => openEdit(c)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                            <button onClick={() => handleDelete(c.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!loading && items.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic border-b border-border/50">Nenhuma congregação registrada</TableCell></TableRow>
+                    )}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }

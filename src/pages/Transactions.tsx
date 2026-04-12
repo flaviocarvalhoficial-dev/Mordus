@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X, Settings2, Columns, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
   payment_method_cat?: any;
   receipt_url?: string | null;
+  occasion?: string | null;
 };
 
 const months = [
@@ -67,8 +69,8 @@ function TransactionsList() {
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [yearFilter, setYearFilter] = useState("all");
-  const [monthFilter, setMonthFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
+  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
   const [sortField, setSortField] = useState<"date" | "description" | "amount">("date");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +78,27 @@ function TransactionsList() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showTotals, setShowTotals] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(["date", "description", "category", "receipt", "method", "amount"]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const toggleColumn = (col: string) => {
+    setVisibleColumns(prev => {
+      if (prev.includes(col)) {
+        if (prev.length <= 3) {
+          toast.error("Mínimo de 3 colunas permitido");
+          return prev;
+        }
+        return prev.filter(c => c !== col);
+      }
+      if (prev.length >= 8) {
+        toast.error("Limite de 8 colunas atingido");
+        return prev;
+      }
+      return [...prev, col];
+    });
+  };
 
   const handleDownload = async (url: string) => {
     try {
@@ -150,17 +173,46 @@ function TransactionsList() {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Deseja realmente excluir este lançamento?")) return;
+  const handleDeleteClick = (tx: Transaction) => {
+    if (tx.description.startsWith("[P ")) {
+      setTxToDelete(tx);
+      setDeleteModalOpen(true);
+    } else {
+      if (confirm("Deseja realmente excluir este lançamento?")) {
+        confirmDelete(tx.id);
+      }
+    }
+  };
 
+  const confirmDelete = async (id: string, deleteAllFromBatch = false) => {
+    setIsDeleting(true);
     try {
-      const { error } = await supabase.from("transactions").delete().eq("id", id);
-      if (error) throw error;
-      toast.success("Lançamento removido");
+      if (deleteAllFromBatch && txToDelete) {
+        // Extrai a parte da descrição sem o [P XX/YY]
+        const cleanDesc = txToDelete.description.replace(/^\[P \d+\/\d+\] /, "");
+        const { error } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("organization_id", organization!.id)
+          .ilike("description", `%${cleanDesc}`)
+          .gte("date", txToDelete.date);
+
+        if (error) throw error;
+        toast.success("Todas as parcelas futuras foram removidas");
+      } else {
+        const { error } = await supabase.from("transactions").delete().eq("id", id);
+        if (error) throw error;
+        toast.success("Lançamento removido");
+      }
+
+      setDeleteModalOpen(false);
+      setTxToDelete(null);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
     } catch (err) {
       toast.error("Erro ao excluir lançamento");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -356,13 +408,53 @@ function TransactionsList() {
               </Select>
 
               <div className="flex items-center gap-1 bg-background p-0.5 rounded-md border border-border ml-auto">
-                <Button variant={sortField === 'date' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('date')}><Calendar className="h-3.5 w-3.5" /></Button>
-                <Button variant={sortField === 'description' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('description')}><Type className="h-3.5 w-3.5" /></Button>
-                <Button variant={sortField === 'amount' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setSortField('amount')}><ArrowUp01 className="h-3.5 w-3.5" /></Button>
+                <Button variant={sortField === 'date' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Data" onClick={() => setSortField('date')}><Calendar className="h-3.5 w-3.5" /></Button>
+                <Button variant={sortField === 'description' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Descrição" onClick={() => setSortField('description')}><Type className="h-3.5 w-3.5" /></Button>
+                <Button variant={sortField === 'amount' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Valor" onClick={() => setSortField('amount')}><ArrowUp01 className="h-3.5 w-3.5" /></Button>
                 <Separator orientation="vertical" className="h-4 mx-0.5" />
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" title="Inverter Ordem" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
                   {sortOrder === 'asc' ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
                 </Button>
+                <Separator orientation="vertical" className="h-4 mx-0.5" />
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Visualização de Colunas">
+                      <Settings2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-4 bg-card border-border shadow-xl">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-border pb-2">
+                        <Columns className="h-4 w-4 text-primary" />
+                        <h4 className="text-xs font-black uppercase tracking-wider">Colunas da Tabela</h4>
+                      </div>
+                      <div className="grid gap-3">
+                        {[
+                          { id: "date", label: "Data" },
+                          { id: "description", label: "Descrição" },
+                          { id: "category", label: "Categoria" },
+                          { id: "receipt", label: "Comprovante" },
+                          { id: "method", label: "Meio de Pagamento" },
+                          { id: "amount", label: "Valor" },
+                          { id: "occasion", label: "Ocasião Principal" },
+                        ].map((col) => (
+                          <div key={col.id} className="flex items-center justify-between gap-4">
+                            <span className="text-[11px] font-medium text-muted-foreground">{col.label}</span>
+                            <Switch
+                              checked={visibleColumns.includes(col.id)}
+                              onCheckedChange={() => toggleColumn(col.id)}
+                              className="scale-75"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[9px] text-muted-foreground italic border-t border-border pt-2 mt-2">
+                        Limite: 8 colunas simultâneas
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="flex items-center gap-2 ml-2 border-l border-border pl-3">
@@ -381,19 +473,20 @@ function TransactionsList() {
             <Table className="border-collapse border border-border/50">
               <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[10%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Data</TableHead>
-                  <TableHead className="w-[30%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Descrição</TableHead>
-                  <TableHead className="w-[15%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Categoria</TableHead>
-                  <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Doc</TableHead>
-                  <TableHead className="w-[15%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Meio</TableHead>
-                  <TableHead className="w-[14%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Valor</TableHead>
-                  <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                  {visibleColumns.includes("date") && <TableHead className="w-[10%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Data</TableHead>}
+                  {visibleColumns.includes("description") && <TableHead className="w-[25%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Descrição</TableHead>}
+                  {visibleColumns.includes("category") && <TableHead className="w-[12%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Categoria</TableHead>}
+                  {visibleColumns.includes("receipt") && <TableHead className="w-[8%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Doc</TableHead>}
+                  {visibleColumns.includes("method") && <TableHead className="w-[12%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Meio</TableHead>}
+                  {visibleColumns.includes("occasion") && <TableHead className="w-[15%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Ocasião</TableHead>}
+                  {visibleColumns.includes("amount") && <TableHead className="w-[12%] text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Valor</TableHead>}
+                  <TableHead className="w-[6%] text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
+                    <TableRow key={i}><TableCell colSpan={visibleColumns.length + 1}><Skeleton className="h-6 w-full" /></TableCell></TableRow>
                   ))
                 ) : (
                   <>
@@ -407,37 +500,50 @@ function TransactionsList() {
                             isHighlighted && "animate-highlight-orange z-20"
                           )}
                         >
-                          <TableCell className="font-mono text-[14px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>
-                          <TableCell className="text-[14px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>
-                          <TableCell className="text-center border-r border-border/50 py-2">
-                            <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
-                              {tx.categories?.name || "Geral"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center border-r border-border/50 py-2">
-                            {tx.receipt_url && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
-                                className="inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all"
-                                title="Ver Comprovante"
-                              >
-                                <FileCheck className="h-3 w-3" />
-                              </button>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center border-r border-border/50 py-2">
-                            <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
-                              {tx.payment_method_cat?.name || tx.payment_method || "-"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className={`font-bold font-mono text-[14px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                            {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </TableCell>
+                          {visibleColumns.includes("date") && <TableCell className="font-mono text-[14px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2">{formatDate(tx.date)}</TableCell>}
+                          {visibleColumns.includes("description") && <TableCell className="text-[14px] font-medium text-center border-r border-border/50 py-2">{tx.description}</TableCell>}
+                          {visibleColumns.includes("category") && (
+                            <TableCell className="text-center border-r border-border/50 py-2">
+                              <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
+                                {tx.categories?.name || "Geral"}
+                              </Badge>
+                            </TableCell>
+                          )}
+                          {visibleColumns.includes("receipt") && (
+                            <TableCell className="text-center border-r border-border/50 py-2">
+                              {tx.receipt_url && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}
+                                  className="inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all"
+                                  title="Ver Comprovante"
+                                >
+                                  <FileCheck className="h-3 w-3" />
+                                </button>
+                              )}
+                            </TableCell>
+                          )}
+                          {visibleColumns.includes("method") && (
+                            <TableCell className="text-center border-r border-border/50 py-2">
+                              <Badge variant="outline" className="text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70">
+                                {tx.payment_method_cat?.name || tx.payment_method || "-"}
+                              </Badge>
+                            </TableCell>
+                          )}
+                          {visibleColumns.includes("occasion") && (
+                            <TableCell className="text-[14px] text-center border-r border-border/50 py-2">
+                              {tx.occasion || "-"}
+                            </TableCell>
+                          )}
+                          {visibleColumns.includes("amount") && (
+                            <TableCell className={`font-bold font-mono text-[14px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                              {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+                            </TableCell>
+                          )}
                           <TableCell className="py-2">
                             <PermissionGuard requireWrite>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center">
                                 <button onClick={() => openEdit(tx)} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
-                                <button onClick={() => handleDelete(tx.id)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
+                                <button onClick={() => handleDeleteClick(tx)} className="p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
                               </div>
                             </PermissionGuard>
                           </TableCell>
@@ -445,7 +551,7 @@ function TransactionsList() {
                       );
                     })}
                     {!loading && sortedData.length === 0 && (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={visibleColumns.length + 1} className="text-center text-muted-foreground py-10 italic">Nenhum lançamento encontrado</TableCell></TableRow>
                     )}
                   </>
                 )}
@@ -454,6 +560,47 @@ function TransactionsList() {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="sm:max-w-[400px] bg-card p-6 border-border rounded-[2.5rem] shadow-2xl">
+          <DialogHeader className="items-center text-center pb-4">
+            <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <Trash2 className="h-6 w-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-lg font-bold">Excluir Parcelamento</DialogTitle>
+            <p className="text-xs text-muted-foreground mt-2">
+              Este lançamento faz parte de um conjunto de parcelas. Como deseja prosseguir?
+            </p>
+          </DialogHeader>
+
+          <div className="grid gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="h-12 rounded-2xl font-bold text-xs hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 border-border/50"
+              onClick={() => confirmDelete(txToDelete!.id, false)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Excluir apenas esta parcela
+            </Button>
+            <Button
+              className="h-12 rounded-2xl font-bold text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => confirmDelete(txToDelete!.id, true)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Excluir esta e todas as parcelas futuras
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-10 rounded-2xl font-bold text-xs text-muted-foreground"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
