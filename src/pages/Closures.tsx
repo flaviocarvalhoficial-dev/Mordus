@@ -159,7 +159,7 @@ export default function Closures() {
     try {
       const { data, error } = await supabase
         .from("transactions")
-        .select("amount, type")
+        .select("amount, type, status")
         .eq("organization_id", organization!.id)
         .gte("date", startDateStr)
         .lte("date", endDateStr);
@@ -177,8 +177,14 @@ export default function Closures() {
       };
 
       data?.forEach(tx => {
-        if (tx.type === "income") stats.income += tx.amount;
-        else stats.expense += tx.amount;
+        // REGRA DE CAIXA: Apenas itens 'completed' (pagos) entram no fechamento
+        if (tx.status === 'completed' || !tx.status) {
+          if (tx.type === "income") {
+            stats.income += tx.amount;
+          } else {
+            stats.expense += tx.amount;
+          }
+        }
       });
       setCurrentPeriodStats(stats);
     } catch (err) {

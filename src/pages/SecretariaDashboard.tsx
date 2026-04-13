@@ -332,7 +332,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
             <button
               key={p.id}
               onClick={() => setPeriod(p.id)}
-              className={`px-4 py-2 text-[11px] font-bold rounded-xl transition-all ${period === p.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2 text-[11px] font-medium rounded-xl transition-all ${period === p.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {p.label}
@@ -345,7 +345,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           <div className="flex items-center gap-2">
             <button
               onClick={() => setSelectedCongregation("all")}
-              className={`h-9 px-4 rounded-xl text-[11px] font-bold transition-all border ${selectedCongregation === "all" ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
+              className={`h-9 px-4 rounded-xl text-[11px] font-medium transition-all border ${selectedCongregation === "all" ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
                 }`}
             >
               Todas
@@ -354,7 +354,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
               <button
                 key={c.id}
                 onClick={() => setSelectedCongregation(c.id)}
-                className={`h-9 px-4 rounded-xl text-[11px] font-bold transition-all border ${selectedCongregation === c.id ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
+                className={`h-9 px-4 rounded-xl text-[11px] font-medium transition-all border ${selectedCongregation === c.id ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
                   }`}
               >
                 {c.name}
@@ -375,7 +375,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
               <button
                 key={s.id}
                 onClick={() => setSelectedStatus(s.id)}
-                className={`h-9 px-4 rounded-xl text-[11px] font-bold transition-all border ${selectedStatus === s.id ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
+                className={`h-9 px-4 rounded-xl text-[11px] font-medium transition-all border ${selectedStatus === s.id ? "bg-primary/10 border-primary/20 text-primary" : "bg-background border-border text-muted-foreground hover:bg-secondary/50"
                   }`}
               >
                 {s.label}
@@ -393,10 +393,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   <kpi.icon className="h-4 w-4 text-primary/60" />
                   <span className="text-[13px] text-muted-foreground font-medium">{kpi.title}</span>
                 </div>
-                <Badge variant="secondary" className="bg-secondary/50 text-[10px] font-bold">Resumo</Badge>
+                <Badge variant="secondary" className="bg-secondary/50 text-[10px] font-medium">Resumo</Badge>
               </div>
               <div className="mt-2">
-                <div className="text-xl font-black text-foreground font-mono tabular-nums leading-tight">
+                <div className="text-xl font-semibold text-foreground font-mono tabular-nums leading-tight">
                   {loading ? <Skeleton className="h-8 w-12" /> : kpi.value}
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           <button
             key={t.id}
             onClick={() => setActiveBoard(t.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 text-[11px] font-bold rounded-xl transition-all whitespace-nowrap ${activeBoard === t.id ? "bg-background shadow-md text-primary" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+            className={`flex items-center gap-2 px-5 py-2.5 text-[11px] font-medium rounded-xl transition-all whitespace-nowrap ${activeBoard === t.id ? "bg-background shadow-md text-primary" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
               }`}
           >
             <t.icon className="h-4 w-4" />
@@ -428,7 +428,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
             <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary/60" /> Crescimento de Membros
               </CardTitle>
             </CardHeader>
@@ -457,10 +457,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
               <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-primary/60" /> Aniversariantes do Mês
                 </CardTitle>
-                <Badge variant="outline" className="text-[10px] font-bold bg-background border-border/50 capitalize">{new Date().toLocaleString('pt-BR', { month: 'long' })}</Badge>
+                <Badge variant="outline" className="text-[10px] font-medium bg-background border-border/50 capitalize">{new Date().toLocaleString('pt-BR', { month: 'long' })}</Badge>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
@@ -472,11 +472,11 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   ) : upcomingBirthdays.map((m, i) => (
                     <div key={i} className="flex items-center justify-between group p-2 hover:bg-secondary/5 rounded-xl transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center border border-border font-bold text-muted-foreground text-xs">
+                        <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center border border-border font-medium text-muted-foreground text-xs">
                           {m.birth_date ? parseInt(m.birth_date.split('-')[2]) : '--'}
                         </div>
                         <div>
-                          <p className="text-[13px] font-bold text-foreground">{m.full_name}</p>
+                          <p className="text-[13px] font-medium text-foreground">{m.full_name}</p>
                           <p className="text-[10px] text-muted-foreground">Dia {m.birth_date ? parseInt(m.birth_date.split('-')[2]) : '--'}</p>
                         </div>
                       </div>
@@ -489,7 +489,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
             <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
               <CardHeader className="bg-secondary/5 border-b border-border/50 py-4">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <UserPlus className="h-4 w-4 text-primary/60" /> Últimas Admissões
                 </CardTitle>
               </CardHeader>
@@ -507,11 +507,11 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                           <User className="h-5 w-5 text-primary/70" />
                         </div>
                         <div>
-                          <p className="text-[13px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                          <p className="text-[13px] font-medium text-foreground leading-tight">{m.full_name}</p>
                           <p className="text-[10px] text-muted-foreground font-medium mt-1">{new Date(m.created_at).toLocaleDateString("pt-BR")}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-[8px] font-black">NEW</Badge>
+                      <Badge variant="outline" className="text-[8px] font-semibold">NEW</Badge>
                     </div>
                   ))}
                 </div>
@@ -527,7 +527,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
             <CardHeader className="bg-secondary/5 border-b border-border/50 py-3 flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
                 <UsersRound className="h-4 w-4 text-primary/60" />
-                <CardTitle className="text-sm font-bold">Perfil Demográfico</CardTitle>
+                <CardTitle className="text-sm font-semibold">Perfil Demográfico</CardTitle>
               </div>
               <div className="flex items-center gap-1 p-1 bg-background/50 rounded-xl border border-border/50">
                 {[
@@ -538,7 +538,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   <button
                     key={s.id}
                     onClick={() => setDemographySubBoard(s.id)}
-                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${demographySubBoard === s.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    className={`px-3 py-1.5 text-[10px] font-medium rounded-lg transition-all ${demographySubBoard === s.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                       }`}
                   >
                     {s.label}
@@ -581,7 +581,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                 </div>
                 <div className="md:col-span-2 space-y-6">
                   <div>
-                    <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-wider mb-4">
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
                       {demographySubBoard === "gender" ? "Distribuição Sexual" : demographySubBoard === "marital" ? "Estado Civil" : "Faixa Etária"}
                     </h4>
                     <div className="space-y-3">
@@ -592,7 +592,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                             <span className="text-[12px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{entry.name}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-[12px] font-mono font-bold">{entry.value}</span>
+                            <span className="text-[12px] font-mono font-medium">{entry.value}</span>
                             <span className="text-[10px] text-muted-foreground font-mono w-10 text-right">
                               {Math.round((entry.value / (demographySubBoard === "age" ? ageData : demographySubBoard === "gender" ? genderData : maritalData).reduce((a, b) => a + b.value, 0) || 1) * 100)}%
                             </span>
@@ -623,7 +623,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
             <CardHeader className="bg-secondary/5 border-b border-border/50 py-3 flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
                 <Crown className="h-4 w-4 text-primary/60" />
-                <CardTitle className="text-sm font-bold">Saúde Eclesiástica</CardTitle>
+                <CardTitle className="text-sm font-semibold">Saúde Eclesiástica</CardTitle>
               </div>
               <div className="flex items-center gap-1 p-1 bg-background/50 rounded-xl border border-border/50">
                 {[
@@ -634,7 +634,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   <button
                     key={s.id}
                     onClick={() => setChurchSubBoard(s.id)}
-                    className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${churchSubBoard === s.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    className={`px-3 py-1.5 text-[10px] font-medium rounded-lg transition-all ${churchSubBoard === s.id ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                       }`}
                   >
                     {s.label}
@@ -657,7 +657,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                     </ResponsiveContainer>
                   </div>
                   <div className="md:col-span-2 space-y-6">
-                    <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-wider mb-4">Membros Batizados</h4>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">Membros Batizados</h4>
                     <div className="space-y-4">
                       {baptismData.map((entry, index) => (
                         <div key={entry.name} className="flex items-center justify-between">
@@ -665,7 +665,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: index === 0 ? "hsl(var(--chart-blue))" : "hsl(var(--chart-pink))" }} />
                             <span className="text-[12px] font-medium text-muted-foreground">{entry.name}</span>
                           </div>
-                          <span className="text-[12px] font-mono font-bold">{entry.value}</span>
+                          <span className="text-[12px] font-mono font-medium">{entry.value}</span>
                         </div>
                       ))}
                     </div>
@@ -675,11 +675,11 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
               {churchSubBoard === "roles" && (
                 <div className="space-y-8 max-w-2xl mx-auto">
-                  <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-wider text-center">Distribuição de Liderança e Funções</h4>
+                  <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-center">Distribuição de Liderança e Funções</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                     {(rolesData.length > 0 ? rolesData : [{ name: 'Membro', value: 0 }]).map((role, i) => (
                       <div key={i} className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px] font-bold">
+                        <div className="flex items-center justify-between text-[11px] font-medium">
                           <span className="text-foreground">{role.name}</span>
                           <span className="text-muted-foreground">{role.value}</span>
                         </div>
@@ -697,7 +697,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
               {churchSubBoard === "congregation" && (
                 <div className="h-[300px] w-full">
-                  <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-wider text-center mb-6">Membros por Congregação</h4>
+                  <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-center mb-6">Membros por Congregação</h4>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={congregationGrowthData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -732,7 +732,7 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                     <action.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold leading-tight">{action.title}</p>
+                    <p className="text-[13px] font-medium leading-tight">{action.title}</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">{action.sub}</p>
                   </div>
                 </CardContent>
@@ -742,10 +742,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
           <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10">
             <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex items-center justify-between">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-primary/60" /> Resumo do Patrimônio
               </CardTitle>
-              <Badge variant="outline" className="text-[10px] bg-background border-border/50 font-bold">Estado de Conservação</Badge>
+              <Badge variant="outline" className="text-[10px] bg-background border-border/50 font-medium">Estado de Conservação</Badge>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -756,10 +756,10 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
                   { label: "Manutenção", count: 1, sub: "Urgente", color: "bg-destructive", text: "text-destructive", w: "10%" },
                 ].map((item) => (
                   <div key={item.label} className="space-y-2">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase">{item.label}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase">{item.label}</p>
                     <div className="flex items-end gap-2">
-                      <span className="text-xl font-black font-mono">{String(item.count).padStart(2, '0')}</span>
-                      <span className={`text-[10px] ${item.text} font-bold mb-1`}>{item.sub}</span>
+                      <span className="text-xl font-semibold font-mono">{String(item.count).padStart(2, '0')}</span>
+                      <span className={`text-[10px] ${item.text} font-medium mb-1`}>{item.sub}</span>
                     </div>
                     <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
                       <div className={`h-full ${item.color}`} style={{ width: item.w }} />

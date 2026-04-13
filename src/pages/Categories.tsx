@@ -22,7 +22,7 @@ const typeMap = {
   income: { label: "Entrada", color: "bg-success/15", text: "text-foreground/70", dot: "bg-success/40" },
   expense: { label: "Saída", color: "bg-destructive/15", text: "text-foreground/70", dot: "bg-destructive/40" },
   method: { label: "Meio de Pagamento", color: "bg-primary/15", text: "text-foreground/70", dot: "bg-primary/40" },
-  occasion: { label: "Ocasião / Evento", color: "bg-amber-500/15", text: "text-amber-700 font-bold", dot: "bg-amber-500/40" },
+  occasion: { label: "Ocasião / Evento", color: "bg-amber-500/15", text: "text-amber-700 font-medium", dot: "bg-amber-500/40" },
 };
 
 export default function Categories() {
@@ -110,7 +110,7 @@ export default function Categories() {
       <div className="flex items-center justify-end flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <Select value={activeFilter} onValueChange={setActiveFilter}>
-            <SelectTrigger className="w-36 h-9 text-xs font-bold bg-secondary/20 border-border/50">
+            <SelectTrigger className="w-36 h-9 text-xs font-medium bg-secondary/20 border-border/50">
               <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -121,7 +121,7 @@ export default function Categories() {
               <SelectItem value="occasion">Ocasiões</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 font-bold px-6 rounded-full shadow-sm" size="sm" onClick={openCreate}>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 font-medium px-6 rounded-full shadow-sm" size="sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />Novo Registro
           </Button>
         </div>
@@ -148,7 +148,7 @@ export default function Categories() {
               </Select>
             </div>
             <div className="flex justify-center pt-2">
-              <Button className="w-full sm:w-[140px] font-bold" onClick={handleSave} disabled={isSaving}>
+              <Button className="w-full sm:w-[140px] font-medium" onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingId ? "Atualizar" : "Salvar"}
               </Button>
@@ -165,9 +165,9 @@ export default function Categories() {
             <Table className="border-collapse border border-border/50">
               <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[45%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Classificação / Nome</TableHead>
-                  <TableHead className="w-[35%] text-[11px] font-black text-muted-foreground border-r border-border/50 px-4 text-center">Tipo de Registro</TableHead>
-                  <TableHead className="w-[20%] text-[11px] font-black text-muted-foreground px-4 text-center">Ações</TableHead>
+                  <TableHead className="w-[45%] text-[11px] font-semibold text-muted-foreground border-r border-border/50 px-4 text-center">Classificação / Nome</TableHead>
+                  <TableHead className="w-[35%] text-[11px] font-semibold text-muted-foreground border-r border-border/50 px-4 text-center">Tipo de Registro</TableHead>
+                  <TableHead className="w-[20%] text-[11px] font-semibold text-muted-foreground px-4 text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -181,11 +181,11 @@ export default function Categories() {
                       <TableCell className="border-r border-border/50 px-4 py-2 text-center">
                         <div className="flex items-center gap-3 justify-center">
                           <div className={`h-2 w-2 rounded-full ${info.dot}`} />
-                          <span className="text-[14px] font-bold text-foreground">{cat.name}</span>
+                          <span className="text-[14px] font-medium text-foreground">{cat.name}</span>
                         </div>
                       </TableCell>
                       <TableCell className="border-r border-border/50 px-4 py-2 text-center">
-                        <Badge variant="outline" className={`${info.color} ${info.text} border-border/50 text-[10px] font-black h-5 px-3`}>
+                        <Badge variant="outline" className={`${info.color} ${info.text} border-border/50 text-[10px] font-semibold h-5 px-3`}>
                           {info.label}
                         </Badge>
                       </TableCell>

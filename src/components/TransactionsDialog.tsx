@@ -27,7 +27,7 @@ const DEFAULT_OCCASIONS = [
     "Outros"
 ];
 
-const emptyItem = { category_id: "", amount: "", payment_method: "Dinheiro", payment_method_id: "", type: "income" as "income" | "expense", receipt_url: "" };
+const emptyItem = { category_id: "", amount: "", payment_method: "Dinheiro", payment_method_id: "", type: "income" as "income" | "expense", receipt_url: "", status: "" };
 const emptyForm = { date: new Date().toLocaleDateString('en-CA'), description: "", event_id: "", occasion: "", items: [{ ...emptyItem }] };
 
 interface TransactionsDialogProps {
@@ -56,6 +56,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
     const [isCreatingCategory, setIsCreatingCategory] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
     const [newCategoryType, setNewCategoryType] = useState<"income" | "expense" | "method" | "occasion" | "event">("income");
+    const [closures, setClosures] = useState<{ end_date: string }[]>([]);
 
     const open = externalOpen !== undefined ? externalOpen : internalOpen;
     const setOpen = onOpenChange || setInternalOpen;
@@ -64,6 +65,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
         if (open && organization?.id) {
             fetchCategories();
             fetchEvents();
+            fetchClosures();
             if (editingTransaction) {
                 setForm({
                     date: editingTransaction.date,
@@ -76,12 +78,15 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                         amount: String(editingTransaction.amount),
                         payment_method: editingTransaction.payment_method || "Dinheiro",
                         payment_method_id: editingTransaction.payment_method_id || "",
-                        receipt_url: editingTransaction.receipt_url || ""
+                        receipt_url: editingTransaction.receipt_url || "",
+                        status: editingTransaction.status || ""
                     }]
                 });
-                setCurrentStep(1);
+                setSelectedIntent(editingTransaction.type);
+                setCurrentStep(2);
             } else {
                 setForm(emptyForm);
+                setSelectedIntent(null);
                 setCurrentStep(1);
             }
         }
@@ -103,6 +108,21 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
             .gte("date", new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString())
             .order("date", { ascending: false });
         setEvents(evts || []);
+    };
+
+    const fetchClosures = async () => {
+        if (!organization?.id) return;
+        const { data } = await supabase
+            .from("monthly_closures")
+            .select("end_date")
+            .eq("organization_id", organization.id)
+            .eq("status", "closed");
+        setClosures(data || []);
+    };
+
+    const isMonthClosed = (dateStr: string) => {
+        if (!dateStr) return false;
+        return closures.some(c => dateStr <= c.end_date);
     };
 
     const addItem = () => {
@@ -286,35 +306,108 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     payment_method_id: item.payment_method_id || null,
                     event_id: eventId,
                     occasion: form.occasion || null,
-                    receipt_url: item.receipt_url || null
+                    receipt_url: item.receipt_url || null,
+                    status: item.status || (new Date(form.date + 'T12:00:00') <= new Date() ? 'completed' : 'pending'),
+                    competence_date: form.date // Em edições simples, a competência é a data do lançamento
                 };
                 const { error } = await supabase.from("transactions").update(payload).eq("id", editingTransaction.id);
                 if (error) throw error;
                 toast.success("Lançamento atualizado");
-            } else {
-                let payloads: any[] = [];
-                const occurrences = isInstallmentMode ? installmentCount : 1;
+            } else if (isInstallmentMode) {
+                // NOVO SISTEMA DE PARCELAMENTO (ROBUSTO)
+                const occurrences = installmentCount;
+                const totalAmount = validItems.reduce((acc, item) => acc + parseFloat(item.amount), 0);
+
+                // 1. Criar a Compra Parcelada (Pai)
+                const { data: purchase, error: purchaseError } = await supabase
+                    .from("installment_purchases")
+                    .insert([{
+                        organization_id: organization!.id,
+                        description: form.description,
+                        total_amount: totalAmount,
+                        category_id: validItems[0].category_id || null,
+                        payment_method_id: validItems[0].payment_method_id || null
+                    }])
+                    .select()
+                    .single();
+
+                if (purchaseError) throw purchaseError;
+
+                const installmentPayloads: any[] = [];
+                const transactionPayloads: any[] = [];
 
                 for (let i = 0; i < occurrences; i++) {
-                    const currentBatchDate = addMonths(new Date(form.date + 'T12:00:00'), i);
-                    const dateStr = formatDateFns(currentBatchDate, "yyyy-MM-dd");
-                    const descriptionPrefix = isInstallmentMode ? `[P ${String(i + 1).padStart(2, '0')}/${String(occurrences).padStart(2, '0')}] ` : "";
+                    const competenceMonth = addMonths(new Date(form.date + 'T12:00:00'), i);
+                    const competenceDateStr = formatDateFns(competenceMonth, "yyyy-MM-01");
+                    const dueDateStr = formatDateFns(competenceMonth, "yyyy-MM-dd");
+                    const amountPerInstallment = totalAmount / occurrences;
 
-                    const batchPayloads = validItems.map(item => ({
+                    // Status automático baseado na data
+                    const isTodayOrPast = new Date(dueDateStr + 'T12:00:00') <= new Date();
+                    const status = isTodayOrPast ? 'PAGA' : 'PENDENTE';
+
+                    const instPayload = {
+                        purchase_id: purchase.id,
                         organization_id: organization!.id,
-                        type: item.type,
-                        category_id: item.category_id || null,
-                        amount: isInstallmentMode ? parseFloat(item.amount) / occurrences : parseFloat(item.amount),
-                        date: dateStr,
-                        description: descriptionPrefix + form.description,
-                        payment_method: item.payment_method,
-                        payment_method_id: item.payment_method_id || null,
-                        event_id: eventId as any,
-                        occasion: form.occasion || null,
-                        receipt_url: item.receipt_url || null
-                    }));
-                    payloads = [...payloads, ...batchPayloads];
+                        competence_date: competenceDateStr,
+                        due_date: dueDateStr,
+                        status: status,
+                        amount: amountPerInstallment,
+                        payment_date: isTodayOrPast ? new Date().toISOString() : null
+                    };
+
+                    installmentPayloads.push(instPayload);
                 }
+
+                const { data: createdInstallments, error: instError } = await supabase
+                    .from("installments")
+                    .insert(installmentPayloads)
+                    .select();
+
+                if (instError) throw instError;
+
+                // 2. Se a parcela for marcada como PAGA, criamos o lançamento no caixa (transactions)
+                for (const inst of createdInstallments) {
+                    if (inst.status === 'PAGA') {
+                        transactionPayloads.push({
+                            organization_id: organization!.id,
+                            type: validItems[0].type,
+                            category_id: validItems[0].category_id || null,
+                            amount: inst.amount,
+                            date: inst.due_date, // Data em que o dinheiro saiu/entrou (neste caso, simplificado para o vencimento se já passou)
+                            description: `[P ${String(installmentPayloads.findIndex(p => p.due_date === inst.due_date) + 1).padStart(2, '0')}/${String(occurrences).padStart(2, '0')}] ${form.description}`,
+                            payment_method: validItems[0].payment_method,
+                            payment_method_id: validItems[0].payment_method_id || null,
+                            installment_id: inst.id,
+                            competence_date: inst.competence_date,
+                            status: 'completed'
+                        });
+                    }
+                }
+
+                if (transactionPayloads.length > 0) {
+                    const { error: txError } = await supabase.from("transactions").insert(transactionPayloads);
+                    if (txError) throw txError;
+                }
+
+                toast.success(`${occurrences} parcelas geradas no sistema robusto!`);
+            } else {
+                // LANÇAMENTO SIMPLES (NÃO PARCELADO)
+                const payloads = validItems.map(item => ({
+                    organization_id: organization!.id,
+                    type: item.type,
+                    category_id: item.category_id || null,
+                    amount: parseFloat(item.amount),
+                    date: form.date,
+                    description: form.description,
+                    payment_method: item.payment_method,
+                    payment_method_id: item.payment_method_id || null,
+                    event_id: eventId as any,
+                    occasion: form.occasion || null,
+                    receipt_url: item.receipt_url || null,
+                    status: new Date(form.date + 'T12:00:00') <= new Date() ? 'completed' : 'pending',
+                    competence_date: form.date // Por padrão, a competência é a data do lançamento
+                }));
 
                 const { error } = await supabase.from("transactions").insert(payloads as any);
                 if (error) throw error;
@@ -334,12 +427,13 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     if (assetError) console.error("Erro ao registrar no patrimônio:", assetError);
                 }
 
-                toast.success(isInstallmentMode ? `${occurrences} parcelas geradas com sucesso!` : `${payloads.length} lançamentos criados com sucesso!`);
+                toast.success(`${payloads.length} lançamentos criados com sucesso!`);
             }
 
             setOpen(false);
             if (onSuccess) onSuccess();
         } catch (err) {
+            console.error(err);
             toast.error("Erro ao salvar lançamento");
         } finally {
             setIsSaving(false);
@@ -376,7 +470,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {[1, 2, 3, 4].map((s) => (
+                        {[1, 2, 3].map((s) => (
                             <div key={s} className="flex-1 flex items-center gap-2">
                                 <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${currentStep >= s ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]" : "bg-secondary"}`} />
                             </div>
@@ -438,6 +532,12 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                         })}
                                     />
                                     <p className="text-[10px] text-muted-foreground">Escolha o dia em que a movimentação ocorreu na conta ou caixa.</p>
+                                    {isMonthClosed(form.date) && (
+                                        <div className="flex items-center gap-2 p-2 bg-orange-500/10 border border-orange-500/20 rounded-lg animate-in fade-in duration-300">
+                                            <AlertCircle className="h-3.5 w-3.5 text-orange-600" />
+                                            <p className="text-[10px] text-orange-700 font-medium">Este mês já está fechado. Alterações podem afetar o saldo inicial dos meses seguintes.</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <Separator className="opacity-50" />

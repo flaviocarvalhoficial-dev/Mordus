@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { TrendingUp, TrendingDown, Wallet, Loader2, Plus, Users, Layers, CalendarDays, Eye } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Loader2, Plus, Users, Layers, CalendarDays, Eye, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -95,7 +95,8 @@ export default function Dashboard() {
         .lte("date", `${year}-12-31`);
 
       if (month !== "all") {
-        query = query.gte("date", `${year}-${month}-01`).lte("date", `${year}-${month}-31`);
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+        query = query.gte("date", `${year}-${month}-01`).lte("date", `${year}-${month}-${lastDay.toString().padStart(2, '0')}`);
       }
 
       const { data, error } = await query;
@@ -139,6 +140,7 @@ export default function Dashboard() {
     const newStats = {
       entradas: 0,
       saidas: 0,
+      pendenteSaida: 0,
       dizimos: 0,
       ofertas: 0,
       count: txs?.length || 0,
@@ -153,25 +155,34 @@ export default function Dashboard() {
     });
 
     txs?.forEach(tx => {
-      const date = new Date(tx.date);
-      const mName = monthNames[date.getMonth()];
-      const amount = tx.amount || 0;
-      const isIncome = tx.type === "income";
-      const catName = tx.categories?.name?.toLowerCase() || "";
+      const amt = tx.amount || 0;
+      const inc = tx.type === "income";
+      const cat = tx.categories?.name?.toLowerCase() || "";
+      const tDate = new Date(tx.date);
+      const mN = monthNames[tDate.getMonth()];
 
-      if (isIncome) {
-        newStats.entradas += amount;
-        monthlyAggr[mName].entradas += amount;
-        if (catName.includes("dízimo")) {
-          newStats.dizimos += amount;
-          monthlyAggr[mName].dizimos += amount;
-        } else if (catName.includes("oferta")) {
-          newStats.ofertas += amount;
-          monthlyAggr[mName].ofertas += amount;
+      // Se for saída e estiver pendente, somamos apenas ao total de saídas e pendentes
+      if (tx.status === 'pending') {
+        if (!inc) {
+          newStats.pendenteSaida += amt;
+          monthlyAggr[mN].saidas += amt;
+        }
+        return;
+      }
+
+      if (inc) {
+        newStats.entradas += amt;
+        monthlyAggr[mN].entradas += amt;
+        if (cat.includes("dízimo")) {
+          newStats.dizimos += amt;
+          monthlyAggr[mN].dizimos += amt;
+        } else if (cat.includes("oferta")) {
+          newStats.ofertas += amt;
+          monthlyAggr[mN].ofertas += amt;
         }
       } else {
-        newStats.saidas += amount;
-        monthlyAggr[mName].saidas += amount;
+        newStats.saidas += amt;
+        monthlyAggr[mN].saidas += amt;
       }
     });
 
@@ -181,15 +192,17 @@ export default function Dashboard() {
     };
   }, [txs, counts]);
 
-  const saldo = stats.entradas - stats.saidas;
+  const saldoCaixa = stats.entradas - stats.saidas;
+  const saldoProjetado = stats.entradas - (stats.saidas + stats.pendenteSaida);
   const loading = txsLoading || countsLoading;
 
   const summaryCards = useMemo(() => [
-    { title: "Membros Ativos", value: stats.memberCount, suffix: "", decimals: 0, icon: Users, color: "text-primary", primary: true, link: "/membros" },
-    { title: "Saldo Líquido", value: saldo, prefix: "R$ ", decimals: 2, icon: Wallet, positive: saldo >= 0, primary: false },
-    { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", decimals: 2, icon: TrendingUp, positive: true, muted: true },
-    { title: "Total Saídas", value: stats.saidas, prefix: "R$ ", decimals: 2, icon: TrendingDown, positive: false, muted: true },
-  ], [stats, saldo]);
+    { title: "Total Entradas", value: stats.entradas, prefix: "R$ ", suffix: "", decimals: 2, icon: TrendingUp, positive: true, muted: true },
+    { title: "Total Saídas", value: stats.saidas + stats.pendenteSaida, prefix: "R$ ", suffix: "", decimals: 2, icon: TrendingDown, positive: false, muted: true },
+    { title: "Saldo em Caixa", value: saldoCaixa, prefix: "R$ ", suffix: "", decimals: 2, icon: Wallet, positive: saldoCaixa >= 0, primary: true },
+    { title: "Saldo Projetado", value: saldoProjetado, prefix: "R$ ", suffix: "", decimals: 2, icon: Layers, positive: saldoProjetado >= 0, muted: true },
+    { title: "Contas a Pagar", value: stats.pendenteSaida, prefix: "R$ ", suffix: "", decimals: 2, icon: AlertCircle, positive: false, color: "text-orange-600", link: "/lancamentos?status=pending" },
+  ], [stats, saldoCaixa, saldoProjetado]);
 
   const periodLabel = month === "all"
     ? `Jan ${year} — Dez ${year}`
@@ -197,7 +210,7 @@ export default function Dashboard() {
 
   const visibleCards = useMemo(() => {
     if (canManageFinances) return summaryCards;
-    return summaryCards.filter(c => c.title === "Membros Ativos");
+    return []; // No Treasury cards for non-treasury users
   }, [canManageFinances, summaryCards]);
 
   const refreshData = () => {
@@ -222,7 +235,7 @@ export default function Dashboard() {
                 <TransactionsDialog
                   onSuccess={refreshData}
                   trigger={
-                    <Button className="h-9 px-4 text-xs font-semibold gap-2 shadow-sm">
+                    <Button className="h-9 px-4 text-xs font-medium gap-2 shadow-sm">
                       <Plus className="h-4 w-4" />
                       Novo Lançamento
                     </Button>
@@ -254,24 +267,24 @@ export default function Dashboard() {
 
         {activeTab === "tesouraria" ? (
           <div className="space-y-4 animate-in fade-in duration-500">
-            <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
+            <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 md:grid-cols-3'}`}>
               {visibleCards.map((card) => (
                 <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground/60'}`} />
-                        <span className={`text-[13px] ${card.primary ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>{card.title}</span>
+                        <span className={`text-[13px] ${card.primary ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{card.title}</span>
                       </div>
                       {card.link && (
-                        <Link to={card.link} className="text-[10px] text-primary font-bold hover:underline">Ver todos</Link>
+                        <Link to={card.link} className="text-[10px] text-primary font-medium hover:underline">Ver todos</Link>
                       )}
                     </div>
                     <div className="flex items-end justify-between">
                       {loading ? (
                         <Skeleton className="h-7 w-[100px]" />
                       ) : (
-                        <span className={`text-xl font-black font-mono tabular-nums text-foreground`}>
+                        <span className={`text-xl font-semibold font-mono tabular-nums text-foreground`}>
                           <Counter
                             value={card.value}
                             prefix={card.prefix}
@@ -344,30 +357,30 @@ export default function Dashboard() {
                         {showExpenses && (
                           <div className="flex justify-between items-center pb-1.5 border-b border-border/50 animate-in slide-in-from-top-1 duration-300">
                             <span className="text-[11px] text-muted-foreground">Total Saídas</span>
-                            <span className="text-[12px] font-bold font-mono text-destructive">
+                            <span className="text-[12px] font-medium font-mono text-destructive">
                               {loading ? <Skeleton className="h-4 w-20" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
                             </span>
                           </div>
                         )}
                         <div className="flex justify-between items-center pb-1.5 border-b border-border/50">
                           <span className="text-[11px] text-muted-foreground">Dízimos</span>
-                          <span className="text-[12px] font-bold font-mono text-emerald-500">
+                          <span className="text-[12px] font-medium font-mono text-emerald-500">
                             {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
                           </span>
                         </div>
                         <div className="flex justify-between items-center pb-1.5 border-b border-border/50">
                           <span className="text-[11px] text-muted-foreground">Ofertas</span>
-                          <span className="text-[12px] font-bold font-mono text-emerald-500">
+                          <span className="text-[12px] font-medium font-mono text-emerald-500">
                             {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
                           </span>
                         </div>
                         <div className="flex justify-between items-center pt-1">
-                          <span className="text-[11px] font-semibold text-foreground">Saldo Líquido</span>
+                          <span className="text-[11px] font-medium text-foreground">Saldo Líquido</span>
                           {loading ? (
                             <Skeleton className="h-5 w-24" />
                           ) : (
-                            <span className={`text-[13px] font-bold font-mono ${saldo >= 0 ? "text-primary" : "text-destructive"}`}>
-                              {`R$ ${saldo.toLocaleString("pt-BR")}`}
+                            <span className={`text-[13px] font-medium font-mono ${saldoCaixa >= 0 ? "text-primary" : "text-destructive"}`}>
+                              {`R$ ${saldoCaixa.toLocaleString("pt-BR")}`}
                             </span>
                           )}
                         </div>
@@ -375,13 +388,13 @@ export default function Dashboard() {
                     )}
 
                     <div className={`mt-4 pt-4 border-t border-border/50 space-y-2.5 ${!canManageFinances ? 'mt-0 pt-0 border-t-0' : ''}`}>
-                      <h4 className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/60">Controle</h4>
+                      <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Controle</h4>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <Layers className="h-3 w-3 text-primary/60" />
                           <span className="text-[11px] text-muted-foreground">Departamentos</span>
                         </div>
-                        <span className="text-[12px] font-bold font-mono text-foreground">
+                        <span className="text-[12px] font-medium font-mono text-foreground">
                           {loading ? <Skeleton className="h-4 w-10" /> : stats.deptCount}
                         </span>
                       </div>
@@ -390,7 +403,7 @@ export default function Dashboard() {
                           <CalendarDays className="h-3 w-3 text-primary/60" />
                           <span className="text-[11px] text-muted-foreground">Eventos</span>
                         </div>
-                        <span className="text-[12px] font-bold font-mono text-foreground">
+                        <span className="text-[12px] font-medium font-mono text-foreground">
                           {loading ? <Skeleton className="h-4 w-10" /> : stats.eventCount}
                         </span>
                       </div>

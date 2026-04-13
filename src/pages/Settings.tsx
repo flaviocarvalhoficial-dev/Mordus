@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "react-router-dom";
-import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search, History, Eye, ArrowRight, Settings as SettingsIcon, ShieldCheck, Landmark, FileText, LayoutDashboard, ChevronRight, Home } from "lucide-react";
+import { User, Church, Shield, Bell, Share2, Loader2, Camera, Copy, Check, Search, History, Eye, ArrowRight, Settings as SettingsIcon, ShieldCheck, Landmark, FileText, LayoutDashboard, ChevronRight, Home, Trash2, AlertCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useChurch } from "@/contexts/ChurchContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { GoogleDriveConnector } from "@/components/GoogleDriveConnector";
 import { HardDrive } from "lucide-react";
@@ -36,6 +37,9 @@ export default function Settings() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetConfirmCode, setResetConfirmCode] = useState("");
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // Form states for Organization
   const [orgForm, setOrgForm] = useState({
@@ -220,6 +224,49 @@ export default function Settings() {
       toast.error("Erro ao enviar foto: " + error.message);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    if (resetConfirmCode !== "ZERAR TUDO") {
+      toast.error("Por favor, digite o código de confirmação corretamente.");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const orgId = organization?.id;
+      if (!orgId) return;
+
+      // DELETE em cascata (manual por segurança RLS)
+      const tables = [
+        "transactions",
+        "installments",
+        "installment_purchases",
+        "monthly_closures",
+        "audit_logs",
+        "events",
+        "members",
+        "departments",
+        "leaders",
+        "categories"
+      ];
+
+      for (const table of tables) {
+        await supabase.from(table).delete().eq("organization_id", orgId);
+      }
+
+      // Deletar outros usuários vinculados (profiles), exceto o atual
+      await supabase.from("profiles").delete().eq("organization_id", orgId).neq("id", user?.id);
+
+      toast.success("Sistema resetado com sucesso!");
+      setIsResetModalOpen(false);
+      window.location.href = "/";
+    } catch (error: any) {
+      console.error("Erro no reset:", error);
+      toast.error("Erro ao zerar dados: " + error.message);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -821,6 +868,85 @@ export default function Settings() {
               )}
             </div>
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="avancado" className="animate-in fade-in slide-in-from-left-2 duration-300">
+              <div className="max-w-2xl">
+                <Card className="bg-card border-destructive/20 shadow-sm border-l-4 border-l-destructive overflow-hidden">
+                  <CardHeader className="bg-destructive/5 border-b border-destructive/10 py-4">
+                    <CardTitle className="text-sm font-bold flex items-center gap-2 text-destructive">
+                      <Shield className="h-4 w-4" /> Zona de Perigo (Ações Irreversíveis)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-6">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-foreground">Limpar Todos os Dados</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Esta ação irá apagar permanentemente **todos os registros** vinculados a esta organização, incluindo lançamentos financeiros, membros, parcelamentos, categorias e histórico de auditoria.
+                      </p>
+                      <div className="bg-destructive/10 p-4 rounded-xl border border-destructive/20 mt-4">
+                        <p className="text-[11px] font-bold text-destructive flex items-center gap-2">
+                          <AlertCircle className="h-3 w-3" /> ATENÇÃO: Esta ação não pode ser desfeita.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4">
+                      <Button
+                        variant="destructive"
+                        onClick={() => setIsResetModalOpen(true)}
+                        className="w-full h-11 font-bold shadow-lg shadow-destructive/20"
+                      >
+                        Zerar Todos os Dados do App
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Dialog open={isResetModalOpen} onOpenChange={setIsResetModalOpen}>
+                <DialogContent className="sm:max-w-[425px] bg-card border-border rounded-[2.5rem]">
+                  <DialogHeader className="items-center text-center">
+                    <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                      <Trash2 className="h-7 w-7 text-destructive" />
+                    </div>
+                    <DialogTitle className="text-xl font-bold">Confirmar Reset Total</DialogTitle>
+                    <p className="text-xs text-muted-foreground mt-2 px-4">
+                      Para garantir que você deseja apagar absolutamente tudo, digite abaixo exatamente a frase:
+                      <br />
+                      <span className="font-mono font-bold text-foreground mt-2 block bg-secondary/30 p-2 rounded-lg">ZERAR TUDO</span>
+                    </p>
+                  </DialogHeader>
+                  <div className="py-6 space-y-4">
+                    <Input
+                      value={resetConfirmCode}
+                      onChange={(e) => setResetConfirmCode(e.target.value)}
+                      placeholder="Digite a frase de confirmação"
+                      className="h-12 text-center font-bold"
+                    />
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        className="flex-1 h-12 font-bold"
+                        onClick={() => setIsResetModalOpen(false)}
+                        disabled={isResetting}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1 h-12 font-bold"
+                        disabled={resetConfirmCode !== "ZERAR TUDO" || isResetting}
+                        onClick={handleResetData}
+                      >
+                        {isResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar Reset"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </>

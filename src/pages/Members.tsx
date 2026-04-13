@@ -216,7 +216,7 @@ function MembersList() {
                 <UserPlus className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold tracking-tight">
+                <DialogTitle className="text-xl font-semibold tracking-tight">
                   {editingId ? "Editar Membro" : "Novo Membro"}
                 </DialogTitle>
                 <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-widest mt-0.5">
@@ -433,11 +433,11 @@ function MembersList() {
           <Table className="border-collapse border border-border/50">
             <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50 pl-6">Perfil</TableHead>
-                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Congregação</TableHead>
-                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Batizado</TableHead>
-                <TableHead className="text-[11px] font-black text-muted-foreground text-center border-r border-border/50">Status</TableHead>
-                <TableHead className="w-16 text-[11px] font-black text-muted-foreground text-center">Ações</TableHead>
+                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50 pl-6">Perfil</TableHead>
+                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Congregação</TableHead>
+                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Batizado</TableHead>
+                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Status</TableHead>
+                <TableHead className="w-16 text-[11px] font-semibold text-muted-foreground text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -467,7 +467,7 @@ function MembersList() {
                           {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
                         </div>
                         <div className="text-left">
-                          <p className="text-[14px] font-bold text-foreground leading-tight">{m.full_name}</p>
+                          <p className="text-[14px] font-medium text-foreground leading-tight">{m.full_name}</p>
                           <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
                         </div>
                       </div>
@@ -552,7 +552,7 @@ export default function Members() {
                   <ChevronRight className="h-2.5 w-2.5 opacity-30" />
                   {organization.name}
                 </div>
-                <h1 className="text-xl font-black text-foreground tracking-tight capitalize mt-0.5">
+                <h1 className="text-xl font-semibold text-foreground tracking-tight capitalize mt-0.5">
                   {activeTab === 'resumo' ? 'Painel Principal' : activeTab.replace(/-/g, ' ')}
                 </h1>
               </div>

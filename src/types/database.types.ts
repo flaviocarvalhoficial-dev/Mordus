@@ -21,6 +21,7 @@ export type Database = {
                     created_at: string
                     description: string | null
                     id: string
+                    image_url: string | null
                     location: string | null
                     name: string
                     organization_id: string
@@ -33,6 +34,7 @@ export type Database = {
                     created_at?: string
                     description?: string | null
                     id?: string
+                    image_url?: string | null
                     location?: string | null
                     name: string
                     organization_id: string
@@ -45,6 +47,7 @@ export type Database = {
                     created_at?: string
                     description?: string | null
                     id?: string
+                    image_url?: string | null
                     location?: string | null
                     name?: string
                     organization_id?: string
@@ -57,6 +60,44 @@ export type Database = {
                         columns: ["organization_id"]
                         isOneToOne: false
                         referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            audit_logs: {
+                Row: {
+                    action: string
+                    created_at: string
+                    id: string
+                    new_data: Json | null
+                    old_data: Json | null
+                    table_name: string
+                    user_id: string | null
+                }
+                Insert: {
+                    action: string
+                    created_at?: string
+                    id?: string
+                    new_data?: Json | null
+                    old_data?: Json | null
+                    table_name: string
+                    user_id?: string | null
+                }
+                Update: {
+                    action?: string
+                    created_at?: string
+                    id?: string
+                    new_data?: Json | null
+                    old_data?: Json | null
+                    table_name?: string
+                    user_id?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "audit_logs_user_id_fkey"
+                        columns: ["user_id"]
+                        isOneToOne: false
+                        referencedRelation: "profiles"
                         referencedColumns: ["id"]
                     },
                 ]
@@ -101,28 +142,28 @@ export type Database = {
                     address: string | null
                     created_at: string
                     id: string
-                    responsible_name: string | null
                     member_count: number | null
                     name: string
                     organization_id: string
+                    responsible_name: string | null
                 }
                 Insert: {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    responsible_name?: string | null
                     member_count?: number | null
                     name: string
                     organization_id: string
+                    responsible_name?: string | null
                 }
                 Update: {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    responsible_name?: string | null
                     member_count?: number | null
                     name?: string
                     organization_id?: string
+                    responsible_name?: string | null
                 }
                 Relationships: [
                     {
@@ -292,6 +333,118 @@ export type Database = {
                     },
                 ]
             }
+            installment_purchases: {
+                Row: {
+                    category_id: string | null
+                    created_at: string | null
+                    description: string
+                    id: string
+                    organization_id: string
+                    payment_method_id: string | null
+                    total_amount: number
+                    updated_at: string | null
+                }
+                Insert: {
+                    category_id?: string | null
+                    created_at?: string | null
+                    description: string
+                    id?: string
+                    organization_id: string
+                    payment_method_id?: string | null
+                    total_amount: number
+                    updated_at?: string | null
+                }
+                Update: {
+                    category_id?: string | null
+                    created_at?: string | null
+                    description?: string
+                    id?: string
+                    organization_id?: string
+                    payment_method_id?: string | null
+                    total_amount?: number
+                    updated_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "installment_purchases_category_id_fkey"
+                        columns: ["category_id"]
+                        isOneToOne: false
+                        referencedRelation: "categories"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "installment_purchases_organization_id_fkey"
+                        columns: ["organization_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "installment_purchases_payment_method_id_fkey"
+                        columns: ["payment_method_id"]
+                        isOneToOne: false
+                        referencedRelation: "categories"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
+            installments: {
+                Row: {
+                    amount: number
+                    competence_date: string
+                    created_at: string | null
+                    due_date: string
+                    id: string
+                    organization_id: string
+                    payment_date: string | null
+                    purchase_id: string
+                    receipt_url: string | null
+                    status: string
+                    updated_at: string | null
+                }
+                Insert: {
+                    amount: number
+                    competence_date: string
+                    created_at?: string | null
+                    due_date: string
+                    id?: string
+                    organization_id: string
+                    payment_date?: string | null
+                    purchase_id: string
+                    receipt_url?: string | null
+                    status: string
+                    updated_at?: string | null
+                }
+                Update: {
+                    amount?: number
+                    competence_date?: string
+                    created_at?: string | null
+                    due_date?: string
+                    id?: string
+                    organization_id?: string
+                    payment_date?: string | null
+                    purchase_id?: string
+                    receipt_url?: string | null
+                    status?: string
+                    updated_at?: string | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "installments_organization_id_fkey"
+                        columns: ["organization_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "installments_purchase_id_fkey"
+                        columns: ["purchase_id"]
+                        isOneToOne: false
+                        referencedRelation: "installment_purchases"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
             leaders: {
                 Row: {
                     appointment_date: string | null
@@ -337,6 +490,7 @@ export type Database = {
                     birth_date: string | null
                     congregation_id: string | null
                     created_at: string
+                    department_id: string | null
                     email: string | null
                     father_name: string | null
                     full_name: string
@@ -349,7 +503,6 @@ export type Database = {
                     previous_church: string | null
                     role: string | null
                     status: string | null
-                    department_id: string | null
                 }
                 Insert: {
                     address?: string | null
@@ -357,6 +510,7 @@ export type Database = {
                     birth_date?: string | null
                     congregation_id?: string | null
                     created_at?: string
+                    department_id?: string | null
                     email?: string | null
                     father_name?: string | null
                     full_name: string
@@ -369,7 +523,6 @@ export type Database = {
                     previous_church?: string | null
                     role?: string | null
                     status?: string | null
-                    department_id?: string | null
                 }
                 Update: {
                     address?: string | null
@@ -377,6 +530,7 @@ export type Database = {
                     birth_date?: string | null
                     congregation_id?: string | null
                     created_at?: string
+                    department_id?: string | null
                     email?: string | null
                     father_name?: string | null
                     full_name?: string
@@ -389,7 +543,6 @@ export type Database = {
                     previous_church?: string | null
                     role?: string | null
                     status?: string | null
-                    department_id?: string | null
                 }
                 Relationships: [
                     {
@@ -400,19 +553,19 @@ export type Database = {
                         referencedColumns: ["id"]
                     },
                     {
+                        foreignKeyName: "members_department_id_fkey"
+                        columns: ["department_id"]
+                        isOneToOne: false
+                        referencedRelation: "departments"
+                        referencedColumns: ["id"]
+                    },
+                    {
                         foreignKeyName: "members_organization_id_fkey"
                         columns: ["organization_id"]
                         isOneToOne: false
                         referencedRelation: "organizations"
                         referencedColumns: ["id"]
                     },
-                    {
-                        foreignKeyName: "members_department_id_fkey"
-                        columns: ["department_id"]
-                        isOneToOne: false
-                        referencedRelation: "departments"
-                        referencedColumns: ["id"]
-                    }
                 ]
             }
             monthly_closures: {
@@ -577,46 +730,46 @@ export type Database = {
                 Row: {
                     avatar_url: string | null
                     created_at: string
+                    department_id: string | null
                     full_name: string | null
                     id: string
                     organization_id: string | null
                     phone: string | null
                     role: string | null
-                    department_id: string | null
                 }
                 Insert: {
                     avatar_url?: string | null
                     created_at?: string
+                    department_id?: string | null
                     full_name?: string | null
                     id: string
                     organization_id?: string | null
                     phone?: string | null
                     role?: string | null
-                    department_id?: string | null
                 }
                 Update: {
                     avatar_url?: string | null
                     created_at?: string
+                    department_id?: string | null
                     full_name?: string | null
                     id?: string
                     organization_id?: string | null
                     phone?: string | null
                     role?: string | null
-                    department_id?: string | null
                 }
                 Relationships: [
-                    {
-                        foreignKeyName: "profiles_organization_id_fkey"
-                        columns: ["organization_id"]
-                        isOneToOne: false
-                        referencedRelation: "organizations"
-                        referencedColumns: ["id"]
-                    },
                     {
                         foreignKeyName: "profiles_department_id_fkey"
                         columns: ["department_id"]
                         isOneToOne: false
                         referencedRelation: "departments"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "profiles_organization_id_fkey"
+                        columns: ["organization_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
                         referencedColumns: ["id"]
                     },
                 ]
@@ -673,11 +826,13 @@ export type Database = {
                 Row: {
                     amount: number
                     category_id: string | null
+                    competence_date: string | null
                     created_at: string
                     date: string
                     description: string
                     event_id: string | null
                     id: string
+                    installment_id: string | null
                     organization_id: string
                     payment_method: string | null
                     status: string | null
@@ -686,11 +841,13 @@ export type Database = {
                 Insert: {
                     amount: number
                     category_id?: string | null
+                    competence_date?: string | null
                     created_at?: string
                     date: string
                     description: string
                     event_id?: string | null
                     id?: string
+                    installment_id?: string | null
                     organization_id: string
                     payment_method?: string | null
                     status?: string | null
@@ -699,11 +856,13 @@ export type Database = {
                 Update: {
                     amount?: number
                     category_id?: string | null
+                    competence_date?: string | null
                     created_at?: string
                     date?: string
                     description?: string
                     event_id?: string | null
                     id?: string
+                    installment_id?: string | null
                     organization_id?: string
                     payment_method?: string | null
                     status?: string | null
@@ -722,6 +881,13 @@ export type Database = {
                         columns: ["event_id"]
                         isOneToOne: false
                         referencedRelation: "events"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "transactions_installment_id_fkey"
+                        columns: ["installment_id"]
+                        isOneToOne: false
+                        referencedRelation: "installments"
                         referencedColumns: ["id"]
                     },
                     {
@@ -829,21 +995,4 @@ export type Enums<
     ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
     : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-    PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema['CompositeTypes']
-    | { schema: keyof Database },
-    CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-        schema: keyof Database
-    }
-    ? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-}
-    ? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-    : PublicCompositeTypeNameOrOptions extends keyof PublicSchema['CompositeTypes']
-    ? PublicSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never

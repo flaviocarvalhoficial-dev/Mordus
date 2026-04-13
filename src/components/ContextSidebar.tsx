@@ -65,6 +65,7 @@ const SISTEMA_ITEMS: SubItem[] = [
     { title: "Configurações", url: "/configuracoes?tab=preferencias", icon: Settings },
     { title: "Equipe", url: "/configuracoes?tab=equipe", icon: ShieldCheck },
     { title: "Auditoria", url: "/configuracoes?tab=auditoria", icon: History },
+    { title: "Avançado", url: "/configuracoes?tab=avancado", icon: Lock },
 ];
 
 const HELP_INDEX_ITEMS = [
