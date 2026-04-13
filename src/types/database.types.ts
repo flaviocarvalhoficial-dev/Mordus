@@ -259,30 +259,30 @@ export type Database = {
             }
             events: {
                 Row: {
-                    created_at: string
+                    created_at: string | null
                     date: string
                     description: string | null
                     id: string
                     name: string
-                    organization_id: string
+                    organization_id: string | null
                     type: string | null
                 }
                 Insert: {
-                    created_at?: string
+                    created_at?: string | null
                     date: string
                     description?: string | null
                     id?: string
                     name: string
-                    organization_id: string
+                    organization_id?: string | null
                     type?: string | null
                 }
                 Update: {
-                    created_at?: string
+                    created_at?: string | null
                     date?: string
                     description?: string | null
                     id?: string
                     name?: string
-                    organization_id?: string
+                    organization_id?: string | null
                     type?: string | null
                 }
                 Relationships: [
@@ -395,11 +395,13 @@ export type Database = {
                     created_at: string | null
                     due_date: string
                     id: string
+                    installment_number: number
                     organization_id: string
                     payment_date: string | null
                     purchase_id: string
                     receipt_url: string | null
                     status: string
+                    total_installments: number
                     updated_at: string | null
                 }
                 Insert: {
@@ -408,11 +410,13 @@ export type Database = {
                     created_at?: string | null
                     due_date: string
                     id?: string
+                    installment_number: number
                     organization_id: string
                     payment_date?: string | null
                     purchase_id: string
                     receipt_url?: string | null
                     status: string
+                    total_installments: number
                     updated_at?: string | null
                 }
                 Update: {
@@ -421,11 +425,13 @@ export type Database = {
                     created_at?: string | null
                     due_date?: string
                     id?: string
+                    installment_number?: number
                     organization_id?: string
                     payment_date?: string | null
                     purchase_id?: string
                     receipt_url?: string | null
                     status?: string
+                    total_installments?: number
                     updated_at?: string | null
                 }
                 Relationships: [
@@ -735,7 +741,7 @@ export type Database = {
                     id: string
                     organization_id: string | null
                     phone: string | null
-                    role: string | null
+                    role: Enums<"user_role"> | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -745,7 +751,7 @@ export type Database = {
                     id: string
                     organization_id?: string | null
                     phone?: string | null
-                    role?: string | null
+                    role?: Enums<"user_role"> | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -755,7 +761,7 @@ export type Database = {
                     id?: string
                     organization_id?: string | null
                     phone?: string | null
-                    role?: string | null
+                    role?: Enums<"user_role"> | null
                 }
                 Relationships: [
                     {
@@ -763,6 +769,13 @@ export type Database = {
                         columns: ["department_id"]
                         isOneToOne: false
                         referencedRelation: "departments"
+                        referencedColumns: ["id"]
+                    },
+                    {
+                        foreignKeyName: "profiles_id_fkey"
+                        columns: ["id"]
+                        isOneToOne: true
+                        referencedRelation: "users"
                         referencedColumns: ["id"]
                     },
                     {
@@ -834,7 +847,8 @@ export type Database = {
                     id: string
                     installment_id: string | null
                     organization_id: string
-                    payment_method: string | null
+                    payment_method: string
+                    payment_method_id: string | null
                     status: string | null
                     type: string
                 }
@@ -849,7 +863,8 @@ export type Database = {
                     id?: string
                     installment_id?: string | null
                     organization_id: string
-                    payment_method?: string | null
+                    payment_method: string
+                    payment_method_id?: string | null
                     status?: string | null
                     type: string
                 }
@@ -864,7 +879,8 @@ export type Database = {
                     id?: string
                     installment_id?: string | null
                     organization_id?: string
-                    payment_method?: string | null
+                    payment_method?: string
+                    payment_method_id?: string | null
                     status?: string | null
                     type?: string
                 }
@@ -897,6 +913,13 @@ export type Database = {
                         referencedRelation: "organizations"
                         referencedColumns: ["id"]
                     },
+                    {
+                        foreignKeyName: "transactions_payment_method_id_fkey"
+                        columns: ["payment_method_id"]
+                        isOneToOne: false
+                        referencedRelation: "categories"
+                        referencedColumns: ["id"]
+                    },
                 ]
             }
         }
@@ -915,48 +938,47 @@ export type Database = {
     }
 }
 
-type PublicSchema = Database['public']
+type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
     PublicTableNameOrOptions extends
-    | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
     | { schema: keyof Database },
     TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? (Database[PublicTableNameOrOptions['schema']]['Tables'] &
-        Database[PublicTableNameOrOptions['schema']]['Views'])[TableName] extends {
+    ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
             Row: infer R
         }
     ? R
     : never
-    : PublicTableNameOrOptions extends keyof (PublicSchema['Tables'] &
-        PublicSchema['Views'])
-    ? (PublicSchema['Tables'] &
-        PublicSchema['Views'])[PublicTableNameOrOptions] extends {
-            Row: infer R
-        }
+    : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] & PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+        Row: infer R
+    }
     ? R
     : never
     : never
 
 export type TablesInsert<
     PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
     TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Insert: infer I
     }
     ? I
     : never
-    : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Insert: infer I
     }
     ? I
@@ -965,19 +987,19 @@ export type TablesInsert<
 
 export type TablesUpdate<
     PublicTableNameOrOptions extends
-    | keyof PublicSchema['Tables']
+    | keyof PublicSchema["Tables"]
     | { schema: keyof Database },
     TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions['schema']]['Tables']
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions['schema']]['Tables'][TableName] extends {
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Update: infer U
     }
     ? U
     : never
-    : PublicTableNameOrOptions extends keyof PublicSchema['Tables']
-    ? PublicSchema['Tables'][PublicTableNameOrOptions] extends {
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
         Update: infer U
     }
     ? U
@@ -986,13 +1008,13 @@ export type TablesUpdate<
 
 export type Enums<
     PublicEnumNameOrOptions extends
-    | keyof PublicSchema['Enums']
+    | keyof PublicSchema["Enums"]
     | { schema: keyof Database },
     EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions['schema']]['Enums']
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicEnumNameOrOptions['schema']]['Enums'][EnumName]
-    : PublicEnumNameOrOptions extends keyof PublicSchema['Enums']
-    ? PublicSchema['Enums'][PublicEnumNameOrOptions]
+    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never

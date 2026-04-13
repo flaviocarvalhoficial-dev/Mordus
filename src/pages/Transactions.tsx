@@ -30,9 +30,11 @@ import Reports from "./Reports";
 
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
-  payment_method_cat?: any;
+  payment_method_cat?: { name: string } | null;
   receipt_url?: string | null;
   occasion?: string | null;
+  isInstallmentPending?: boolean;
+  originalInstallment?: any;
 };
 
 const months = [
@@ -236,7 +238,33 @@ function TransactionsList() {
     enabled: !!organization?.id,
   });
 
-  const loading = loadingTransactions || loadingInstallments;
+  // Saldo Anterior (Acumulado até o mês selecionado)
+  const { data: previousBalance = 0, isLoading: loadingPreviousBalance } = useQuery({
+    queryKey: ["previous-balance", organization?.id, yearFilter, monthFilter],
+    queryFn: async () => {
+      if (!organization?.id || yearFilter === "all" || monthFilter === "all") return 0;
+
+      const startDate = `${yearFilter}-${monthFilter}-01`;
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("type, amount")
+        .eq("organization_id", organization.id)
+        .eq("status", "completed") // Apenas transações confirmadas impactam o saldo real
+        .lt("date", startDate);
+
+      if (error) throw error;
+
+      return data.reduce((acc, tx) => {
+        if (tx.type === 'income') return acc + Number(tx.amount);
+        if (tx.type === 'expense') return acc - Number(tx.amount);
+        return acc;
+      }, 0);
+    },
+    enabled: !!organization?.id && yearFilter !== "all" && monthFilter !== "all",
+  });
+
+  const loading = loadingTransactions || loadingInstallments || loadingPreviousBalance;
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -498,74 +526,78 @@ function TransactionsList() {
       </div>
 
       {/* KPI CARDS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                  <HandCoins className="h-4 w-4 text-orange-600" />
-                </div>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ofertas</span>
-              </div>
-              <Badge variant="secondary" className="text-[10px] font-bold">{kpis.ofertasCount} itens</Badge>
-            </div>
-            <div className="text-xl font-black text-foreground font-mono">
-              {formatCurrency(kpis.ofertasValue)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                  <Coins className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dízimos</span>
-              </div>
-              <Badge variant="secondary" className="text-[10px] font-bold">{kpis.dizimosCount} itens</Badge>
-            </div>
-            <div className="text-xl font-black text-foreground font-mono">
-              {formatCurrency(kpis.dizimosValue)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-secondary/30 flex items-center justify-center border border-border">
-                  <TrendingUp className="h-4 w-4 text-success" />
-                </div>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Entradas/Saídas</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-[13px] font-bold">
-              <span className="text-success">{formatCurrency(kpis.totalIncome)}</span>
-              <span className="text-muted-foreground/30">/</span>
-              <span className="text-destructive">{formatCurrency(kpis.totalExpense)}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-primary/5 border-primary/20 shadow-md ring-1 ring-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                  <Wallet className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">Saldo do Período</span>
-              </div>
+      {/* KPI CARDS ROW: ALIGNED WITH DASHBOARD STYLE (Inspirado no Dashboard) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* 1. SALDO ANTERIOR */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <History className="h-4 w-4 text-muted-foreground/60" />
+              <span className="text-[13px] text-muted-foreground">Saldo anterior</span>
             </div>
             <div className={cn(
-              "text-xl font-black font-mono",
-              kpis.totalIncome - kpis.totalExpense >= 0 ? "text-success" : "text-destructive"
+              "text-xl font-semibold font-mono tabular-nums text-foreground",
+              previousBalance < 0 && "text-destructive"
             )}>
-              {formatCurrency(kpis.totalIncome - kpis.totalExpense)}
+              {formatCurrency(previousBalance)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 2. TOTAL ENTRADAS */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="h-4 w-4 text-success" />
+              <span className="text-[13px] text-muted-foreground">Total entradas</span>
+            </div>
+            <div className="text-xl font-semibold font-mono tabular-nums text-foreground">
+              {formatCurrency(kpis.totalIncome)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 3. TOTAL SAÍDAS */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingDown className="h-4 w-4 text-destructive" />
+              <span className="text-[13px] text-muted-foreground">Total saídas</span>
+            </div>
+            <div className="text-xl font-semibold font-mono tabular-nums text-foreground">
+              {formatCurrency(kpis.totalExpense)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 4. SALDO EM CAIXA (PRIMARY HIGHLIGHT) */}
+        <Card className="bg-card border-primary/40 shadow-md ring-2 ring-primary/5 relative overflow-hidden">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span className="text-[13px] text-foreground font-medium">Saldo em caixa</span>
+            </div>
+            <div className={cn(
+              "text-xl font-semibold font-mono tabular-nums text-foreground",
+              (previousBalance + (kpis.totalIncome - kpis.totalExpense)) < 0 && "text-destructive"
+            )}>
+              {formatCurrency(previousBalance + (kpis.totalIncome - kpis.totalExpense))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 5. CONTAS A PAGAR (PENDENT / OVERDUE) */}
+        <Card className="bg-card border-border">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="h-4 w-4 text-muted-foreground/60" />
+              <span className="text-[13px] text-muted-foreground">Contas a pagar</span>
+            </div>
+            <div className="text-xl font-semibold font-mono tabular-nums text-orange-600">
+              {formatCurrency(
+                sortedData.filter(tx => tx.status === 'pending' && tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0) +
+                overdueInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0)
+              )}
             </div>
           </CardContent>
         </Card>
