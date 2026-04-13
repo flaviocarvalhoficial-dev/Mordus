@@ -1,11 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock, ChevronRight, ChevronLeft } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, Camera, User, Users, ShieldCheck, Landmark, FileText, MapPinned, UserPlus, CalendarDays, Heart, Handshake, Home, Lock, ChevronRight, ChevronLeft, History, Type } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,10 +22,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  PlusCircle,
+  Save,
+  Smartphone,
+  Mail,
+  MapPin,
+  Baby,
+  Users2,
+  Building2
+} from "lucide-react";
 import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { TableToolbar } from "@/components/TableToolbar";
 import { parseISO, format as formatDateFns } from "date-fns";
 import type { Database } from "@/types/database.types";
 
@@ -38,7 +56,7 @@ type Member = Database["public"]["Tables"]["members"]["Row"];
 const emptyMember = {
   full_name: "", phone: "", email: "", gender: "Masculino", birth_date: "", status: "active",
   mother_name: "", father_name: "", is_baptized: false, previous_church: "", address: "",
-  avatar_url: "", congregation_id: null as string | null
+  avatar_url: "", congregation_id: null as string | null, role_in_church: "", department_id: null as string | null
 };
 
 function calculateAge(birthDate: string) {
@@ -53,7 +71,179 @@ function calculateAge(birthDate: string) {
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+function MemberStats({ members, loading }: { members: any[], loading: boolean }) {
+  const stats = useMemo(() => {
+    const total = members.length;
+    const active = members.filter(m => m.status === 'active').length;
+    const baptized = members.filter(m => m.is_baptized).length;
+
+    // Novos no mês atual
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const recent = members.filter(m => {
+      if (!m.created_at) return false;
+      const created = new Date(m.created_at);
+      return created.getMonth() === currentMonth && created.getFullYear() === currentYear;
+    }).length;
+
+    return [
+      { label: 'Total de Membros', value: total, icon: Users, color: 'text-primary' },
+      { label: 'Membros Ativos', value: active, icon: ShieldCheck, color: 'text-emerald-500', total },
+      { label: 'Batizados', value: baptized, icon: Landmark, color: 'text-blue-500', total },
+      { label: 'Novos no Mês', value: recent, icon: UserPlus, color: 'text-orange-500' },
+    ];
+  }, [members]);
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full mb-8">
+      {stats.map((s) => (
+        <Card key={s.label} className="bg-card/50 backdrop-blur-sm border-border/50 shadow-sm rounded-2xl overflow-hidden group hover:border-primary/20 transition-all">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className={cn("h-12 w-12 rounded-full flex items-center justify-center bg-secondary transition-transform group-hover:scale-110", s.color)}>
+              <s.icon className="h-6 w-6 opacity-80" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-none mb-1.5">{s.label}</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-2xl font-black tabular-nums tracking-tight">
+                  {loading ? <Skeleton className="h-8 w-12" /> : s.value}
+                </h3>
+                {(s.label === 'Membros Ativos' || s.label === 'Batizados') && !loading && (s as any).total > 0 && (
+                  <span className="text-[10px] text-muted-foreground font-bold bg-secondary/50 px-1.5 py-0.5 rounded-lg border border-border/50">
+                    {Math.round((s.value / (s as any).total) * 100)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function MemberDrawer({ member, open, onOpenChange, departments, congregations }: { member: any, open: boolean, onOpenChange: (open: boolean) => void, departments: any[], congregations: any[] }) {
+  if (!member) return null;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-md p-0 overflow-y-auto scrollbar-hide border-l-border/50 bg-background/95 backdrop-blur-md">
+        <div className="relative h-32 bg-gradient-to-br from-primary/10 via-background to-primary/5 border-b border-border/10">
+          <div className="absolute -bottom-8 left-8">
+            <div className="h-20 w-20 rounded-full bg-secondary border-4 border-background flex items-center justify-center overflow-hidden shadow-lg ring-1 ring-primary/10">
+              {member.avatar_url ? (
+                <img src={member.avatar_url} alt={member.full_name} className="h-full w-full object-cover" />
+              ) : (
+                <Users className="h-8 w-8 text-muted-foreground opacity-30" />
+              )}
+            </div>
+          </div>
+          <div className="absolute top-4 right-4">
+            <Badge variant="outline" className={cn(
+              "font-black uppercase tracking-widest text-[10px] px-3 py-1 border-border/50",
+              member.status === 'active' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-muted text-muted-foreground"
+            )}>
+              {member.status === 'active' ? 'ATIVO' : 'INATIVO'}
+            </Badge>
+          </div>
+        </div>
+
+        <div className="px-8 pt-12 pb-8 space-y-8">
+          <div>
+            <h2 className="text-2xl font-black tracking-tight text-foreground">{member.full_name}</h2>
+            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+              <Building2 className="h-3.5 w-3.5" />
+              <span className="text-xs font-bold uppercase tracking-wider">
+                {congregations.find(c => c.id === member.congregation_id)?.name || "Sede Principal"}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
+              <div className="flex items-center gap-2 mb-2 text-primary opacity-70">
+                <Smartphone className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Whatsapp</span>
+              </div>
+              <p className="text-xs font-bold">{member.phone || "Não informado"}</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border/50">
+              <div className="flex items-center gap-2 mb-2 text-primary opacity-70">
+                <Mail className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] font-black uppercase tracking-widest">E-mail</span>
+              </div>
+              <p className="hidden md:block text-xs font-bold truncate max-w-full">{member.email || "Não informado"}</p>
+              <p className="md:hidden text-xs font-bold truncate max-w-full">{member.email || "Não"}</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <section className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground border-b border-border/50 pb-2">Dados Gerais</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <CalendarDays className="h-4 w-4" />
+                    <span className="text-xs font-medium">Data de Nascimento</span>
+                  </div>
+                  <span className="text-xs font-bold">{member.birth_date ? new Date(member.birth_date + 'T12:00:00').toLocaleDateString('pt-BR') : "-"}</span>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Baby className="h-4 w-4" />
+                    <span className="text-xs font-medium">Batizado</span>
+                  </div>
+                  <Badge variant="outline" className={cn("text-[10px] font-black", member.is_baptized ? "text-success border-success/20 bg-success/5" : "text-muted-foreground")}>
+                    {member.is_baptized ? "SIM" : "NÃO"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Users2 className="h-4 w-4" />
+                    <span className="text-xs font-medium">Departamento</span>
+                  </div>
+                  <span className="text-xs font-bold">{departments.find(d => d.id === member.department_id)?.name || "Geral"}</span>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <History className="h-4 w-4" />
+                    <span className="text-xs font-medium">Procedência</span>
+                  </div>
+                  <span className="text-xs font-bold text-right max-w-[150px]">{member.previous_church || "Primeiro Membro"}</span>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4 pt-4">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground border-b border-border/50 pb-2">Endereço</h3>
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <p className="text-xs font-medium text-foreground leading-relaxed">
+                  {member.address || "Endereço não cadastrado"}
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <div className="pt-8 border-t border-border/50">
+            <Button
+              variant="outline"
+              className="w-full rounded-xl border-border/50 font-bold hover:bg-secondary transition-all"
+              onClick={() => onOpenChange(false)}
+            >
+              Fechar Visualização
+            </Button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function MembersList() {
+
+
   const { organization, profile } = useChurch();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
@@ -62,15 +252,47 @@ function MembersList() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [congregationFilter, setCongregationFilter] = useState("all");
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [sortField, setSortField] = useState("full_name");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("asc");
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(["name", "congregation", "baptized", "status"]);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyMember);
   const [currentStep, setCurrentStep] = useState(1);
+  const [isCreatingCongregation, setIsCreatingCongregation] = useState(false);
+  const [newCongregationName, setNewCongregationName] = useState("");
+
+  const handleQuickCongregationCreate = async () => {
+    if (!newCongregationName || !organization?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("congregations")
+        .insert([{
+          name: newCongregationName,
+          organization_id: organization.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["congregations"] });
+      setForm({ ...form, congregation_id: data.id });
+      setNewCongregationName("");
+      setIsCreatingCongregation(false);
+      toast.success("Congregação registrada e selecionada!");
+    } catch (err: any) {
+      toast.error("Erro ao criar congregação: " + err.message);
+    }
+  };
 
   // Members Query
   const { data: members = [], isLoading: loading } = useQuery({
-    queryKey: ["members", organization?.id, profile?.role, profile?.department_id],
+    queryKey: ["members", organization?.id, profile?.role, profile?.department_id, sortField, sortOrder, statusFilter, searchQuery],
     queryFn: async () => {
       if (!organization?.id) return [];
       let query = supabase
@@ -82,12 +304,101 @@ function MembersList() {
         query = query.eq("department_id", profile.department_id);
       }
 
-      const { data, error } = await query.order("full_name");
+      const { data, error } = await query.order(sortField, { ascending: sortOrder === 'asc' });
       if (error) throw error;
       return data as (Member & { congregations?: { name: string } | null })[];
     },
     enabled: !!organization?.id,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const [isCreatingRole, setIsCreatingRole] = useState(false);
+  const [newRoleName, setNewRoleName] = useState("");
+
+  const [isCreatingDept, setIsCreatingDept] = useState(false);
+  const [newDeptName, setNewDeptName] = useState("");
+
+  const handleQuickRoleCreate = async () => {
+    if (!newRoleName || !organization?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert([{
+          name: newRoleName,
+          type: "church_role",
+          organization_id: organization.id,
+          department_id: form.department_id // Link role to department
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["church-roles"] });
+      setForm({ ...form, role_in_church: data.name });
+      setNewRoleName("");
+      setIsCreatingRole(false);
+      toast.success("Cargo registrado e selecionado!");
+    } catch (err: any) {
+      toast.error("Erro ao criar cargo: " + err.message);
+    }
+  };
+
+  const handleQuickDeptCreate = async () => {
+    if (!newDeptName || !organization?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from("departments")
+        .insert([{
+          name: newDeptName,
+          organization_id: organization.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["departments"] });
+      setForm({ ...form, department_id: data.id });
+      setNewDeptName("");
+      setIsCreatingDept(false);
+      toast.success("Departamento criado e selecionado!");
+    } catch (err: any) {
+      toast.error("Erro ao criar departamento: " + err.message);
+    }
+  };
+
+  // Roles Query
+  const { data: churchRoles = [] } = useQuery({
+    queryKey: ["church-roles", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      const { data, error } = await supabase
+        .from("categories")
+        .select("id, name, department_id")
+        .eq("organization_id", organization.id)
+        .eq("type", "church_role")
+        .order("name");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!organization?.id,
+  });
+
+  // Departments Query
+  const { data: departments = [] } = useQuery({
+    queryKey: ["departments", organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name")
+        .eq("organization_id", organization.id)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!organization?.id,
   });
 
   // Congregations Query
@@ -190,17 +501,26 @@ function MembersList() {
     return members.filter((m) => {
       const matchesSearch = !searchQuery || m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || m.email?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === "all" || m.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesCongregation = congregationFilter === "all" || m.congregation_id === congregationFilter;
+      return matchesSearch && matchesStatus && matchesCongregation;
     });
-  }, [members, searchQuery, statusFilter]);
+  }, [members, searchQuery, statusFilter, congregationFilter]);
 
+  const toggleColumn = (id: string) => {
+    setVisibleColumns(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-end">
+    <div className="animate-fade-in space-y-8">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <MemberStats members={members} loading={loading} />
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold text-foreground">Gestão de Membros</h2>
         <PermissionGuard requireWrite>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}>
-            <Plus className="h-4 w-4 mr-2" />Novo Membro
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 font-bold px-8 rounded-full shadow-lg shadow-primary/20" onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}>
+            <UserPlus className="h-5 w-5 mr-2" />Novo Membro
           </Button>
         </PermissionGuard>
       </div>
@@ -285,8 +605,85 @@ function MembersList() {
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-[13px] font-semibold">Status de Cadastro</Label>
                     <Select value={form.status || "active"} onValueChange={(v) => setForm({ ...form, status: v })}>
-                      <SelectTrigger className="h-10 bg-secondary/10"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-secondary/10 border-border/50 rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent><SelectItem value="active">Ativo (No Rol)</SelectItem><SelectItem value="inactive">Inativo / Afastado</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[13px] font-semibold">Departamento (Setor)</Label>
+                      <Popover open={isCreatingDept} onOpenChange={setIsCreatingDept}>
+                        <PopoverTrigger asChild>
+                          <button className="text-[10px] text-primary hover:underline flex items-center gap-1 font-bold">
+                            <PlusCircle className="h-3 w-3" /> Criar novo
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3 bg-card border-primary/20 shadow-xl" align="end">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary">Novo Departamento</p>
+                            <Input
+                              placeholder="Ex: Louvor, Infantil, Missões..."
+                              className="h-8 text-xs"
+                              value={newDeptName}
+                              onChange={(e) => setNewDeptName(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleQuickDeptCreate()}
+                              autoFocus
+                            />
+                            <Button className="w-full h-8 text-[10px] font-bold gap-2" size="sm" onClick={handleQuickDeptCreate}>
+                              <Save className="h-3 w-3" /> Salvar Departamento
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <Select value={form.department_id || "none"} onValueChange={(v) => setForm({ ...form, department_id: v === "none" ? null : v })}>
+                      <SelectTrigger className="h-10 bg-secondary/10 border-border/50 rounded-xl"><SelectValue placeholder="Selecione o departamento" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sede / Geral</SelectItem>
+                        {departments.map((d) => (
+                          <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[13px] font-semibold">Cargo/Função</Label>
+                      <Popover open={isCreatingRole} onOpenChange={setIsCreatingRole}>
+                        <PopoverTrigger asChild>
+                          <button className="text-[10px] text-primary hover:underline flex items-center gap-1 font-bold">
+                            <PlusCircle className="h-3 w-3" /> Criar nova
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3 bg-card border-primary/20 shadow-xl" align="end">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary">Novo Cargo {form.department_id ? `em ${departments.find(d => d.id === form.department_id)?.name}` : ""}</p>
+                            <Input
+                              placeholder="Ex: Pastor, Diácono, Músico..."
+                              className="h-8 text-xs"
+                              value={newRoleName}
+                              onChange={(e) => setNewRoleName(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleQuickRoleCreate()}
+                              autoFocus
+                            />
+                            <Button className="w-full h-8 text-[10px] font-bold gap-2" size="sm" onClick={handleQuickRoleCreate}>
+                              <Save className="h-3 w-3" /> Salvar Cargo
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <Select
+                      value={form.role_in_church || "none"}
+                      onValueChange={(v) => setForm({ ...form, role_in_church: v === "none" ? "" : v })}
+                    >
+                      <SelectTrigger className="h-10 bg-secondary/10 border-border/50 rounded-xl"><SelectValue placeholder="Selecione o cargo" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Membro Comum</SelectItem>
+                        {churchRoles.filter(r => !r.department_id || r.department_id === form.department_id).map((r) => (
+                          <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
@@ -329,12 +726,41 @@ function MembersList() {
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-[13px] font-semibold">Congregação</Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[13px] font-semibold">Congregação</Label>
+                      <Popover open={isCreatingCongregation} onOpenChange={setIsCreatingCongregation}>
+                        <PopoverTrigger asChild>
+                          <button className="text-[10px] text-primary hover:underline flex items-center gap-1 font-bold">
+                            <PlusCircle className="h-3 w-3" /> Criar nova
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3 bg-card border-primary/20 shadow-xl" align="end">
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-black uppercase text-primary">Nova Congregação</p>
+                            <Input
+                              placeholder="Nome da congregação..."
+                              className="h-8 text-xs"
+                              value={newCongregationName}
+                              onChange={(e) => setNewCongregationName(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleQuickCongregationCreate()}
+                              autoFocus
+                            />
+                            <Button
+                              className="w-full h-8 text-[10px] font-bold gap-2"
+                              size="sm"
+                              onClick={handleQuickCongregationCreate}
+                            >
+                              <Save className="h-3 w-3" /> Salvar Congregação
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     <Select
                       value={form.congregation_id || "none"}
                       onValueChange={(v) => setForm({ ...form, congregation_id: v === "none" ? null : v })}
                     >
-                      <SelectTrigger className="h-10 bg-secondary/10"><SelectValue placeholder="Selecione a congregação" /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-secondary/10 border-border/50 rounded-xl"><SelectValue placeholder="Selecione a congregação" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Sede (Matriz)</SelectItem>
                         {congregations.map((c) => (
@@ -372,8 +798,18 @@ function MembersList() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Status:</span>
-                      <Badge variant="secondary" className="text-[10px]">{form.status === 'active' ? 'ATVO' : 'INATIVO'}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{form.status === 'active' ? 'ATIVO' : 'INATIVO'}</Badge>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Departamento:</span>
+                      <span className="font-bold">{departments.find(d => d.id === form.department_id)?.name || "Geral / Sede"}</span>
+                    </div>
+                    {form.role_in_church && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Cargo:</span>
+                        <span className="font-bold text-primary">{form.role_in_church}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Congregação:</span>
                       <span className="font-bold">{congregations.find(c => c.id === form.congregation_id)?.name || "Sede"}</span>
@@ -422,21 +858,78 @@ function MembersList() {
         </DialogContent>
       </Dialog>
 
+      <MemberDrawer
+        member={selectedMember}
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+        departments={departments}
+        congregations={congregations}
+      />
+
       <Card className="bg-card border-border shadow-sm overflow-hidden border-primary/5">
         <CardHeader className="p-4 bg-secondary/10 border-b border-border/50">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar por nome ou email..." className="pl-9 h-9 text-xs" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar por nome ou email..." className="pl-9 h-9 text-xs bg-background" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[120px] h-9 text-[11px] bg-background">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos Status</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={congregationFilter} onValueChange={setCongregationFilter}>
+              <SelectTrigger className="w-[150px] h-9 text-[11px] bg-background">
+                <SelectValue placeholder="Congregação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Sedes</SelectItem>
+                {congregations.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <TableToolbar
+              sortField={sortField}
+              onSortFieldChange={setSortField}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+              sortOptions={[
+                { field: 'full_name', label: 'Nome', icon: <Type /> },
+                { field: 'created_at', label: 'Cadastro', icon: <History /> },
+                { field: 'birth_date', label: 'Nascimento', icon: <CalendarDays /> },
+              ]}
+              visibleColumns={visibleColumns}
+              onToggleColumn={toggleColumn}
+              columnOptions={[
+                { id: "name", label: "Perfil / Nome" },
+                { id: "phone", label: "Telefone" },
+                { id: "congregation", label: "Congregação" },
+                { id: "baptized", label: "Batizado" },
+                { id: "status", label: "Status" },
+                { id: "dept_role", label: "Depto / Cargo" },
+              ]}
+            />
           </div>
         </CardHeader>
         <ScrollArea className="h-[calc(100vh-440px)] w-full">
           <Table className="border-collapse border border-border/50">
             <TableHeader className="sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50 pl-6">Perfil</TableHead>
-                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Congregação</TableHead>
-                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Batizado</TableHead>
-                <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Status</TableHead>
+                {visibleColumns.includes("name") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50 pl-6">Perfil</TableHead>}
+                {visibleColumns.includes("phone") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Contato</TableHead>}
+                {visibleColumns.includes("congregation") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Congregação</TableHead>}
+                {visibleColumns.includes("baptized") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Batizado</TableHead>}
+                {visibleColumns.includes("status") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Status</TableHead>}
+                {visibleColumns.includes("dept_role") && <TableHead className="text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50">Depto/Cargo</TableHead>}
                 <TableHead className="w-16 text-[11px] font-semibold text-muted-foreground text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -448,7 +941,7 @@ function MembersList() {
                     <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[100px]" /></TableCell>
                     <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[60px]" /></TableCell>
                     <TableCell className="border-r border-border/50"><Skeleton className="h-4 w-[60px]" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-8 rounded-lg" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
                   </TableRow>
                 ))
               ) : filtered.map((m) => {
@@ -461,39 +954,76 @@ function MembersList() {
                       isHighlighted && "animate-highlight-orange z-10"
                     )}
                   >
-                    <TableCell className="pl-6 py-2 border-r border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border shadow-sm ring-2 ring-transparent group-hover:ring-primary/10 transition-all">
-                          {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
+                    {visibleColumns.includes("name") && (
+                      <TableCell className="pl-6 py-2 border-r border-border/50">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => { setSelectedMember(m); setIsDrawerOpen(true); }}
+                            className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border shadow-sm ring-2 ring-transparent hover:ring-primary/20 transition-all shrink-0"
+                          >
+                            {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-4 w-4 text-muted-foreground" />}
+                          </button>
+                          <div className="text-left">
+                            <button
+                              onClick={() => { setSelectedMember(m); setIsDrawerOpen(true); }}
+                              className="text-[14px] font-bold block leading-tight hover:text-primary transition-colors text-left"
+                            >
+                              {m.full_name}
+                            </button>
+                            <p className="text-[10px] text-muted-foreground mt-1">{m.email || 'Sem e-mail'}</p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-[14px] font-medium text-foreground leading-tight">{m.full_name}</p>
-                          <p className="text-[12px] text-muted-foreground mt-0.5">{m.email || 'Sem e-mail'}</p>
+                      </TableCell>
+                    )}
+                    {visibleColumns.includes("phone") && (
+                      <TableCell className="text-center border-r border-border/50 py-2">
+                        <span className="text-[13px] font-medium text-muted-foreground">{m.phone || "-"}</span>
+                      </TableCell>
+                    )}
+                    {visibleColumns.includes("congregation") && (
+                      <TableCell className="text-center border-r border-border/50 py-2">
+                        <div className="flex items-center gap-2 justify-center">
+                          <div className="h-2 w-2 rounded-full bg-primary/40" />
+                          <span className="text-[14px] font-medium text-muted-foreground">
+                            {m.congregations?.name || "Sede (Matriz)"}
+                          </span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center border-r border-border/50 py-2">
-                      <div className="flex items-center gap-2 justify-center">
-                        <div className="h-2 w-2 rounded-full bg-primary/40" />
-                        <span className="text-[14px] font-medium text-muted-foreground">
-                          {m.congregations?.name || "Sede (Matriz)"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center border-r border-border/50 py-2">
-                      <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.is_baptized ? "text-success bg-success/5" : "text-muted-foreground bg-muted/5"}`}>
-                        {m.is_baptized ? "Sim" : "Não"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center border-r border-border/50 py-2">
-                      <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.status === "active" ? "text-primary bg-primary/5" : "text-muted-foreground bg-muted/5"}`}>
-                        {m.status === "active" ? "ATIVO" : "INATIVO"}
-                      </Badge>
-                    </TableCell>
+                      </TableCell>
+                    )}
+                    {visibleColumns.includes("baptized") && (
+                      <TableCell className="text-center border-r border-border/50 py-2">
+                        <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.is_baptized ? "text-success bg-success/5" : "text-muted-foreground bg-muted/5"}`}>
+                          {m.is_baptized ? "Sim" : "Não"}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {visibleColumns.includes("status") && (
+                      <TableCell className="text-center border-r border-border/50 py-2">
+                        <Badge variant="outline" className={`text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 ${m.status === "active" ? "text-primary bg-primary/5" : "text-muted-foreground bg-muted/5"}`}>
+                          {m.status === "active" ? "ATIVO" : "INATIVO"}
+                        </Badge>
+                      </TableCell>
+                    )}
+                    {visibleColumns.includes("dept_role") && (
+                      <TableCell className="text-center border-r border-border/50 py-2">
+                        <div className="flex flex-wrap items-center gap-1.5 justify-center">
+                          {m.department_id && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-indigo-200 text-indigo-700 bg-indigo-50/50 uppercase">
+                              {departments.find(d => d.id === m.department_id)?.name}
+                            </Badge>
+                          )}
+                          {(m as any).role_in_church && (
+                            <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-primary/20 text-primary bg-primary/5 uppercase">
+                              {(m as any).role_in_church}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell className="py-2">
                       <PermissionGuard requireWrite>
                         <div className="flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setEditingId(m.id); setForm({ ...m, avatar_url: m.avatar_url || "", status: m.status || "active", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
+                          <button onClick={() => { setEditingId(m.id); setForm({ ...m as any, avatar_url: m.avatar_url || "", status: m.status || "active", role_in_church: (m as any).role_in_church || "", phone: m.phone || "", email: m.email || "", gender: m.gender || "", birth_date: m.birth_date || "", mother_name: m.mother_name || "", father_name: m.father_name || "", is_baptized: !!m.is_baptized, previous_church: m.previous_church || "", address: m.address || "", congregation_id: m.congregation_id || null }); setDialogOpen(true); }} className="p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors"><Pencil className="h-3 w-3" /></button>
                         </div>
                       </PermissionGuard>
                     </TableCell>
@@ -514,7 +1044,7 @@ function MembersList() {
 export default function Members() {
   const { organization } = useChurch();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") || "resumo";
+  const activeTab = searchParams.get("tab") || "membros";
 
   const setActiveTab = (tab: string) => {
     setSearchParams({ tab });

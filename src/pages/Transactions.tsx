@@ -20,7 +20,9 @@ import { PermissionGuard } from "@/components/PermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import type { Database } from "@/types/database.types";
+import { TableToolbar } from "@/components/TableToolbar";
 
 import Categories from "./Categories";
 import Closures from "./Closures";
@@ -66,6 +68,7 @@ function TransactionsList() {
   const { organization } = useChurch();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { openNewTransaction, openEditTransaction } = useTransactionModal();
 
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -78,8 +81,6 @@ function TransactionsList() {
     return (localStorage.getItem('mordus_tx_sort_order') as any) || "desc";
   });
   const [searchQuery, setSearchQuery] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [showTotals, setShowTotals] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
@@ -223,7 +224,7 @@ function TransactionsList() {
       if (!organization?.id) return [];
       const { data, error } = await supabase
         .from("installments")
-        .select(`*, purchase:installment_purchases(description)`)
+        .select(`*, purchase:installment_purchases(description, category_id, payment_method_id)`)
         .eq("organization_id", organization.id)
         .in("status", ["PENDENTE", "VENCIDA"])
         .lt("due_date", new Date().toISOString().split('T')[0])
@@ -238,23 +239,20 @@ function TransactionsList() {
   const loading = loadingTransactions || loadingInstallments;
 
   useEffect(() => {
-    if (searchParams.get("new") === "true" && !dialogOpen) {
-      setEditingTransaction(null);
-      setDialogOpen(true);
+    if (searchParams.get("new") === "true") {
+      openNewTransaction();
       const params = new URLSearchParams(searchParams);
       params.delete("new");
       setSearchParams(params, { replace: true });
     }
-  }, [searchParams, dialogOpen, setSearchParams]);
+  }, [searchParams, openNewTransaction, setSearchParams]);
 
   const openEdit = (tx: Transaction) => {
-    setEditingTransaction(tx);
-    setDialogOpen(true);
+    openEditTransaction(tx);
   };
 
   const openCreate = () => {
-    setEditingTransaction(null);
-    setDialogOpen(true);
+    openNewTransaction();
   };
 
   const handleDeleteClick = (tx: Transaction) => {
@@ -307,6 +305,45 @@ function TransactionsList() {
     }
   };
 
+  const handlePayInstallment = async (inst: any) => {
+    if (confirm(`Deseja marcar esta parcela de ${formatCurrency(inst.amount)} como PAGA?`)) {
+      try {
+        const { error: instError } = await supabase
+          .from("installments")
+          .update({
+            status: 'PAGA',
+            payment_date: new Date().toISOString()
+          })
+          .eq("id", inst.id);
+
+        if (instError) throw instError;
+
+        // Criar o lançamento no caixa
+        const { error: txError } = await supabase.from("transactions").insert([{
+          organization_id: organization!.id,
+          type: 'expense',
+          category_id: inst.purchase?.category_id || null,
+          amount: inst.amount,
+          date: new Date().toISOString().split('T')[0],
+          description: `[P ${String(inst.installment_number).padStart(2, '0')}/${String(inst.total_installments).padStart(2, '0')}] ${inst.purchase?.description}`,
+          payment_method: "Dinheiro", // Default ou pegar do purchase?
+          payment_method_id: inst.purchase?.payment_method_id || null,
+          installment_id: inst.id,
+          competence_date: inst.competence_date,
+          status: 'completed'
+        }]);
+
+        if (txError) throw txError;
+
+        toast.success("Pagamento registrado com sucesso!");
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        queryClient.invalidateQueries({ queryKey: ["installments"] });
+      } catch (err) {
+        toast.error("Erro ao registrar pagamento");
+      }
+    }
+  };
+
   const handleToggleStatus = async (tx: Transaction) => {
     setIsUpdatingStatus(tx.id);
     const newStatus = tx.status === 'completed' || !tx.status ? 'pending' : 'completed';
@@ -335,15 +372,43 @@ function TransactionsList() {
     }
   };
 
+  const unifiedData = useMemo(() => {
+    // 1. Pegamos todas as transações (Realizado/Manual)
+    const baseTransactions = transactions.map(tx => ({
+      ...tx,
+      isInstallmentPending: false
+    })) as (Transaction & { isInstallmentPending: boolean; originalInstallment?: any })[];
+
+    // 2. Pegamos as parcelas que AINDA NÃO têm uma transação correspondente (Previsto)
+    const pendingInstallments = installments
+      .filter(inst => inst.status === 'PENDENTE' || inst.status === 'VENCIDA')
+      .filter(inst => !transactions.some(tx => tx.installment_id === inst.id))
+      .map(inst => ({
+        id: inst.id,
+        date: inst.due_date,
+        description: `[P ${String(inst.installment_number).padStart(2, '0')}/${String(inst.total_installments).padStart(2, '0')}] ${inst.purchase?.description}`,
+        amount: Number(inst.amount),
+        type: 'expense' as const,
+        status: inst.status === 'VENCIDA' ? 'pending' : 'pending', // Tratamos como pending para o Switch
+        category_id: inst.purchase?.category_id,
+        payment_method_id: inst.purchase?.payment_method_id,
+        categories: categories.find(c => c.id === inst.purchase?.category_id) as any,
+        isInstallmentPending: true,
+        originalInstallment: inst,
+        created_at: inst.created_at
+      }));
+
+    return [...baseTransactions, ...pendingInstallments];
+  }, [transactions, installments, categories]);
+
   const filtered = useMemo(() => {
-    return transactions.filter((tx) => {
+    return unifiedData.filter((tx) => {
       if (typeFilter !== "all" && tx.type !== typeFilter) return false;
       if (categoryFilter !== "all" && tx.category_id !== categoryFilter) return false;
-      // Removido filtros de data aqui pois já são aplicados na query
       if (searchQuery && !tx.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [transactions, typeFilter, categoryFilter, searchQuery]);
+  }, [unifiedData, typeFilter, categoryFilter, searchQuery]);
 
   const sortedData = useMemo(() => {
     return [...filtered].sort((a, b) => {
@@ -506,18 +571,12 @@ function TransactionsList() {
         </Card>
       </div>
 
-      <TransactionsDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["transactions"] })}
-        editingTransaction={editingTransaction}
-      />
 
       <Dialog open={!!viewingReceipt} onOpenChange={(o) => !o && setViewingReceipt(null)}>
         <DialogContent className="sm:max-w-4xl bg-card p-0 overflow-hidden border-border shadow-2xl ring-1 ring-primary/10">
           <DialogHeader className="p-6 border-b border-border bg-secondary/10 flex flex-row items-center justify-between space-y-0">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
                 <FileCheck className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -610,11 +669,26 @@ function TransactionsList() {
                 {overdueInstallments.map((inst: any) => (
                   <TableRow key={inst.id} className="hover:bg-destructive/10 border-b border-destructive/10 transition-colors">
                     <TableCell className="py-2 pl-4 w-[10%] text-xs font-mono text-destructive font-black whitespace-nowrap">{formatDate(inst.due_date)}</TableCell>
-                    <TableCell className="py-2 w-[40%] text-[13px] font-bold text-destructive/80">{inst.purchase?.description}</TableCell>
+                    <TableCell className="py-2 w-[40%]">
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-bold text-destructive/80 leading-tight">{inst.purchase?.description}</span>
+                        <span className="text-[9px] text-destructive/60 font-black uppercase tracking-tighter mt-0.5">
+                          Atrasada: {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell className="py-2 w-[20%] text-center">
                       <Badge variant="outline" className="text-[10px] border-destructive/20 text-destructive font-black uppercase">VENCIDA</Badge>
                     </TableCell>
-                    <TableCell className="py-2 w-[20%] text-right font-mono font-black text-destructive pr-6">{formatCurrency(inst.amount)}</TableCell>
+                    <TableCell className="py-2 w-[20%] text-right font-mono font-black text-destructive pr-4">{formatCurrency(inst.amount)}</TableCell>
+                    <TableCell className="py-2 w-[10%] text-right pr-4">
+                      <button
+                        onClick={() => handlePayInstallment(inst)}
+                        className="p-1 px-2 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all text-[9px] font-black uppercase"
+                      >
+                        PAGAR
+                      </button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -647,7 +721,14 @@ function TransactionsList() {
                       <TableCell className="py-2 pl-4 w-[12%] text-[11px] font-black text-muted-foreground italic whitespace-nowrap">
                         {months.find(m => m.value === inst.competence_date.split('-')[1])?.label.substring(0, 3)}/{inst.competence_date.split('-')[0]}
                       </TableCell>
-                      <TableCell className="py-2 w-[40%] text-[13px] font-bold">{inst.purchase?.description}</TableCell>
+                      <TableCell className="py-2 w-[35%]">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-bold leading-tight">{inst.purchase?.description}</span>
+                          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter mt-0.5">
+                            Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell className="py-2 w-[18%] text-[11px] font-mono text-center text-muted-foreground">Venc: {formatDate(inst.due_date)}</TableCell>
                       <TableCell className="py-2 w-[15%] text-center">
                         <Badge
@@ -661,7 +742,17 @@ function TransactionsList() {
                           {inst.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2 w-[15%] text-right font-mono font-black pr-6 text-foreground/80">{formatCurrency(inst.amount)}</TableCell>
+                      <TableCell className="py-2 w-[12%] text-right font-mono font-black text-foreground/80">{formatCurrency(inst.amount)}</TableCell>
+                      <TableCell className="py-2 w-[10%] text-right pr-4">
+                        {inst.status !== 'PAGA' && inst.status !== 'PAGA_COM_ATRASO' && (
+                          <button
+                            onClick={() => handlePayInstallment(inst)}
+                            className="p-1 px-2 rounded-md bg-success/10 text-success hover:bg-success hover:text-white transition-all text-[9px] font-black uppercase"
+                          >
+                            PAGAR
+                          </button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -718,57 +809,30 @@ function TransactionsList() {
                   <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
                 </Select>
 
-                <div className="flex items-center gap-1 bg-background p-0.5 rounded-md border border-border ml-auto">
-                  <Button variant={sortField === 'date' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Data" onClick={() => setSortField('date')}><Calendar className="h-3.5 w-3.5" /></Button>
-                  <Button variant={sortField === 'created_at' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Último Registro" onClick={() => setSortField('created_at')}><History className="h-3.5 w-3.5" /></Button>
-                  <Button variant={sortField === 'description' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Descrição" onClick={() => setSortField('description')}><Type className="h-3.5 w-3.5" /></Button>
-                  <Button variant={sortField === 'amount' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" title="Ordenar por Valor" onClick={() => setSortField('amount')}><ArrowUp01 className="h-3.5 w-3.5" /></Button>
-                  <Separator orientation="vertical" className="h-4 mx-0.5" />
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Inverter Ordem" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-                    {sortOrder === 'asc' ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
-                  </Button>
-                  <Separator orientation="vertical" className="h-4 mx-0.5" />
-
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Visualização de Colunas">
-                        <Settings2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-4 bg-card border-border shadow-xl">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 border-b border-border pb-2">
-                          <Columns className="h-4 w-4 text-primary" />
-                          <h4 className="text-xs font-semibold uppercase tracking-wider">Colunas da Tabela</h4>
-                        </div>
-                        <div className="grid gap-3">
-                          {[
-                            { id: "date", label: "Data" },
-                            { id: "description", label: "Descrição" },
-                            { id: "category", label: "Categoria" },
-                            { id: "status", label: "Status (Pago/Pendente)" },
-                            { id: "receipt", label: "Comprovante" },
-                            { id: "method", label: "Meio de Pagamento" },
-                            { id: "amount", label: "Valor" },
-                            { id: "occasion", label: "Ocasião Principal" },
-                          ].map((col) => (
-                            <div key={col.id} className="flex items-center justify-between gap-4">
-                              <span className="text-[11px] font-medium text-muted-foreground">{col.label}</span>
-                              <Switch
-                                checked={visibleColumns.includes(col.id)}
-                                onCheckedChange={() => toggleColumn(col.id)}
-                                className="scale-75"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-[9px] text-muted-foreground italic border-t border-border pt-2 mt-2">
-                          Limite: 8 colunas simultâneas
-                        </p>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <TableToolbar
+                  sortField={sortField}
+                  onSortFieldChange={(v) => setSortField(v as any)}
+                  sortOrder={sortOrder}
+                  onSortOrderChange={setSortOrder}
+                  sortOptions={[
+                    { field: 'date', label: 'Ordenar por Data', icon: <Calendar /> },
+                    { field: 'created_at', label: 'Último Registro', icon: <History /> },
+                    { field: 'description', label: 'Ordenar por Descrição', icon: <Type /> },
+                    { field: 'amount', label: 'Ordenar por Valor', icon: <ArrowUp01 /> },
+                  ]}
+                  visibleColumns={visibleColumns}
+                  onToggleColumn={toggleColumn}
+                  columnOptions={[
+                    { id: "date", label: "Data" },
+                    { id: "description", label: "Descrição" },
+                    { id: "category", label: "Categoria" },
+                    { id: "status", label: "Status (Pago/Pendente)" },
+                    { id: "receipt", label: "Comprovante" },
+                    { id: "method", label: "Meio de Pagamento" },
+                    { id: "amount", label: "Valor" },
+                    { id: "occasion", label: "Ocasião Principal" },
+                  ]}
+                />
               </div>
             </div>
           </CardHeader>
@@ -819,7 +883,13 @@ function TransactionsList() {
                                 <div className="flex items-center justify-center gap-2">
                                   <Switch
                                     checked={tx.status === 'completed' || !tx.status}
-                                    onCheckedChange={() => handleToggleStatus(tx)}
+                                    onCheckedChange={() => {
+                                      if (tx.isInstallmentPending) {
+                                        handlePayInstallment(tx.originalInstallment);
+                                      } else {
+                                        handleToggleStatus(tx as any);
+                                      }
+                                    }}
                                     disabled={isUpdatingStatus === tx.id}
                                     className="data-[state=checked]:bg-success scale-75"
                                   />
@@ -827,10 +897,11 @@ function TransactionsList() {
                                     "text-[10px] font-bold min-w-[70px] text-left uppercase",
                                     tx.status === 'completed' || !tx.status ? "text-success" : "text-orange-600"
                                   )}>
-                                    {tx.status === 'completed' || !tx.status
-                                      ? (tx.type === 'income' ? "RECEBIDO" : "PAGO")
-                                      : (tx.type === 'income' ? "A RECEBER" : "A PAGAR")
-                                    }
+                                    {tx.isInstallmentPending ? "PREVISTO" : (
+                                      tx.status === 'completed' || !tx.status
+                                        ? (tx.type === 'income' ? "RECEBIDO" : "PAGO")
+                                        : (tx.type === 'income' ? "A RECEBER" : "A PAGAR")
+                                    )}
                                   </span>
                                 </div>
                               </TableCell>

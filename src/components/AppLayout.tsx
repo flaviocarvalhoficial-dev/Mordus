@@ -12,6 +12,12 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CopilotFAB } from "@/components/Copilot/CopilotFAB";
 import { CopilotAlertHandler } from "@/components/Copilot/CopilotAlertHandler";
+import { Plus } from "lucide-react";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
+import { TransactionsDialog } from "@/components/TransactionsDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RouteInfo {
   name: string;
@@ -58,10 +64,26 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
+  const { isOpen, openNewTransaction, closeTransactionModal, editingTransaction } = useTransactionModal();
   const { settings, profile } = useChurch();
-  const route = routeMap[location.pathname] || { name: "Página", section: "sistema" as const, icon: Home };
+  const queryClient = useQueryClient();
+
+  const route = useMemo(() => routeMap[location.pathname] || { name: "Página", section: "sistema" as const, icon: Home }, [location.pathname]);
   const greeting = useMemo(() => getGreeting(), []);
   const SectionIcon = route.icon;
+
+  // Keyboard shortcut: Alt + N
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        openNewTransaction();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openNewTransaction]);
+
   return (
     <div className="h-screen flex w-full overflow-hidden">
       <AppSidebar />
@@ -76,7 +98,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="text-foreground font-semibold">{route.name}</span>
           </div>
 
-          <GlobalSearch />
+          <div className="flex-1 flex justify-center items-center gap-4">
+            <GlobalSearch />
+          </div>
 
           <div className="flex items-center gap-3 justify-end w-1/3">
             <span className="text-[13px] text-muted-foreground hidden md:block">
@@ -103,6 +127,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         </main>
         <CopilotFAB />
         <CopilotAlertHandler />
+        <TransactionsDialog
+          open={isOpen}
+          onOpenChange={(open) => !open && closeTransactionModal()}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["installments"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["kpi-finance"] });
+          }}
+          editingTransaction={editingTransaction}
+        />
       </div>
     </div>
   );

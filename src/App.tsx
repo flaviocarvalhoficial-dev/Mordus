@@ -19,6 +19,7 @@ import { CopilotProvider } from "@/contexts/CopilotContext";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { TransactionModalProvider } from "@/contexts/TransactionModalContext";
 
 const queryClient = new QueryClient();
 
@@ -55,9 +56,11 @@ const App = () => (
                 <Route element={
                   <ProtectedRoute>
                     <CopilotProvider>
-                      <SidebarProvider>
-                        <AppLayout />
-                      </SidebarProvider>
+                      <TransactionModalProvider>
+                        <SidebarProvider>
+                          <AppLayout />
+                        </SidebarProvider>
+                      </TransactionModalProvider>
                     </CopilotProvider>
                   </ProtectedRoute>
                 }>

@@ -353,7 +353,9 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                         due_date: dueDateStr,
                         status: status,
                         amount: amountPerInstallment,
-                        payment_date: isTodayOrPast ? new Date().toISOString() : null
+                        payment_date: isTodayOrPast ? new Date().toISOString() : null,
+                        installment_number: i + 1,
+                        total_installments: occurrences
                     };
 
                     installmentPayloads.push(instPayload);
@@ -563,6 +565,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                                             className="h-8 text-xs"
                                                             value={newCategoryName}
                                                             onChange={(e) => setNewCategoryName(e.target.value)}
+                                                            onKeyDown={(e) => e.key === 'Enter' && handleQuickCategoryCreate(0, 'occasion')}
                                                             autoFocus
                                                         />
                                                         <Button
@@ -620,6 +623,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                                             className="h-8 text-xs"
                                                             value={newCategoryName}
                                                             onChange={(e) => setNewCategoryName(e.target.value)}
+                                                            onKeyDown={(e) => e.key === 'Enter' && handleQuickCategoryCreate(0, 'event')}
                                                             autoFocus
                                                         />
                                                         <Button
@@ -746,6 +750,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                                                     className="h-8 text-xs"
                                                                     value={newCategoryName}
                                                                     onChange={(e) => setNewCategoryName(e.target.value)}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && handleQuickCategoryCreate(index)}
                                                                     autoFocus
                                                                 />
                                                                 <Button
@@ -789,6 +794,7 @@ export function TransactionsDialog({ onSuccess, trigger, editingTransaction, ope
                                                                     className="h-8 text-xs"
                                                                     value={newCategoryName}
                                                                     onChange={(e) => setNewCategoryName(e.target.value)}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && handleQuickCategoryCreate(index, 'method')}
                                                                     autoFocus
                                                                 />
                                                                 <Button

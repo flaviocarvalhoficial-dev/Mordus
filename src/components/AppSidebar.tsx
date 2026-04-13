@@ -28,6 +28,8 @@ import { Input } from "@/components/ui/input";
 import { useChurch } from "@/contexts/ChurchContext";
 import { MordusLogo } from "@/components/MordusLogo";
 import { useMemo } from "react";
+import { Plus } from "lucide-react";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import {
   Sidebar,
   SidebarContent,
@@ -56,6 +58,7 @@ export function AppSidebar() {
   const [searchParams] = useSearchParams();
   const currentPath = location.pathname;
   const { settings, user, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
+  const { openNewTransaction } = useTransactionModal();
 
   const mainItems = useMemo(() => {
     const items = [
@@ -72,51 +75,65 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="w-14 h-screen sticky top-0 bg-sidebar flex flex-col items-center justify-between py-6 shrink-0">
-      <div className="flex-1 flex flex-col items-center justify-center gap-4">
-        {mainItems.map((item) => {
-          const active = isActive(item.url);
-          return (
-            <Link
-              key={item.title}
-              to={item.url}
-              className={`h-10 w-10 flex items-center justify-center transition-all duration-300 ${active
-                ? "text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.3)]"
-                : "text-sidebar-foreground/80 hover:text-primary"
-                }`}
-            >
-              <item.icon className="h-6 w-6 transition-transform active:scale-90" />
-            </Link>
-          );
-        })}
+    <aside className="w-16 h-screen sticky top-0 bg-sidebar flex flex-col items-center py-8 shrink-0 border-r border-border/50">
+      <div className="flex flex-col items-center gap-6 w-full">
+
+        <div className="flex flex-col items-center gap-5 w-full">
+          {mainItems.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <Link
+                key={item.title}
+                to={item.url}
+                className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-300 relative group ${active
+                  ? "bg-primary/15 text-primary shadow-[0_0_15px_rgba(var(--primary),0.1)]"
+                  : "text-sidebar-foreground/60 hover:text-primary hover:bg-secondary/50"
+                  }`}
+              >
+                <item.icon className={`h-5.5 w-5.5 transition-transform duration-300 group-hover:scale-110 ${active ? "scale-110" : ""}`} />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex flex-col items-center gap-4 mt-auto">
+      <div className="flex-1 flex items-center justify-center w-full">
+        <button
+          onClick={openNewTransaction}
+          className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_20px_-4px_rgba(var(--primary),0.4)] hover:scale-110 active:scale-95 transition-all duration-300 group relative"
+          title="Novo Lançamento (Alt+N)"
+        >
+          <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" />
+          <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20 group-hover:opacity-40" />
+        </button>
+      </div>
+
+      <div className="flex flex-col items-center gap-5 mt-auto w-full">
         <Link
           to="/configuracoes"
-          className={`h-10 w-10 flex items-center justify-center transition-all duration-300 ${isActive("/configuracoes")
-            ? "text-primary"
-            : "text-sidebar-foreground/80 hover:text-primary"
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-300 group ${isActive("/configuracoes")
+            ? "bg-secondary text-primary"
+            : "text-sidebar-foreground/60 hover:text-primary hover:bg-secondary/50"
             }`}
         >
-          <Settings className="h-5 w-5" />
+          <Settings className="h-5.5 w-5.5 group-hover:rotate-90 transition-transform duration-500" />
         </Link>
 
         <Link
           to="/ajuda"
-          className={`h-10 w-10 flex items-center justify-center transition-all duration-300 ${isActive("/ajuda")
-            ? "text-primary"
-            : "text-sidebar-foreground/80 hover:text-primary"
+          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-300 group ${isActive("/ajuda")
+            ? "bg-secondary text-primary"
+            : "text-sidebar-foreground/60 hover:text-primary hover:bg-secondary/50"
             }`}
         >
-          <BookOpen className="h-5 w-5" />
+          <BookOpen className="h-5.5 w-5.5" />
         </Link>
 
         <button
           onClick={() => logout()}
-          className="h-10 w-10 flex items-center justify-center transition-all duration-300 text-sidebar-foreground/80 hover:text-destructive"
+          className="h-11 w-11 flex items-center justify-center rounded-xl transition-all duration-300 text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 group"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5.5 w-5.5 group-hover:-translate-x-1 transition-transform" />
         </button>
       </div>
     </aside>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Tag, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Plus, Tag, Pencil, Trash2, Loader2, Type, History } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useChurch } from "@/contexts/ChurchContext";
 import { Badge } from "@/components/ui/badge";
+import { TableToolbar } from "@/components/TableToolbar";
 import type { Database } from "@/types/database.types";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
@@ -35,10 +36,12 @@ export default function Categories() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [form, setForm] = useState(emptyForm);
+  const [sortField, setSortField] = useState("type");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>("asc");
 
   useEffect(() => {
     if (organization?.id) fetchCategories();
-  }, [organization?.id]);
+  }, [organization?.id, sortField, sortOrder]);
 
   const fetchCategories = async () => {
     try {
@@ -47,7 +50,8 @@ export default function Categories() {
         .from("categories")
         .select("*")
         .eq("organization_id", organization!.id)
-        .order("type")
+        .neq("type", "church_role")
+        .order(sortField, { ascending: sortOrder === 'asc' })
         .order("name");
       if (error) throw error;
       setCategories(data || []);
@@ -121,6 +125,18 @@ export default function Categories() {
               <SelectItem value="occasion">Ocasiões</SelectItem>
             </SelectContent>
           </Select>
+
+          <TableToolbar
+            sortField={sortField}
+            onSortFieldChange={setSortField}
+            sortOrder={sortOrder}
+            onSortOrderChange={setSortOrder}
+            sortOptions={[
+              { field: 'name', label: 'Nome', icon: <Type /> },
+              { field: 'type', label: 'Tipo', icon: <History /> },
+            ]}
+          />
+
           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 font-medium px-6 rounded-full shadow-sm" size="sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />Novo Registro
           </Button>
