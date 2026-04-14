@@ -13,6 +13,7 @@ import { QuickEntryDialog } from "@/components/QuickEntryDialog";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 import { useChurch } from "@/contexts/ChurchContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -222,29 +223,30 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="animate-fade-in space-y-8">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="animate-fade-in space-y-10 pb-10">
+        <div className="flex items-center justify-between flex-wrap gap-6 bg-secondary/5 p-4 rounded-[1.5rem] border border-border/40">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Painel de Gestão</h1>
-            <p className="text-[12px] text-muted-foreground mt-1">{organization.name} — {periodLabel}</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Painel de Gestão</h1>
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mt-1 opacity-70">{organization.name} — {periodLabel}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {canManageFinances && (
-              <>
+              <div className="flex items-center gap-2 mr-2">
                 <QuickEntryDialog onSuccess={refreshData} />
                 <TransactionsDialog
                   onSuccess={refreshData}
                   trigger={
-                    <Button className="h-9 px-4 text-xs font-medium gap-2 shadow-sm">
-                      <Plus className="h-4 w-4" />
+                    <Button className="h-10 px-6 text-xs font-bold gap-2 premium-button bg-primary text-primary-foreground">
+                      <Plus className="h-4.5 w-4.5" />
                       Novo Lançamento
                     </Button>
                   }
                 />
-              </>
+              </div>
             )}
+            <div className="h-8 w-[1px] bg-border/40 mx-1 hidden sm:block" />
             <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="h-9 w-24 text-xs border-border"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-10 w-24 text-xs bg-background border-border/40 rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="2026">2026</SelectItem>
                 <SelectItem value="2025">2025</SelectItem>
@@ -252,7 +254,7 @@ export default function Dashboard() {
               </SelectContent>
             </Select>
             <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="h-9 w-36 text-xs border-border"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-10 w-40 text-xs bg-background border-border/40 rounded-xl"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todo o ano</SelectItem>
                 {monthNames.map((m, i) => (
@@ -266,69 +268,80 @@ export default function Dashboard() {
         <AIInsightCard mode={activeTab as "tesouraria" | "secretaria"} />
 
         {activeTab === "tesouraria" ? (
-          <div className="space-y-4 animate-in fade-in duration-500">
-            <div className={`grid gap-4 ${canManageFinances ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 md:grid-cols-3'}`}>
+          <div className="space-y-8 animate-in fade-in duration-700">
+            <div className={`grid gap-5 ${canManageFinances ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 md:grid-cols-3'}`}>
               {visibleCards.map((card) => (
-                <Card key={card.title} className={`bg-card ${card.primary ? 'border-primary/40 shadow-md ring-2 ring-primary/5' : 'border-border'}`}>
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <card.icon className={`h-4 w-4 ${card.primary ? 'text-primary' : 'text-muted-foreground/60'}`} />
-                        <span className={`text-[13px] ${card.primary ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{card.title}</span>
+                <Card key={card.title} className={cn(
+                  "stat-card border-none hover:ring-2 ring-primary/5",
+                  card.primary ? 'ring-2 ring-primary/40 bg-gradient-to-br from-card to-primary/5' : ''
+                )}>
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="h-10 w-10 rounded-xl bg-secondary/50 flex items-center justify-center border border-border/40">
+                        <card.icon className={cn(
+                          "h-5 w-5",
+                          card.primary ? 'text-primary' : 'text-muted-foreground/60'
+                        )} />
                       </div>
                       {card.link && (
-                        <Link to={card.link} className="text-[10px] text-primary font-medium hover:underline">Ver todos</Link>
+                        <Link to={card.link} className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline">Ver todos</Link>
                       )}
                     </div>
-                    <div className="flex items-end justify-between">
-                      {loading ? (
-                        <Skeleton className="h-7 w-[100px]" />
-                      ) : (
-                        <span className={`text-xl font-semibold font-mono tabular-nums text-foreground`}>
-                          <Counter
-                            value={card.value}
-                            prefix={card.prefix}
-                            suffix={card.suffix}
-                            decimals={card.decimals}
-                          />
-                        </span>
-                      )}
+                    <div className="space-y-1">
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest block",
+                        card.primary ? 'text-foreground' : 'text-muted-foreground/80'
+                      )}>{card.title}</span>
+                      <div className="flex items-baseline gap-1">
+                        {loading ? (
+                          <Skeleton className="h-8 w-24" />
+                        ) : (
+                          <span className="text-2xl font-black font-mono tabular-nums tracking-tight">
+                            <Counter
+                              value={card.value}
+                              prefix={card.prefix}
+                              suffix={card.suffix}
+                              decimals={card.decimals}
+                            />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            <div className={`grid gap-4 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_280px]' : ''}`}>
+            <div className={`grid gap-6 grid-cols-1 ${canManageFinances ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
               {canManageFinances && (
-                <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
-                  <CardHeader className="bg-secondary/5 border-b border-border/50 py-4 flex flex-row items-center justify-between">
+                <Card className="stat-card border-none overflow-hidden">
+                  <CardHeader className="bg-secondary/10 border-b border-border/40 py-5 flex flex-row items-center justify-between">
                     <div>
-                      <CardTitle className="text-[15px] font-semibold">Fluxo de Caixa Mensal</CardTitle>
-                      <p className="text-[11px] text-muted-foreground mt-1">Entradas vs Saídas</p>
+                      <CardTitle className="text-base font-bold">Fluxo de Caixa Mensal</CardTitle>
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mt-0.5">Entradas vs Saídas</p>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-2 px-2 pb-2">
-                    <div className="h-[220px]">
+                  <CardContent className="pt-8 px-6 pb-6">
+                    <div className="h-[280px]">
                       {loading ? (
-                        <div className="h-full flex items-end gap-1 px-2 pb-4">
+                        <div className="h-full flex items-end gap-2 px-2 pb-4">
                           {Array.from({ length: 12 }).map((_, i) => (
                             <Skeleton key={i} className="w-full" style={{ height: `${Math.random() * 60 + 20}%` }} />
                           ))}
                         </div>
                       ) : (
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }} barGap={4}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                            <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))", dy: 5 }} axisLine={false} tickLine={false} height={25} />
-                            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
+                          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={6}>
+                            <CartesianGrid strokeDasharray="4 4" stroke="hsla(var(--border), 0.5)" vertical={false} />
+                            <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={30} />
+                            <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
                             <Tooltip
-                              cursor={false}
-                              contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                              cursor={{ fill: 'hsl(var(--secondary))', opacity: 0.4 }}
+                              contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, fontSize: 12, boxShadow: '0 10px 25px -10px rgba(0,0,0,0.1)' }}
                               formatter={(v: number) => [`R$ ${v.toLocaleString("pt-BR")}`, ""]}
                             />
-                            <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[4, 4, 0, 0]} barSize={28} />
-                            <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[4, 4, 0, 0]} barSize={28} />
+                            <Bar dataKey="entradas" fill="hsl(var(--chart-blue))" radius={[6, 6, 0, 0]} barSize={32} />
+                            <Bar dataKey="saidas" fill="hsl(var(--chart-pink))" radius={[6, 6, 0, 0]} barSize={32} />
                           </BarChart>
                         </ResponsiveContainer>
                       )}
@@ -337,82 +350,88 @@ export default function Dashboard() {
                 </Card>
               )}
 
-              <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border-t-2 border-t-primary/10 h-fit">
-                <CardHeader className="bg-secondary/5 border-b border-border/50 py-3 flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-[13px] font-semibold">Resumo Mensal</CardTitle>
-                  {canManageFinances && (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={showExpenses}
-                        onCheckedChange={setShowExpenses}
-                        className="scale-60 origin-right data-[state=checked]:bg-destructive"
-                      />
-                    </div>
-                  )}
+              <Card className="stat-card border-none overflow-hidden h-fit">
+                <CardHeader className="bg-secondary/10 border-b border-border/40 py-4 flex flex-row items-center justify-between space-y-0 text-center">
+                  <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] w-full">Resumo Mensal</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
                     {canManageFinances && (
-                      <>
-                        {showExpenses && (
-                          <div className="flex justify-between items-center pb-1.5 border-b border-border/50 animate-in slide-in-from-top-1 duration-300">
-                            <span className="text-[11px] text-muted-foreground">Total Saídas</span>
-                            <span className="text-[12px] font-medium font-mono text-destructive">
-                              {loading ? <Skeleton className="h-4 w-20" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/40">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase">Ver Despesas</span>
+                          <Switch
+                            checked={showExpenses}
+                            onCheckedChange={setShowExpenses}
+                            className="scale-75 data-[state=checked]:bg-destructive"
+                          />
+                        </div>
+
+                        <div className="space-y-3 pt-2">
+                          {showExpenses && (
+                            <div className="flex justify-between items-center pb-2 border-b border-border/40 animate-in slide-in-from-top-2 duration-300">
+                              <span className="text-[11px] font-medium text-muted-foreground">Total Saídas</span>
+                              <span className="text-sm font-bold font-mono text-destructive">
+                                {loading ? <Skeleton className="h-4 w-24" /> : `- R$ ${stats.saidas.toLocaleString("pt-BR")}`}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                            <span className="text-[11px] font-medium text-muted-foreground">Dízimos</span>
+                            <span className="text-sm font-bold font-mono text-emerald-500">
+                              {loading ? <Skeleton className="h-4 w-24" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
                             </span>
                           </div>
-                        )}
-                        <div className="flex justify-between items-center pb-1.5 border-b border-border/50">
-                          <span className="text-[11px] text-muted-foreground">Dízimos</span>
-                          <span className="text-[12px] font-medium font-mono text-emerald-500">
-                            {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.dizimos.toLocaleString("pt-BR")}`}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pb-1.5 border-b border-border/50">
-                          <span className="text-[11px] text-muted-foreground">Ofertas</span>
-                          <span className="text-[12px] font-medium font-mono text-emerald-500">
-                            {loading ? <Skeleton className="h-4 w-20" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pt-1">
-                          <span className="text-[11px] font-medium text-foreground">Saldo Líquido</span>
-                          {loading ? (
-                            <Skeleton className="h-5 w-24" />
-                          ) : (
-                            <span className={`text-[13px] font-medium font-mono ${saldoCaixa >= 0 ? "text-primary" : "text-destructive"}`}>
-                              {`R$ ${saldoCaixa.toLocaleString("pt-BR")}`}
+                          <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                            <span className="text-[11px] font-medium text-muted-foreground">Ofertas</span>
+                            <span className="text-sm font-bold font-mono text-emerald-500">
+                              {loading ? <Skeleton className="h-4 w-24" /> : `R$ ${stats.ofertas.toLocaleString("pt-BR")}`}
                             </span>
-                          )}
+                          </div>
+                          <div className="flex justify-between items-center pt-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                            <span className="text-[11px] font-black uppercase text-foreground">Saldo Líquido</span>
+                            {loading ? (
+                              <Skeleton className="h-6 w-28" />
+                            ) : (
+                              <span className={cn(
+                                "text-lg font-black font-mono tracking-tight",
+                                saldoCaixa >= 0 ? "text-primary" : "text-destructive"
+                              )}>
+                                {`R$ ${saldoCaixa.toLocaleString("pt-BR")}`}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </>
+                      </div>
                     )}
 
-                    <div className={`mt-4 pt-4 border-t border-border/50 space-y-2.5 ${!canManageFinances ? 'mt-0 pt-0 border-t-0' : ''}`}>
-                      <h4 className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Controle</h4>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Layers className="h-3 w-3 text-primary/60" />
-                          <span className="text-[11px] text-muted-foreground">Departamentos</span>
+                    <div className={cn(
+                      "mt-6 pt-6 border-t border-border/40 space-y-4",
+                      !canManageFinances ? 'mt-0 pt-0 border-t-0' : ''
+                    )}>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">Controle Interno</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-4 rounded-2xl bg-secondary/30 border border-border/20 group hover:border-primary/20 transition-all">
+                          <Layers className="h-4 w-4 text-primary/60 mb-2 transition-transform group-hover:scale-110" />
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Deptos</span>
+                            <p className="text-sm font-black tabular-nums">{loading ? "..." : stats.deptCount}</p>
+                          </div>
                         </div>
-                        <span className="text-[12px] font-medium font-mono text-foreground">
-                          {loading ? <Skeleton className="h-4 w-10" /> : stats.deptCount}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="h-3 w-3 text-primary/60" />
-                          <span className="text-[11px] text-muted-foreground">Eventos</span>
+                        <div className="p-4 rounded-2xl bg-secondary/30 border border-border/20 group hover:border-primary/20 transition-all">
+                          <CalendarDays className="h-4 w-4 text-primary/60 mb-2 transition-transform group-hover:scale-110" />
+                          <div className="space-y-0.5">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">Eventos</span>
+                            <p className="text-sm font-black tabular-nums">{loading ? "..." : stats.eventCount}</p>
+                          </div>
                         </div>
-                        <span className="text-[12px] font-medium font-mono text-foreground">
-                          {loading ? <Skeleton className="h-4 w-10" /> : stats.eventCount}
-                        </span>
                       </div>
                     </div>
                   </div>
-                  <Link to="/lancamentos?tab=relatorios" className="block w-full mt-4">
-                    <Button variant="outline" className="w-full h-7 text-[10px] border-border group hover:bg-primary/5">
-                      <Eye className="h-3.5 w-3.5 mr-2 group-hover:text-primary transition-colors" />
-                      Relatório Completo
+                  <Link to="/lancamentos?tab=relatorios" className="block w-full mt-6">
+                    <Button variant="outline" className="w-full h-10 text-[10px] font-bold uppercase tracking-widest border-border/60 premium-button hover:bg-primary/5 hover:text-primary transition-all">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Visualizar Relatório
                     </Button>
                   </Link>
                 </CardContent>
@@ -420,31 +439,33 @@ export default function Dashboard() {
             </div>
 
             {canManageFinances && (
-              <Card className="bg-card border-border shadow-sm rounded-2xl overflow-visible border-t-2 border-t-primary/10">
-                <CardHeader className="bg-secondary/5 border-b border-border/50 py-3">
-                  <CardTitle className="text-[14px] font-semibold">Dízimos & Ofertas (Consolidado)</CardTitle>
+              <Card className="stat-card border-none overflow-hidden">
+                <CardHeader className="bg-secondary/10 border-b border-border/40 py-4">
+                  <CardTitle className="text-sm font-bold flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" /> Tendência: Dízimos & Ofertas
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-2 px-2 pb-2">
-                  <div className="h-[180px]">
+                <CardContent className="pt-8 px-6 pb-6">
+                  <div className="h-[220px]">
                     {loading ? (
-                      <div className="h-full w-full flex items-end px-4 pb-2">
-                        <Skeleton className="h-full w-full rounded-lg opacity-20" />
-                      </div>
+                      <Skeleton className="h-full w-full rounded-2xl opacity-20" />
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 10 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                          <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))", dy: 5 }} axisLine={false} tickLine={false} height={20} />
-                          <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
-                          <Tooltip cursor={false} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 10 }} />
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="4 4" stroke="hsla(var(--border), 0.5)" vertical={false} />
+                          <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} height={25} />
+                          <YAxis tick={{ fontSize: 10, fontWeight: 700, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={formatYAxis} />
+                          <Tooltip
+                            contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 16, fontSize: 11, boxShadow: '0 10px 25px -10px rgba(0,0,0,0.1)' }}
+                          />
                           <defs>
                             <linearGradient id="gradAreaBlue" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="hsl(var(--chart-blue))" stopOpacity={0.2} />
+                              <stop offset="0%" stopColor="hsl(var(--chart-blue))" stopOpacity={0.25} />
                               <stop offset="100%" stopColor="hsl(var(--chart-blue))" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={2.5} fill="url(#gradAreaBlue)" dot={false} />
-                          <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={1.5} fill="none" dot={false} strokeDasharray="4 4" />
+                          <Area type="monotone" dataKey="dizimos" name="Dízimos" stroke="hsl(var(--chart-blue))" strokeWidth={3} fill="url(#gradAreaBlue)" dot={{ r: 4, fill: 'hsl(var(--chart-blue))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                          <Area type="monotone" dataKey="ofertas" name="Ofertas" stroke="hsl(var(--chart-pink))" strokeWidth={2} fill="none" dot={false} strokeDasharray="6 6" />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
@@ -454,7 +475,7 @@ export default function Dashboard() {
             )}
           </div>
         ) : (
-          <div className="animate-in fade-in duration-500">
+          <div className="animate-in fade-in zoom-in-95 duration-700">
             <SecretariaDashboard />
           </div>
         )}

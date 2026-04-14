@@ -41,26 +41,31 @@ export function TableToolbar({
     className
 }: TableToolbarProps) {
     return (
-        <div className={cn("flex items-center gap-1 bg-background/50 p-1.5 rounded-2xl border border-border/50 ml-auto shadow-sm backdrop-blur-sm", className)}>
-            {sortOptions.map((opt) => (
-                <Button
-                    key={opt.field}
-                    variant={sortField === opt.field ? 'secondary' : 'ghost'}
-                    size="icon"
-                    className="h-8 w-8 rounded-xl transition-all hover:bg-secondary/80"
-                    title={opt.label}
-                    onClick={() => onSortFieldChange(opt.field)}
-                >
-                    {React.cloneElement(opt.icon as React.ReactElement, { className: "h-4 w-4" })}
-                </Button>
-            ))}
+        <div className={cn("flex items-center gap-1.5 bg-background/60 p-1 rounded-2xl border border-border/40 ml-auto shadow-sm backdrop-blur-md", className)}>
+            <div className="flex items-center gap-1 bg-secondary/30 p-1 rounded-[1rem]">
+                {sortOptions.map((opt) => (
+                    <Button
+                        key={opt.field}
+                        variant={sortField === opt.field ? 'secondary' : 'ghost'}
+                        size="icon"
+                        className={cn(
+                            "h-7 w-7 rounded-[0.75rem] transition-all duration-300",
+                            sortField === opt.field ? "bg-background text-primary shadow-sm ring-1 ring-primary/10" : "text-muted-foreground/70 hover:text-primary hover:bg-background/80"
+                        )}
+                        title={opt.label}
+                        onClick={() => onSortFieldChange(opt.field)}
+                    >
+                        {React.cloneElement(opt.icon as React.ReactElement, { className: "h-3.5 w-3.5" })}
+                    </Button>
+                ))}
+            </div>
 
-            <Separator orientation="vertical" className="h-5 mx-0.5 bg-border/50" />
+            <Separator orientation="vertical" className="h-4 mx-0.5 bg-border/40" />
 
             <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-xl hover:bg-secondary/80 transition-all"
+                className="h-8 w-8 rounded-xl text-muted-foreground/70 hover:text-primary hover:bg-secondary/50 transition-all"
                 title="Inverter Ordem"
                 onClick={() => onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')}
             >
@@ -69,23 +74,25 @@ export function TableToolbar({
 
             {columnOptions && onToggleColumn && visibleColumns && (
                 <>
-                    <Separator orientation="vertical" className="h-5 mx-0.5 bg-border/50" />
+                    <Separator orientation="vertical" className="h-4 mx-0.5 bg-border/40" />
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl hover:bg-secondary/80 transition-all" title="Colunas">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl text-muted-foreground/70 hover:text-primary hover:bg-secondary/50 transition-all" title="Colunas">
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-64 p-4 bg-card border-border shadow-2xl rounded-2xl">
+                        <PopoverContent className="w-64 p-5 bg-card border-border/60 shadow-2xl rounded-[1.5rem] backdrop-blur-xl">
                             <div className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-border pb-2">
-                                    <Columns className="h-4 w-4 text-primary" />
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-foreground">Colunas da Tabela</h4>
+                                <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                                        <Columns className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-foreground">Visualização</h4>
                                 </div>
-                                <div className="grid gap-3">
+                                <div className="grid gap-4 pt-1">
                                     {columnOptions.map((col) => (
-                                        <div key={col.id} className="flex items-center justify-between gap-4">
-                                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">{col.label}</span>
+                                        <div key={col.id} className="flex items-center justify-between group">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{col.label}</span>
                                             <Switch
                                                 checked={visibleColumns.includes(col.id)}
                                                 onCheckedChange={() => onToggleColumn(col.id)}
@@ -94,9 +101,11 @@ export function TableToolbar({
                                         </div>
                                     ))}
                                 </div>
-                                <p className="text-[9px] text-muted-foreground italic border-t border-border pt-2 mt-2 font-medium">
-                                    Configuração de Visualização
-                                </p>
+                                <div className="pt-3 border-t border-border/40 mt-2">
+                                    <p className="text-[9px] text-muted-foreground italic font-medium">
+                                        Ajuste a visibilidade das colunas da tabela.
+                                    </p>
+                                </div>
                             </div>
                         </PopoverContent>
                     </Popover>

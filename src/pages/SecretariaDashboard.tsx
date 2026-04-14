@@ -62,7 +62,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
     try {
       const { data } = await supabase.from("congregations").select("id, name").eq("organization_id", organization!.id);
       setCongregations(data || []);
-    } catch (err) { }
+    } catch (err) {
+      // Falha silenciosa permitida para dados não críticos
+    }
   };
 
   const fetchGrowthData = async () => {
@@ -128,7 +130,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         setCongregationGrowthData([]);
       }
 
-    } catch (err) { }
+    } catch (err) {
+      // Erro ignorado para não interromper o fluxo principal
+    }
   };
 
   const fetchDemographics = async () => {
@@ -168,7 +172,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
       setMaritalData(Object.entries(maritals).map(([name, value]) => ({ name, value })));
       setBaptismData(Object.entries(baptisms).map(([name, value]) => ({ name, value })));
       setRolesData(Object.entries(roles).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5));
-    } catch (err) { }
+    } catch (err) {
+      // Erro ignorado para não interromper o fluxo principal
+    }
   };
 
   const fetchIncompleteProfiles = async () => {
@@ -185,7 +191,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
 
       const { count } = await query;
       setIncompleteProfiles(count || 0);
-    } catch (err) { }
+    } catch (err) {
+      // Erro ignorado para não interromper o fluxo principal
+    }
   };
 
   const fetchCounts = async () => {
@@ -198,12 +206,12 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         let q = supabase.from(table).select("*", { count: "exact", head: true }).eq("organization_id", orgId);
 
         if (selectedCongregation !== "all" && !["congregations", "departments", "events"].includes(table)) {
-          // @ts-ignore
+          // @ts-expect-error - Algumas tabelas não possuem a coluna congregation_id mas o filtro é dinâmico
           q = q.eq("congregation_id", selectedCongregation);
         }
 
         if (selectedStatus !== "all" && (table === "members" || table === "leaders")) {
-          // @ts-ignore
+          // @ts-expect-error - Algumas tabelas não possuem a coluna status mas o filtro é dinâmico
           q = q.eq("status", selectedStatus);
         }
 
@@ -266,7 +274,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
       const { data, error } = await query;
       if (error) throw error;
       setRecentMembers(data || []);
-    } catch (err) { }
+    } catch (err) {
+      // Erro ignorado para não interromper o fluxo principal
+    }
   };
 
   const fetchBirthdays = async () => {
@@ -296,7 +306,9 @@ export default function SecretariaDashboard({ onNavigate }: { onNavigate?: (tab:
         .sort((a, b) => parseInt(a.birth_date.split('-')[2]) - parseInt(b.birth_date.split('-')[2]));
 
       setUpcomingBirthdays(monthly);
-    } catch (err) { }
+    } catch (err) {
+      // Erro ignorado para não interromper o fluxo principal
+    }
   };
 
   const kpis = [

@@ -4,7 +4,7 @@ import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Folder, HardDrive, RefreshCw, Plus, Check, ExternalLink } from "lucide-react";
+import { Folder, HardDrive, RefreshCw, Plus, Check, ExternalLink, FileIcon } from "lucide-react";
 import { toast } from "sonner";
 import { GoogleDriveFolder } from "@/lib/googleDrive";
 
@@ -50,7 +50,7 @@ export function GoogleDriveConnector() {
         if (!service) return;
         setIsListingContents(true);
         try {
-            // @ts-ignore - Usando fetchGoogleApi interno
+            // @ts-expect-error - Usando fetchGoogleApi interno para chamadas customizadas
             const list = await service.fetchGoogleApi(`/files?q='${folderId}' in parents and trashed = false&fields=files(id,name,mimeType)`);
             setContents(list.files || []);
         } catch (error) {

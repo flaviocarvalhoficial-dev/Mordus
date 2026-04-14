@@ -105,7 +105,6 @@ const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, b
   </div >
 );
 
-// @ts-ignore
 import html2pdf from 'html2pdf.js';
 
 export default function Reports() {

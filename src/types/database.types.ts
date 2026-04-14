@@ -71,8 +71,10 @@ export type Database = {
                     id: string
                     new_data: Json | null
                     old_data: Json | null
+                    organization_id: string
                     table_name: string
                     user_id: string | null
+                    record_id: string | null
                 }
                 Insert: {
                     action: string
@@ -80,8 +82,10 @@ export type Database = {
                     id?: string
                     new_data?: Json | null
                     old_data?: Json | null
+                    organization_id: string
                     table_name: string
                     user_id?: string | null
+                    record_id?: string | null
                 }
                 Update: {
                     action?: string
@@ -89,10 +93,19 @@ export type Database = {
                     id?: string
                     new_data?: Json | null
                     old_data?: Json | null
+                    organization_id?: string
                     table_name?: string
                     user_id?: string | null
+                    record_id?: string | null
                 }
                 Relationships: [
+                    {
+                        foreignKeyName: "audit_logs_organization_id_fkey"
+                        columns: ["organization_id"]
+                        isOneToOne: false
+                        referencedRelation: "organizations"
+                        referencedColumns: ["id"]
+                    },
                     {
                         foreignKeyName: "audit_logs_user_id_fkey"
                         columns: ["user_id"]
@@ -106,6 +119,7 @@ export type Database = {
                 Row: {
                     color: string | null
                     created_at: string
+                    description: string | null
                     id: string
                     name: string
                     organization_id: string
@@ -114,6 +128,7 @@ export type Database = {
                 Insert: {
                     color?: string | null
                     created_at?: string
+                    description?: string | null
                     id?: string
                     name: string
                     organization_id: string
@@ -122,6 +137,7 @@ export type Database = {
                 Update: {
                     color?: string | null
                     created_at?: string
+                    description?: string | null
                     id?: string
                     name?: string
                     organization_id?: string
@@ -142,28 +158,25 @@ export type Database = {
                     address: string | null
                     created_at: string
                     id: string
-                    member_count: number | null
                     name: string
                     organization_id: string
-                    responsible_name: string | null
+                    phone: string | null
                 }
                 Insert: {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    member_count?: number | null
                     name: string
                     organization_id: string
-                    responsible_name?: string | null
+                    phone?: string | null
                 }
                 Update: {
                     address?: string | null
                     created_at?: string
                     id?: string
-                    member_count?: number | null
                     name?: string
                     organization_id?: string
-                    responsible_name?: string | null
+                    phone?: string | null
                 }
                 Relationships: [
                     {
@@ -177,34 +190,25 @@ export type Database = {
             }
             departments: {
                 Row: {
-                    color: string | null
                     created_at: string
+                    description: string | null
                     id: string
-                    leader_name: string | null
-                    member_count: number | null
                     name: string
                     organization_id: string
-                    subgroups: Json | null
                 }
                 Insert: {
-                    color?: string | null
                     created_at?: string
+                    description?: string | null
                     id?: string
-                    leader_name?: string | null
-                    member_count?: number | null
                     name: string
                     organization_id: string
-                    subgroups?: Json | null
                 }
                 Update: {
-                    color?: string | null
                     created_at?: string
+                    description?: string | null
                     id?: string
-                    leader_name?: string | null
-                    member_count?: number | null
                     name?: string
                     organization_id?: string
-                    subgroups?: Json | null
                 }
                 Relationships: [
                     {
@@ -220,32 +224,32 @@ export type Database = {
                 Row: {
                     category: string | null
                     created_at: string
-                    date: string | null
+                    file_path: string
+                    file_type: string | null
                     id: string
-                    link: string | null
                     name: string
-                    organization_id: string | null
-                    type: string | null
+                    organization_id: string
+                    size: number | null
                 }
                 Insert: {
                     category?: string | null
                     created_at?: string
-                    date?: string | null
+                    file_path: string
+                    file_type?: string | null
                     id?: string
-                    link?: string | null
                     name: string
-                    organization_id?: string | null
-                    type?: string | null
+                    organization_id: string
+                    size?: number | null
                 }
                 Update: {
                     category?: string | null
                     created_at?: string
-                    date?: string | null
+                    file_path?: string
+                    file_type?: string | null
                     id?: string
-                    link?: string | null
                     name?: string
-                    organization_id?: string | null
-                    type?: string | null
+                    organization_id?: string
+                    size?: number | null
                 }
                 Relationships: [
                     {
@@ -297,31 +301,22 @@ export type Database = {
             }
             families: {
                 Row: {
-                    address: string | null
                     created_at: string
                     id: string
-                    members_count: number | null
                     name: string
-                    needs: string | null
-                    organization_id: string | null
+                    organization_id: string
                 }
                 Insert: {
-                    address?: string | null
                     created_at?: string
                     id?: string
-                    members_count?: number | null
                     name: string
-                    needs?: string | null
-                    organization_id?: string | null
+                    organization_id: string
                 }
                 Update: {
-                    address?: string | null
                     created_at?: string
                     id?: string
-                    members_count?: number | null
                     name?: string
-                    needs?: string | null
-                    organization_id?: string | null
+                    organization_id?: string
                 }
                 Relationships: [
                     {
@@ -335,43 +330,30 @@ export type Database = {
             }
             installment_purchases: {
                 Row: {
-                    category_id: string | null
                     created_at: string | null
                     description: string
                     id: string
                     organization_id: string
-                    payment_method_id: string | null
                     total_amount: number
-                    updated_at: string | null
+                    total_installments: number
                 }
                 Insert: {
-                    category_id?: string | null
                     created_at?: string | null
                     description: string
                     id?: string
                     organization_id: string
-                    payment_method_id?: string | null
                     total_amount: number
-                    updated_at?: string | null
+                    total_installments: number
                 }
                 Update: {
-                    category_id?: string | null
                     created_at?: string | null
                     description?: string
                     id?: string
                     organization_id?: string
-                    payment_method_id?: string | null
                     total_amount?: number
-                    updated_at?: string | null
+                    total_installments?: number
                 }
                 Relationships: [
-                    {
-                        foreignKeyName: "installment_purchases_category_id_fkey"
-                        columns: ["category_id"]
-                        isOneToOne: false
-                        referencedRelation: "categories"
-                        referencedColumns: ["id"]
-                    },
                     {
                         foreignKeyName: "installment_purchases_organization_id_fkey"
                         columns: ["organization_id"]
@@ -379,60 +361,41 @@ export type Database = {
                         referencedRelation: "organizations"
                         referencedColumns: ["id"]
                     },
-                    {
-                        foreignKeyName: "installment_purchases_payment_method_id_fkey"
-                        columns: ["payment_method_id"]
-                        isOneToOne: false
-                        referencedRelation: "categories"
-                        referencedColumns: ["id"]
-                    },
                 ]
             }
             installments: {
                 Row: {
                     amount: number
-                    competence_date: string
                     created_at: string | null
                     due_date: string
                     id: string
                     installment_number: number
                     organization_id: string
-                    payment_date: string | null
+                    paid_at: string | null
                     purchase_id: string
-                    receipt_url: string | null
                     status: string
-                    total_installments: number
-                    updated_at: string | null
                 }
                 Insert: {
                     amount: number
-                    competence_date: string
                     created_at?: string | null
                     due_date: string
                     id?: string
                     installment_number: number
                     organization_id: string
-                    payment_date?: string | null
+                    paid_at?: string | null
                     purchase_id: string
-                    receipt_url?: string | null
-                    status: string
-                    total_installments: number
-                    updated_at?: string | null
+                    status?: string
                 }
                 Update: {
                     amount?: number
-                    competence_date?: string
                     created_at?: string | null
                     due_date?: string
                     id?: string
                     installment_number?: number
                     organization_id?: string
-                    payment_date?: string | null
+                    paid_at?: string | null
                     purchase_id?: string
-                    receipt_url?: string | null
                     status?: string
-                    total_installments?: number
-                    updated_at?: string | null
                 }
                 Relationships: [
                     {
@@ -492,62 +455,80 @@ export type Database = {
             members: {
                 Row: {
                     address: string | null
+                    age_group: string | null
                     avatar_url: string | null
+                    baptism_date: string | null
                     birth_date: string | null
                     congregation_id: string | null
+                    conversion_date: string | null
                     created_at: string
                     department_id: string | null
+                    document_cpf: string | null
                     email: string | null
                     father_name: string | null
                     full_name: string
                     gender: string | null
+                    goes_to_sunday_school: boolean | null
                     id: string
                     is_baptized: boolean | null
+                    is_from_other_church: boolean | null
                     mother_name: string | null
                     organization_id: string
                     phone: string | null
                     previous_church: string | null
-                    role: string | null
+                    role_in_church: string | null
                     status: string | null
                 }
                 Insert: {
                     address?: string | null
+                    age_group?: string | null
                     avatar_url?: string | null
+                    baptism_date?: string | null
                     birth_date?: string | null
                     congregation_id?: string | null
+                    conversion_date?: string | null
                     created_at?: string
                     department_id?: string | null
+                    document_cpf?: string | null
                     email?: string | null
                     father_name?: string | null
                     full_name: string
                     gender?: string | null
+                    goes_to_sunday_school?: boolean | null
                     id?: string
                     is_baptized?: boolean | null
+                    is_from_other_church?: boolean | null
                     mother_name?: string | null
                     organization_id: string
                     phone?: string | null
                     previous_church?: string | null
-                    role?: string | null
+                    role_in_church?: string | null
                     status?: string | null
                 }
                 Update: {
                     address?: string | null
+                    age_group?: string | null
                     avatar_url?: string | null
+                    baptism_date?: string | null
                     birth_date?: string | null
                     congregation_id?: string | null
+                    conversion_date?: string | null
                     created_at?: string
                     department_id?: string | null
+                    document_cpf?: string | null
                     email?: string | null
                     father_name?: string | null
                     full_name?: string
                     gender?: string | null
+                    goes_to_sunday_school?: boolean | null
                     id?: string
                     is_baptized?: boolean | null
+                    is_from_other_church?: boolean | null
                     mother_name?: string | null
                     organization_id?: string
                     phone?: string | null
                     previous_church?: string | null
-                    role?: string | null
+                    role_in_church?: string | null
                     status?: string | null
                 }
                 Relationships: [
@@ -640,12 +621,13 @@ export type Database = {
                     bank_account: string | null
                     bank_agency: string | null
                     bank_name: string | null
+                    closure_mode: string | null
                     cnpj: string | null
-                    config: Json | null
                     created_at: string
                     facebook: string | null
                     id: string
                     instagram: string | null
+                    logo_url: string | null
                     name: string
                     pastor_name: string | null
                     phone: string | null
@@ -659,12 +641,13 @@ export type Database = {
                     bank_account?: string | null
                     bank_agency?: string | null
                     bank_name?: string | null
+                    closure_mode?: string | null
                     cnpj?: string | null
-                    config?: Json | null
                     created_at?: string
                     facebook?: string | null
                     id?: string
                     instagram?: string | null
+                    logo_url?: string | null
                     name: string
                     pastor_name?: string | null
                     phone?: string | null
@@ -678,12 +661,13 @@ export type Database = {
                     bank_account?: string | null
                     bank_agency?: string | null
                     bank_name?: string | null
+                    closure_mode?: string | null
                     cnpj?: string | null
-                    config?: Json | null
                     created_at?: string
                     facebook?: string | null
                     id?: string
                     instagram?: string | null
+                    logo_url?: string | null
                     name?: string
                     pastor_name?: string | null
                     phone?: string | null
@@ -696,31 +680,40 @@ export type Database = {
             }
             partners: {
                 Row: {
-                    created_at: string | null
-                    field: string | null
+                    category: string | null
+                    contact_person: string | null
+                    created_at: string
+                    description: string | null
+                    email: string | null
                     id: string
                     name: string
-                    organization_id: string | null
+                    organization_id: string
+                    phone: string | null
                     status: string | null
-                    support: string | null
                 }
                 Insert: {
-                    created_at?: string | null
-                    field?: string | null
+                    category?: string | null
+                    contact_person?: string | null
+                    created_at?: string
+                    description?: string | null
+                    email?: string | null
                     id?: string
                     name: string
-                    organization_id?: string | null
+                    organization_id: string
+                    phone?: string | null
                     status?: string | null
-                    support?: string | null
                 }
                 Update: {
-                    created_at?: string | null
-                    field?: string | null
+                    category?: string | null
+                    contact_person?: string | null
+                    created_at?: string
+                    description?: string | null
+                    email?: string | null
                     id?: string
                     name?: string
-                    organization_id?: string | null
+                    organization_id?: string
+                    phone?: string | null
                     status?: string | null
-                    support?: string | null
                 }
                 Relationships: [
                     {
@@ -740,8 +733,7 @@ export type Database = {
                     full_name: string | null
                     id: string
                     organization_id: string | null
-                    phone: string | null
-                    role: Enums<"user_role"> | null
+                    role: Database["public"]["Enums"]["user_role"] | null
                 }
                 Insert: {
                     avatar_url?: string | null
@@ -750,8 +742,7 @@ export type Database = {
                     full_name?: string | null
                     id: string
                     organization_id?: string | null
-                    phone?: string | null
-                    role?: Enums<"user_role"> | null
+                    role?: Database["public"]["Enums"]["user_role"] | null
                 }
                 Update: {
                     avatar_url?: string | null
@@ -760,8 +751,7 @@ export type Database = {
                     full_name?: string | null
                     id?: string
                     organization_id?: string | null
-                    phone?: string | null
-                    role?: Enums<"user_role"> | null
+                    role?: Database["public"]["Enums"]["user_role"] | null
                 }
                 Relationships: [
                     {
@@ -787,100 +777,46 @@ export type Database = {
                     },
                 ]
             }
-            social_assistance: {
-                Row: {
-                    assistance_type: string
-                    created_at: string | null
-                    delivery_date: string | null
-                    family_id: string | null
-                    id: string
-                    items_count: number | null
-                    organization_id: string | null
-                    status: string | null
-                }
-                Insert: {
-                    assistance_type: string
-                    created_at?: string | null
-                    delivery_date?: string | null
-                    family_id?: string | null
-                    id?: string
-                    items_count?: number | null
-                    organization_id?: string | null
-                    status?: string | null
-                }
-                Update: {
-                    assistance_type?: string
-                    created_at?: string | null
-                    delivery_date?: string | null
-                    family_id?: string | null
-                    id?: string
-                    items_count?: number | null
-                    organization_id?: string | null
-                    status?: string | null
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "social_assistance_family_id_fkey"
-                        columns: ["family_id"]
-                        isOneToOne: false
-                        referencedRelation: "families"
-                        referencedColumns: ["id"]
-                    },
-                    {
-                        foreignKeyName: "social_assistance_organization_id_fkey"
-                        columns: ["organization_id"]
-                        isOneToOne: false
-                        referencedRelation: "organizations"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
             transactions: {
                 Row: {
                     amount: number
                     category_id: string | null
-                    competence_date: string | null
                     created_at: string
                     date: string
-                    description: string
+                    description: string | null
                     event_id: string | null
                     id: string
-                    installment_id: string | null
                     organization_id: string
-                    payment_method: string
-                    payment_method_id: string | null
+                    payment_method: string | null
+                    receipt_url: string | null
                     status: string | null
                     type: string
                 }
                 Insert: {
                     amount: number
                     category_id?: string | null
-                    competence_date?: string | null
                     created_at?: string
                     date: string
-                    description: string
+                    description?: string | null
                     event_id?: string | null
                     id?: string
-                    installment_id?: string | null
                     organization_id: string
-                    payment_method: string
-                    payment_method_id?: string | null
+                    payment_method?: string | null
+                    receipt_url?: string | null
                     status?: string | null
                     type: string
                 }
                 Update: {
                     amount?: number
                     category_id?: string | null
-                    competence_date?: string | null
                     created_at?: string
                     date?: string
-                    description?: string
+                    description?: string | null
                     event_id?: string | null
                     id?: string
-                    installment_id?: string | null
                     organization_id?: string
-                    payment_method?: string
-                    payment_method_id?: string | null
+                    payment_method?: string | null
+                    receipt_url?: string | null
                     status?: string | null
                     type?: string
                 }
@@ -900,24 +836,10 @@ export type Database = {
                         referencedColumns: ["id"]
                     },
                     {
-                        foreignKeyName: "transactions_installment_id_fkey"
-                        columns: ["installment_id"]
-                        isOneToOne: false
-                        referencedRelation: "installments"
-                        referencedColumns: ["id"]
-                    },
-                    {
                         foreignKeyName: "transactions_organization_id_fkey"
                         columns: ["organization_id"]
                         isOneToOne: false
                         referencedRelation: "organizations"
-                        referencedColumns: ["id"]
-                    },
-                    {
-                        foreignKeyName: "transactions_payment_method_id_fkey"
-                        columns: ["payment_method_id"]
-                        isOneToOne: false
-                        referencedRelation: "categories"
                         referencedColumns: ["id"]
                     },
                 ]
@@ -938,28 +860,29 @@ export type Database = {
     }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type PublicSchema = Database["public"]
 
 export type Tables<
     PublicTableNameOrOptions extends
     | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    | { schema: keyof Omit<Database, "__InternalSupabase"> },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? keyof (Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? (Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
             Row: infer R
         }
     ? R
     : never
     : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
         PublicSchema["Views"])
-    ? (PublicSchema["Tables"] & PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-    }
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+            Row: infer R
+        }
     ? R
     : never
     : never
@@ -967,12 +890,12 @@ export type Tables<
 export type TablesInsert<
     PublicTableNameOrOptions extends
     | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    | { schema: keyof Omit<Database, "__InternalSupabase"> },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? keyof Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Insert: infer I
     }
     ? I
@@ -988,12 +911,12 @@ export type TablesInsert<
 export type TablesUpdate<
     PublicTableNameOrOptions extends
     | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    | { schema: keyof Omit<Database, "__InternalSupabase"> },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? keyof Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? Omit<Database, "__InternalSupabase">[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
         Update: infer U
     }
     ? U
@@ -1009,12 +932,12 @@ export type TablesUpdate<
 export type Enums<
     PublicEnumNameOrOptions extends
     | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    | { schema: keyof Omit<Database, "__InternalSupabase"> },
+    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? keyof Omit<Database, "__InternalSupabase">[PublicEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = PublicEnumNameOrOptions extends { schema: keyof Omit<Database, "__InternalSupabase"> }
+    ? Omit<Database, "__InternalSupabase">[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
     : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
     : never

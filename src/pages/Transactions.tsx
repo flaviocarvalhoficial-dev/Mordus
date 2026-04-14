@@ -516,28 +516,37 @@ function TransactionsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Fluxo de Caixa</h2>
+      <div className="flex items-center justify-between pb-4 border-b border-border/40">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Fluxo de Caixa</h2>
+          <p className="section-header !mb-0 mt-1 opacity-60">Competência: {months.find(m => m.value === monthFilter)?.label || "Todos"} {yearFilter}</p>
+        </div>
         <PermissionGuard requireWrite>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs rounded-full px-6 shadow-sm" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />Novo Lançamento
-          </Button>
+          <TransactionsDialog
+            onSuccess={refreshData}
+            trigger={
+              <Button className="premium-button bg-primary text-primary-foreground h-11 px-8 text-xs font-bold gap-2">
+                <Plus className="h-5 w-5" />Novo Lançamento
+              </Button>
+            }
+          />
         </PermissionGuard>
       </div>
 
       {/* KPI CARDS ROW */}
-      {/* KPI CARDS ROW: ALIGNED WITH DASHBOARD STYLE (Inspirado no Dashboard) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         {/* 1. SALDO ANTERIOR */}
-        <Card className="bg-card border-border">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <History className="h-4 w-4 text-muted-foreground/60" />
-              <span className="text-[13px] text-muted-foreground">Saldo anterior</span>
+        <Card className="stat-card border-none">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-secondary/50 flex items-center justify-center border border-border/20">
+                <History className="h-4 w-4 text-muted-foreground/60" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Saldo anterior</span>
             </div>
             <div className={cn(
-              "text-xl font-semibold font-mono tabular-nums text-foreground",
-              previousBalance < 0 && "text-destructive"
+              "text-xl font-black font-mono tabular-nums tracking-tight",
+              previousBalance < 0 ? "text-destructive" : "text-foreground"
             )}>
               {formatCurrency(previousBalance)}
             </div>
@@ -545,41 +554,47 @@ function TransactionsList() {
         </Card>
 
         {/* 2. TOTAL ENTRADAS */}
-        <Card className="bg-card border-border">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="h-4 w-4 text-success" />
-              <span className="text-[13px] text-muted-foreground">Total entradas</span>
+        <Card className="stat-card border-none">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Total entradas</span>
             </div>
-            <div className="text-xl font-semibold font-mono tabular-nums text-foreground">
+            <div className="text-xl font-black font-mono tabular-nums tracking-tight text-foreground">
               {formatCurrency(kpis.totalIncome)}
             </div>
           </CardContent>
         </Card>
 
         {/* 3. TOTAL SAÍDAS */}
-        <Card className="bg-card border-border">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingDown className="h-4 w-4 text-destructive" />
-              <span className="text-[13px] text-muted-foreground">Total saídas</span>
+        <Card className="stat-card border-none">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center border border-destructive/20">
+                <TrendingDown className="h-4 w-4 text-destructive" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Total saídas</span>
             </div>
-            <div className="text-xl font-semibold font-mono tabular-nums text-foreground">
+            <div className="text-xl font-black font-mono tabular-nums tracking-tight text-foreground">
               {formatCurrency(kpis.totalExpense)}
             </div>
           </CardContent>
         </Card>
 
         {/* 4. SALDO EM CAIXA (PRIMARY HIGHLIGHT) */}
-        <Card className="bg-card border-primary/40 shadow-md ring-2 ring-primary/5 relative overflow-hidden">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Wallet className="h-4 w-4 text-primary" />
-              <span className="text-[13px] text-foreground font-medium">Saldo em caixa</span>
+        <Card className="stat-card border-none ring-2 ring-primary/40 bg-gradient-to-br from-card to-primary/5">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Wallet className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-foreground font-bold">Saldo em caixa</span>
             </div>
             <div className={cn(
-              "text-xl font-semibold font-mono tabular-nums text-foreground",
-              (previousBalance + (kpis.totalIncome - kpis.totalExpense)) < 0 && "text-destructive"
+              "text-xl font-black font-mono tabular-nums tracking-tight",
+              (previousBalance + (kpis.totalIncome - kpis.totalExpense)) < 0 ? "text-destructive" : "text-primary"
             )}>
               {formatCurrency(previousBalance + (kpis.totalIncome - kpis.totalExpense))}
             </div>
@@ -587,13 +602,15 @@ function TransactionsList() {
         </Card>
 
         {/* 5. CONTAS A PAGAR (PENDENT / OVERDUE) */}
-        <Card className="bg-card border-border">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertCircle className="h-4 w-4 text-muted-foreground/60" />
-              <span className="text-[13px] text-muted-foreground">Contas a pagar</span>
+        <Card className="stat-card border-none">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                <AlertCircle className="h-4 w-4 text-orange-500" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Contas a pagar</span>
             </div>
-            <div className="text-xl font-semibold font-mono tabular-nums text-orange-600">
+            <div className="text-xl font-black font-mono tabular-nums tracking-tight text-orange-600">
               {formatCurrency(
                 sortedData.filter(tx => tx.status === 'pending' && tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0) +
                 overdueInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0)
@@ -605,53 +622,44 @@ function TransactionsList() {
 
 
       <Dialog open={!!viewingReceipt} onOpenChange={(o) => !o && setViewingReceipt(null)}>
-        <DialogContent className="sm:max-w-4xl bg-card p-0 overflow-hidden border-border shadow-2xl ring-1 ring-primary/10">
-          <DialogHeader className="p-6 border-b border-border bg-secondary/10 flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
-                <FileCheck className="h-5 w-5 text-primary" />
+        <DialogContent className="sm:max-w-4xl bg-card p-0 overflow-hidden border-border/40 shadow-2xl rounded-[2rem] backdrop-blur-xl">
+          <DialogHeader className="p-8 border-b border-border/40 bg-secondary/10 flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
+                <FileCheck className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-semibold tracking-tight">Visualizar Comprovante</DialogTitle>
-                <p className="text-[10px] text-muted-foreground font-semibold mt-1">Documento de Lançamento</p>
+                <DialogTitle className="text-2xl font-bold tracking-tight">Comprovante</DialogTitle>
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Documento de Lançamento</p>
               </div>
             </div>
           </DialogHeader>
 
           <div className="bg-secondary/5 relative">
-            <ScrollArea className="h-[65vh] w-full">
-              <div className="p-8 flex items-center justify-center min-h-full">
+            <ScrollArea className="h-[60vh] w-full">
+              <div className="p-10 flex items-center justify-center min-h-full">
                 {viewingReceipt && (
                   <div className="w-full flex items-center justify-center">
                     {viewingReceipt.toLowerCase().includes('.pdf') ? (
-                      <div className="flex flex-col items-center gap-8 py-16 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="h-28 w-28 rounded-[2.5rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/5">
-                          <FileText className="h-14 w-14 text-primary" />
+                      <div className="flex flex-col items-center gap-8 py-20 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="h-32 w-32 rounded-[2.5rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/5">
+                          <FileText className="h-16 w-16 text-primary" />
                         </div>
-                        <div className="text-center space-y-3">
-                          <p className="text-2xl font-semibold text-foreground uppercase tracking-tight">Documento PDF</p>
-                          <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mx-auto">Este arquivo está em formato PDF. Clique em "Baixar" para visualizar o conteúdo completo no navegador.</p>
+                        <div className="text-center space-y-4">
+                          <p className="text-2xl font-bold text-foreground">Documento PDF</p>
+                          <p className="text-[13px] text-muted-foreground max-w-sm leading-relaxed mx-auto font-medium">Este arquivo está em formato PDF. Clique para baixar e visualizar o conteúdo completo.</p>
                         </div>
                       </div>
                     ) : (
-                      <div className="relative group rounded-xl overflow-hidden border border-border shadow-2xl bg-background w-fit mx-auto animate-in fade-in zoom-in-95 duration-500">
+                      <div className="relative group rounded-2xl overflow-hidden border border-border/40 shadow-2xl bg-background w-fit mx-auto animate-in fade-in zoom-in-95 duration-500">
                         <img
                           src={viewingReceipt}
                           alt="Comprovante"
-                          className="max-w-full h-auto object-contain cursor-zoom-in"
+                          className="max-h-[50vh] w-auto object-contain cursor-zoom-in"
                           onClick={() => window.open(viewingReceipt, '_blank')}
-                          onLoad={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.opacity = "1";
-                          }}
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = "https://placehold.co/800x600/f3ede4/e69b1a?text=Erro+ao+carregar+imagem";
-                          }}
                         />
                         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
-                          <p className="text-white text-[11px] font-black uppercase tracking-widest">Clique para ver tamanho original</p>
-                          <p className="text-white/60 text-[9px] mt-1 uppercase font-bold tracking-tighter">Use o scroll para navegar em documentos longos</p>
+                          <p className="text-white text-[10px] font-bold uppercase tracking-widest">Clique para ver tamanho original</p>
                         </div>
                       </div>
                     )}
@@ -661,20 +669,20 @@ function TransactionsList() {
             </ScrollArea>
           </div>
 
-          <DialogFooter className="p-6 bg-secondary/10 border-t border-border flex flex-row items-center justify-end gap-3">
+          <DialogFooter className="p-8 bg-secondary/10 border-t border-border/40 flex flex-row items-center justify-end gap-3">
             <Button
               variant="outline"
-              className="h-11 px-8 font-bold border-border/50 bg-background transition-all"
+              className="h-11 px-8 font-bold border-border/60 premium-button transition-all"
               onClick={() => setViewingReceipt(null)}
             >
               Fechar
             </Button>
             {viewingReceipt && (
               <Button
-                className="h-11 px-10 gap-3 font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all bg-gradient-to-r from-primary to-primary/80"
+                className="h-11 px-10 gap-3 premium-button shadow-xl shadow-primary/20 hover:scale-[1.02] bg-primary text-primary-foreground"
                 onClick={() => handleDownload(viewingReceipt)}
               >
-                <Download className="h-5 w-5" />
+                <Download className="h-4.5 w-4.5" />
                 Baixar Arquivo
               </Button>
             )}
@@ -684,39 +692,46 @@ function TransactionsList() {
 
       {/* SEÇÃO 1: PENDÊNCIAS ACUMULADAS (ARREARS) */}
       {overdueInstallments.length > 0 && (
-        <Card className="bg-destructive/5 border-destructive/20 border-l-4 border-l-destructive shadow-none overflow-hidden">
-          <CardHeader className="py-3 bg-destructive/10">
+        <Card className="bg-destructive/5 border-destructive/20 border-l-4 border-l-destructive shadow-none overflow-hidden rounded-[1.5rem]">
+          <CardHeader className="py-4 bg-destructive/10 px-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive" />
-                <h4 className="text-xs font-bold text-destructive tracking-widest uppercase">Pendências Acumuladas (Vencidas)</h4>
-                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[9px] uppercase font-black">Atrasos</Badge>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-destructive/20 flex items-center justify-center border border-destructive/30">
+                  <AlertCircle className="h-4.5 w-4.5 text-destructive" />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-black text-destructive tracking-[0.2em] uppercase">Pendências de meses anteriores</h4>
+                  <p className="text-[10px] font-bold text-destructive/60 uppercase tracking-tighter mt-0.5">{overdueInstallments.length} pagamentos em atraso</p>
+                </div>
               </div>
-              <span className="text-[10px] font-bold text-destructive/70">{overdueInstallments.length} itens pendentes</span>
+              <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 text-[9px] uppercase font-black px-3 py-1 rounded-full animate-pulse">Ação Necessária</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableBody>
                 {overdueInstallments.map((inst: any) => (
-                  <TableRow key={inst.id} className="hover:bg-destructive/10 border-b border-destructive/10 transition-colors">
-                    <TableCell className="py-2 pl-4 w-[10%] text-xs font-mono text-destructive font-black whitespace-nowrap">{formatDate(inst.due_date)}</TableCell>
-                    <TableCell className="py-2 w-[40%]">
+                  <TableRow key={inst.id} className="hover:bg-destructive/10 border-b border-destructive/10 transition-colors h-14">
+                    <TableCell className="py-2 pl-6 w-[12%] text-[11px] font-mono text-destructive font-bold">{formatDate(inst.due_date)}</TableCell>
+                    <TableCell className="py-2 w-[38%]">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-bold text-destructive/80 leading-tight">{inst.purchase?.description}</span>
-                        <span className="text-[9px] text-destructive/60 font-black uppercase tracking-tighter mt-0.5">
-                          Atrasada: {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                        <span className="text-[9px] text-destructive/60 font-black uppercase tracking-wider mt-0.5">
+                          Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="py-2 w-[20%] text-center">
-                      <Badge variant="outline" className="text-[10px] border-destructive/20 text-destructive font-black uppercase">VENCIDA</Badge>
+                    <TableCell className="py-2 w-[15%] text-center">
+                      <div className="flex items-center justify-center">
+                        <div className="h-1.5 w-1.5 rounded-full bg-destructive animate-ping absolute" />
+                        <Badge variant="outline" className="text-[9px] border-destructive/30 text-destructive font-black uppercase bg-destructive/5">VENCIDA</Badge>
+                      </div>
                     </TableCell>
-                    <TableCell className="py-2 w-[20%] text-right font-mono font-black text-destructive pr-4">{formatCurrency(inst.amount)}</TableCell>
-                    <TableCell className="py-2 w-[10%] text-right pr-4">
+                    <TableCell className="py-2 w-[18%] text-right font-mono font-black text-destructive pr-6">{formatCurrency(inst.amount)}</TableCell>
+                    <TableCell className="py-2 w-[12%] text-right pr-6">
                       <button
                         onClick={() => handlePayInstallment(inst)}
-                        className="p-1 px-2 rounded-md bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all text-[9px] font-black uppercase"
+                        className="px-4 py-1.5 rounded-full bg-destructive text-white hover:bg-destructive/90 transition-all text-[9px] font-black uppercase shadow-lg shadow-destructive/20"
                       >
                         PAGAR
                       </button>
@@ -730,56 +745,64 @@ function TransactionsList() {
       )}
 
       {/* SEÇÃO 2: PARCELAS DA COMPETÊNCIA (COMPACT DESIGN) */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-primary/70" />
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Obrigações da Competência</span>
-          </div>
-          <Badge variant="outline" className="text-[9px] font-black uppercase text-muted-foreground/50 border-border/50">Mês de Referência</Badge>
+          <h4 className="section-header !mb-0">Obrigações da Competência</h4>
+          <Badge variant="outline" className="text-[9px] font-black uppercase text-muted-foreground/40 border-border/40 px-3 py-1 rounded-full">Procurar Pagamento</Badge>
         </div>
 
-        <Card className="bg-card border-border shadow-sm overflow-hidden border-l-4 border-l-primary/30">
+        <Card className="stat-card border-none overflow-hidden border-l-4 border-l-primary/30">
           <CardContent className="p-0">
             {loadingInstallments ? (
-              <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto opacity-20" /></div>
+              <div className="p-12 text-center">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary opacity-40" />
+                <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-4">Carregando obrigações...</p>
+              </div>
             ) : installments.length === 0 ? (
-              <div className="p-6 text-center text-xs italic text-muted-foreground bg-secondary/5">Nenhuma obrigação parcelada para esta competência</div>
+              <div className="p-10 text-center flex flex-col items-center gap-2 bg-secondary/5 rounded-2xl">
+                <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center mb-2">
+                  <CalendarClock className="h-5 w-5 text-muted-foreground/40" />
+                </div>
+                <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">Nenhuma obrigação para este mês</p>
+              </div>
             ) : (
               <Table>
                 <TableBody>
                   {installments.map((inst: any) => (
-                    <TableRow key={inst.id} className="group hover:bg-secondary/10 transition-colors border-b border-border/10 last:border-0 h-10">
-                      <TableCell className="py-2 pl-4 w-[12%] text-[11px] font-black text-muted-foreground italic whitespace-nowrap">
+                    <TableRow key={inst.id} className="group hover:bg-secondary/10 transition-colors border-b border-border/40 last:border-0 h-14">
+                      <TableCell className="py-2 pl-6 w-[12%] text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter whitespace-nowrap">
                         {months.find(m => m.value === inst.competence_date.split('-')[1])?.label.substring(0, 3)}/{inst.competence_date.split('-')[0]}
                       </TableCell>
                       <TableCell className="py-2 w-[35%]">
                         <div className="flex flex-col">
-                          <span className="text-[13px] font-bold leading-tight">{inst.purchase?.description}</span>
-                          <span className="text-[10px] text-muted-foreground font-black uppercase tracking-tighter mt-0.5">
+                          <span className="text-[13px] font-bold leading-tight group-hover:text-primary transition-colors">{inst.purchase?.description}</span>
+                          <span className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-wider mt-0.5">
                             Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="py-2 w-[18%] text-[11px] font-mono text-center text-muted-foreground">Venc: {formatDate(inst.due_date)}</TableCell>
+                      <TableCell className="py-2 w-[18%] text-[11px] font-mono text-center text-muted-foreground/70 font-medium">Venc: {formatDate(inst.due_date)}</TableCell>
                       <TableCell className="py-2 w-[15%] text-center">
                         <Badge
                           variant="outline"
                           className={cn(
-                            "text-[8px] font-black uppercase px-2 py-0 border-border/50",
-                            inst.status === 'PAGA' || inst.status === 'PAGA_COM_ATRASO' ? "bg-success/5 text-success border-success/10" :
-                              inst.status === 'VENCIDA' ? "bg-destructive/5 text-destructive border-destructive/10" : "bg-orange-500/5 text-orange-600 border-orange-500/10"
+                            "text-[8px] font-black uppercase px-3 py-1 border-border/40 rounded-full",
+                            inst.status === 'PAGA' || inst.status === 'PAGA_COM_ATRASO'
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                              inst.status === 'VENCIDA'
+                                ? "bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_12px_rgba(var(--destructive),0.1)]"
+                                : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                           )}
                         >
                           {inst.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2 w-[12%] text-right font-mono font-black text-foreground/80">{formatCurrency(inst.amount)}</TableCell>
-                      <TableCell className="py-2 w-[10%] text-right pr-4">
+                      <TableCell className="py-2 w-[15%] text-right font-mono font-black text-foreground/80 pr-6">{formatCurrency(inst.amount)}</TableCell>
+                      <TableCell className="py-2 w-[10%] text-right pr-6">
                         {inst.status !== 'PAGA' && inst.status !== 'PAGA_COM_ATRASO' && (
                           <button
                             onClick={() => handlePayInstallment(inst)}
-                            className="p-1 px-2 rounded-md bg-success/10 text-success hover:bg-success hover:text-white transition-all text-[9px] font-black uppercase"
+                            className="px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all text-[9px] font-black uppercase border border-primary/20 shadow-sm"
                           >
                             PAGAR
                           </button>

@@ -9,8 +9,7 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\GlobalSearch.tsx
   34:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\GoogleDriveConnector.tsx
-  34:8   warning  React Hook useEffect has missing dependencies: 'loadContents' and 'loadFolders'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
-  53:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                  @typescript-eslint/ban-ts-comment
+  34:8  warning  React Hook useEffect has missing dependencies: 'loadContents' and 'loadFolders'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\OnboardingModal.tsx
   34:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
@@ -43,9 +42,6 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\badge.tsx
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\button.tsx
   47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
-Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\command.tsx
-  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
-
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\form.tsx
   129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
 
@@ -57,9 +53,6 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\sidebar.tsx
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\sonner.tsx
   27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\textarea.tsx
-  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\components\ui\toggle.tsx
   37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
@@ -163,8 +156,7 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\Patrimonio.tsx
   58:6  warning  React Hook useEffect has a missing dependency: 'fetchAssets'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\Reports.tsx
-   34:17  warning  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
-  108:1   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  34:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\SecretariaDashboard.tsx
    17:54  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
@@ -178,16 +170,8 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\SecretariaDashboard.tsx
    38:54  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
    42:72  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
    59:6   warning  React Hook useEffect has missing dependencies: 'fetchBirthdays', 'fetchCongregations', 'fetchCounts', 'fetchDemographics', 'fetchGrowthData', 'fetchIncompleteProfiles', and 'fetchRecentActivity'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
-   65:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
-  118:36  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
-  131:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
-  158:16  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
-  171:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
-  188:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
-  201:11  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                     @typescript-eslint/ban-ts-comment
-  206:11  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                     @typescript-eslint/ban-ts-comment
-  269:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
-  299:19  error    Empty block statement                                                                                                                                                                                                                                   no-empty
+  120:36  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  162:16  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
 
 Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\ServicoSocial.tsx
   35:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
@@ -241,5 +225,5 @@ Y:\CRIA├ç├âO DE MICRO SAAS\Mordus\src\pages\Transactions.tsx
   869:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   945:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-Ô£û 166 problems (12 errors, 154 warnings)
+Ô£û 154 problems (0 errors, 154 warnings)
 
