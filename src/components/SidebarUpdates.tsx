@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Cake, AlertCircle, CalendarDays, TrendingUp, ArrowRight, Wallet, User, History, Sparkles, X } from "lucide-react";
+import { Cake, AlertCircle, CalendarDays, TrendingUp, ArrowRight, Wallet, User, History, Sparkles, X, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -19,15 +19,15 @@ interface InsightItem {
     colorClass: string;
     url?: string;
     onClick?: () => void;
-    member?: any; // For birthdays
-    amount?: number; // For bills
-    date?: string; // For bills
-    isOverdue?: boolean; // For bills
+    member?: any;
+    amount?: number;
+    date?: string;
+    isOverdue?: boolean;
 }
 
 // --- Helper Components ---
 
-function InsightSlot({ items, slotIndex }: { items: InsightItem[], slotIndex: number }) {
+function InsightSlot({ items, slotIndex, fallback }: { items: InsightItem[], slotIndex: number, fallback: React.ReactNode }) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
@@ -38,13 +38,14 @@ function InsightSlot({ items, slotIndex }: { items: InsightItem[], slotIndex: nu
 
         const timer = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % items.length);
-        }, 6000 + (slotIndex * 1500)); // Stagger the rotation based on slot
+        }, 6000 + (slotIndex * 1500));
 
         return () => clearInterval(timer);
     }, [items.length, slotIndex]);
 
+    if (items.length === 0) return <>{fallback}</>;
+
     const activeItem = items[currentIndex];
-    if (!activeItem) return null;
 
     return (
         <div key={activeItem.id} className="animate-in slide-in-from-right-4 fade-in duration-700 ease-out">
@@ -118,7 +119,7 @@ function BirthdayCard({ member, count }: { member: any, count: number }) {
 function BillCard({ item, count }: { item: InsightItem, count: number }) {
     return (
         <div className={cn(
-            "rounded-2xl p-5 border relative overflow-hidden group transition-all duration-300 h-[120px] flex flex-col justify-center",
+            "rounded-2xl p-5 border relative overflow-hidden group transition-all duration-300 h-[120px] flex flex-col justify-center shadow-sm",
             item.isOverdue ? "bg-destructive/5 border-destructive/20" : "bg-orange-500/5 border-orange-500/20"
         )}>
             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -132,11 +133,11 @@ function BillCard({ item, count }: { item: InsightItem, count: number }) {
             </div>
             <div className="flex justify-between items-center pr-4">
                 <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-foreground/80 truncate leading-tight mb-1">{item.description}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">Vence em {item.date}</p>
+                    <p className="text-[12px] font-bold text-foreground/80 truncate leading-tight mb-1">{item.description}</p>
+                    <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tighter">Vencimento: {item.date}</p>
                 </div>
                 <div className="text-right shrink-0">
-                    <p className={cn("text-[14px] font-mono font-black", item.isOverdue ? "text-destructive" : "text-foreground")}>
+                    <p className={cn("text-[13px] font-mono font-black", item.isOverdue ? "text-destructive" : "text-foreground")}>
                         {item.amount?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </p>
                 </div>
@@ -159,14 +160,14 @@ function GeneralCard({ item, count }: { item: InsightItem, count: number }) {
 
     return (
         <div className={cn(
-            "rounded-2xl p-5 border relative overflow-hidden group transition-all duration-300 h-[120px] flex flex-col justify-center",
+            "rounded-2xl p-5 border relative overflow-hidden group transition-all duration-300 h-[120px] flex flex-col justify-center shadow-sm",
             item.colorClass === "primary" ? "bg-primary/5 border-primary/20" :
                 item.colorClass === "amber" ? "bg-amber-500/5 border-amber-500/20" :
                     "bg-secondary/20 border-border/50"
         )}>
             {isCopilot && (
                 <div className="absolute top-0 right-0 p-2 z-10">
-                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); clearAlert(); }} className="text-muted-foreground hover:text-foreground p-1">
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); clearAlert(); }} className="text-muted-foreground hover:text-foreground p-1 transition-colors">
                         <X className="h-3 w-3" />
                     </button>
                 </div>
@@ -175,7 +176,7 @@ function GeneralCard({ item, count }: { item: InsightItem, count: number }) {
                 {isCopilot ? <Sparkles className="h-10 w-10 text-primary" /> : <History className="h-10 w-10 text-amber-500" />}
             </div>
             <div className="flex items-center gap-2 mb-2">
-                <div className={cn("h-3 w-3", item.colorClass === 'primary' ? 'text-primary' : 'text-amber-500')}>
+                <div className={cn("h-3 w-3 flex items-center justify-center", item.colorClass === 'primary' ? 'text-primary' : 'text-amber-500')}>
                     {isCopilot ? <Sparkles className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                 </div>
                 <span className={cn("text-[10px] font-bold uppercase tracking-widest", item.colorClass === 'primary' ? 'text-primary' : 'text-amber-500/80')}>
@@ -186,7 +187,7 @@ function GeneralCard({ item, count }: { item: InsightItem, count: number }) {
                 {item.description}
             </p>
             {item.url && (
-                <Link to={item.url} className={cn("flex items-center gap-1 text-[10px] font-bold mt-3 hover:gap-2 transition-all", item.colorClass === 'primary' ? 'text-primary' : 'text-amber-600')}>
+                <Link to={item.url} className={cn("flex items-center gap-1 text-[10px] font-bold mt-4 hover:gap-2 transition-all w-fit", item.colorClass === 'primary' ? 'text-primary' : 'text-amber-600')}>
                     {isCopilot ? "RESOLVER AGORA" : "VER DETALHES"} <ArrowRight className="h-3 w-3" />
                 </Link>
             )}
@@ -208,7 +209,6 @@ export function SidebarUpdates() {
     const { organization, settings } = useChurch();
     const { sidebarAlert } = useCopilot();
 
-    // 1. Fetch Birthdays
     const { data: birthdays = [] } = useQuery({
         queryKey: ["sidebar-birthdays", organization?.id],
         queryFn: async () => {
@@ -224,7 +224,6 @@ export function SidebarUpdates() {
         enabled: !!organization?.id,
     });
 
-    // 2. Fetch Bills
     const { data: bills = [] } = useQuery({
         queryKey: ["sidebar-bills", organization?.id, settings.reminderDays],
         queryFn: async () => {
@@ -245,7 +244,6 @@ export function SidebarUpdates() {
         enabled: !!organization?.id,
     });
 
-    // 3. Fetch Missing Receipts
     const { data: missingReceipts = 0 } = useQuery({
         queryKey: ["sidebar-missing-receipts", organization?.id],
         queryFn: async () => {
@@ -256,9 +254,7 @@ export function SidebarUpdates() {
         enabled: !!organization?.id,
     });
 
-    // 4. Organize into Categories
     const categories = useMemo(() => {
-        // FINANCIAL
         const financialItems: InsightItem[] = bills.map(b => ({
             id: b.id,
             category: "FINANCIAL",
@@ -270,7 +266,6 @@ export function SidebarUpdates() {
             url: "/lancamentos"
         }));
 
-        // ATTENTION
         const attentionItems: InsightItem[] = [];
         if (sidebarAlert.active) {
             attentionItems.push({
@@ -293,7 +288,6 @@ export function SidebarUpdates() {
             });
         }
 
-        // PEOPLE
         const peopleItems: InsightItem[] = birthdays.map(m => ({
             id: `bday-${m.id}`,
             category: "PEOPLE",
@@ -302,41 +296,64 @@ export function SidebarUpdates() {
             member: m
         }));
 
-        return {
-            FINANCIAL: financialItems,
-            ATTENTION: attentionItems,
-            PEOPLE: peopleItems
-        };
+        return { FINANCIAL: financialItems, ATTENTION: attentionItems, PEOPLE: peopleItems };
     }, [bills, sidebarAlert, missingReceipts, birthdays]);
 
-    // Render Slots
     return (
         <div className="space-y-4">
-            {categories.FINANCIAL.length > 0 && (
-                <InsightSlot items={categories.FINANCIAL} slotIndex={0} />
-            )}
-
-            {categories.ATTENTION.length > 0 && (
-                <InsightSlot items={categories.ATTENTION} slotIndex={1} />
-            )}
-
-            {categories.PEOPLE.length > 0 ? (
-                <InsightSlot items={categories.PEOPLE} slotIndex={2} />
-            ) : (
-                // Fallback People Insight if no bdays
-                <div className="bg-secondary/20 border border-border/50 rounded-2xl p-5 relative overflow-hidden group h-[120px] flex flex-col justify-center">
-                    <div className="absolute top-0 right-0 p-2 opacity-10">
-                        <TrendingUp className="h-10 w-10 text-primary" />
+            {/* SLOT 1: FINANCIAL */}
+            <InsightSlot
+                items={categories.FINANCIAL}
+                slotIndex={0}
+                fallback={
+                    <div className="bg-secondary/10 border border-border/40 rounded-2xl p-5 h-[120px] flex flex-col justify-center transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-500 opacity-60" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Finanças em Dia</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-muted-foreground/50 leading-tight">
+                            Nenhuma conta próxima ao vencimento por enquanto.
+                        </p>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status do Dia</span>
+                }
+            />
+
+            {/* SLOT 2: ATTENTION */}
+            <InsightSlot
+                items={categories.ATTENTION}
+                slotIndex={1}
+                fallback={
+                    <div className="bg-secondary/10 border border-border/40 rounded-2xl p-5 h-[120px] flex flex-col justify-center transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-500 opacity-60" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Sem Pendências</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-muted-foreground/50 leading-tight">
+                            Tudo organizado! Não encontramos alertas operacionais.
+                        </p>
                     </div>
-                    <p className="text-[11px] font-medium text-foreground leading-tight">
-                        Tudo em ordem na secretaria hoje.
-                    </p>
-                </div>
-            )}
+                }
+            />
+
+            {/* SLOT 3: PEOPLE / STATUS */}
+            <InsightSlot
+                items={categories.PEOPLE}
+                slotIndex={2}
+                fallback={
+                    <div className="bg-secondary/20 border border-border/50 rounded-2xl p-5 h-[120px] flex flex-col justify-center transition-all group">
+                        <div className="absolute top-0 right-0 p-2 opacity-10">
+                            <TrendingUp className="h-10 w-10 text-primary" />
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status do Dia</span>
+                        </div>
+                        <p className="text-[11px] font-medium text-foreground leading-tight">
+                            Excelente trabalho hoje! Sua igreja está bem cuidada.
+                        </p>
+                    </div>
+                }
+            />
         </div>
     );
 }
