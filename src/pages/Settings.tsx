@@ -660,6 +660,147 @@ export default function Settings() {
             </div>
           </TabsContent>
 
+          {/* ── FINANCEIRO ───────────────────────────────── */}
+          <TabsContent value="financeiro" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="max-w-3xl space-y-6">
+              <Card className="stat-card border-none overflow-hidden">
+                <CardHeader className="bg-secondary/10 border-b border-border/40 py-5 px-8">
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3 text-emerald-600">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Dados Bancários & PIX
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-widest opacity-60">Informações para recebimentos e depósitos</p>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Banco</Label>
+                      <Input value={orgForm.bank_name} onChange={e => setOrgForm({ ...orgForm, bank_name: e.target.value })} className="h-12 border-border/40 bg-background/50 rounded-xl font-medium" />
+                    </div>
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Agência</Label>
+                      <Input value={orgForm.bank_agency} onChange={e => setOrgForm({ ...orgForm, bank_agency: e.target.value })} className="h-12 border-border/40 bg-background/50 rounded-xl font-medium" />
+                    </div>
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Conta Corrente</Label>
+                      <Input value={orgForm.bank_account} onChange={e => setOrgForm({ ...orgForm, bank_account: e.target.value })} className="h-12 border-border/40 bg-background/50 rounded-xl font-medium" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-secondary/10 p-6 rounded-2xl border border-border/40">
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Tipo de Chave PIX</Label>
+                      <Select value={orgForm.pix_key_type} onValueChange={v => setOrgForm({ ...orgForm, pix_key_type: v })}>
+                        <SelectTrigger className="h-12 border-border/40 bg-background rounded-xl font-medium tracking-tight">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border/40">
+                          <SelectItem value="CNPJ">CNPJ</SelectItem>
+                          <SelectItem value="E-mail">E-mail</SelectItem>
+                          <SelectItem value="Telefone">Telefone</SelectItem>
+                          <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Chave PIX</Label>
+                      <Input value={orgForm.pix_key} onChange={e => setOrgForm({ ...orgForm, pix_key: e.target.value })} className="h-12 border-border/40 bg-background rounded-xl font-medium" />
+                    </div>
+                  </div>
+
+                  <div className="p-6 rounded-2xl border border-emerald-500/10 bg-emerald-500/5 transition-all hover:bg-emerald-500/10 active:scale-[0.99] cursor-pointer" onClick={() => setOrgForm({ ...orgForm, closure_mode: orgForm.closure_mode === 'flexible' ? 'continuous' : 'flexible' })}>
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-3">
+                          <div className={cn("h-2.5 w-2.5 rounded-full", orgForm.closure_mode === 'flexible' ? "bg-emerald-500" : "bg-muted-foreground/30")} />
+                          <p className="text-sm font-black uppercase tracking-widest text-emerald-950">Modo de Fechamento Flexível</p>
+                        </div>
+                        <p className="text-[11px] text-emerald-700/60 leading-relaxed font-medium">
+                          Permite fechar qualquer mês sem ordem cronológica. Recomendado apenas para ajustes retroativos.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={orgForm.closure_mode === 'flexible'}
+                        onCheckedChange={(checked) => setOrgForm({ ...orgForm, closure_mode: checked ? 'flexible' : 'continuous' })}
+                        className="data-[state=checked]:bg-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  {canWrite && (
+                    <div className="flex justify-end pt-4">
+                      <Button onClick={handleSaveOrg} disabled={isSavingOrg} className="premium-button bg-emerald-600 hover:bg-emerald-700 text-white h-12 px-10 text-xs font-bold gap-2">
+                        {isSavingOrg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                        Salvar Informações Financeiras
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* ── ARMAZENAMENTO ──────────────────────────────── */}
+          <TabsContent value="armazenamento" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="max-w-3xl space-y-6">
+              <div className="pb-2">
+                <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  Armazenamento em Nuvem
+                </h3>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-widest opacity-60">Conecte o Google Drive para armazenar documentos da organização</p>
+              </div>
+              <GoogleDriveConnector />
+            </div>
+          </TabsContent>
+
+          {/* ── DIGITAL ────────────────────────────────────── */}
+          <TabsContent value="digital" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="max-w-3xl space-y-6">
+              <Card className="stat-card border-none overflow-hidden">
+                <CardHeader className="bg-secondary/10 border-b border-border/40 py-5 px-8">
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3 text-orange-600">
+                      <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                      Presença Digital
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-widest opacity-60">Redes sociais e canais oficiais</p>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Instagram</Label>
+                      <Input value={orgForm.instagram} onChange={e => setOrgForm({ ...orgForm, instagram: e.target.value })} placeholder="@mordusapp" className="h-12 border-border/40 bg-background/50 rounded-xl" />
+                    </div>
+                    <div className="space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">WhatsApp da Organização</Label>
+                      <Input value={orgForm.whatsapp} onChange={e => setOrgForm({ ...orgForm, whatsapp: e.target.value })} placeholder="5500000000000" className="h-12 border-border/40 bg-background/50 rounded-xl" />
+                    </div>
+                    <div className="md:col-span-2 space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Página do Facebook (URL)</Label>
+                      <Input value={orgForm.facebook} onChange={e => setOrgForm({ ...orgForm, facebook: e.target.value })} className="h-12 border-border/40 bg-background/50 rounded-xl" />
+                    </div>
+                    <div className="md:col-span-2 space-y-2.5">
+                      <Label className="text-[11px] font-black uppercase tracking-widest opacity-60 ml-1">Canal no Youtube (URL)</Label>
+                      <Input value={orgForm.youtube} onChange={e => setOrgForm({ ...orgForm, youtube: e.target.value })} className="h-12 border-border/40 bg-background/50 rounded-xl" />
+                    </div>
+                  </div>
+                  {canWrite && (
+                    <div className="flex justify-end pt-4">
+                      <Button onClick={handleSaveOrg} disabled={isSavingOrg} className="premium-button bg-orange-600 hover:bg-orange-700 text-white h-12 px-10 text-xs font-bold gap-2">
+                        {isSavingOrg ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                        Salvar Canais Digitais
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="equipe" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="max-w-5xl space-y-6">
               <Card className="stat-card border-none overflow-hidden">
