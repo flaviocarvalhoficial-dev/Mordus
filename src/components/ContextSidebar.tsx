@@ -3,7 +3,7 @@ import {
     Users, UsersRound, Building2, FileText, MapPinned,
     Heart, CalendarDays, Handshake, Crown, LayoutDashboard,
     ArrowUpDown, FolderOpen, Lock, Bell, AlertCircle, TrendingUp,
-    ChevronRight, ArrowRight, User, Settings, ShieldCheck, History, HardDrive, Layers,
+    ChevronRight, ArrowRight, User, Settings, ShieldCheck, History, Layers,
     Sparkles, HelpCircle
 } from "lucide-react";
 import { useChurch } from "@/contexts/ChurchContext";
@@ -59,9 +59,6 @@ const TESOURARIA_ITEMS: SubItem[] = [
 const SISTEMA_ITEMS: SubItem[] = [
     { title: "Meu Perfil", url: "/configuracoes?tab=perfil", icon: User },
     { title: "Instituição", url: "/configuracoes?tab=igreja", icon: Building2 },
-    { title: "Financeiro", url: "/configuracoes?tab=financeiro", icon: ArrowUpDown },
-    { title: "Armazenamento", url: "/configuracoes?tab=armazenamento", icon: HardDrive },
-    { title: "Digital", url: "/configuracoes?tab=digital", icon: FileText },
     { title: "Configurações", url: "/configuracoes?tab=preferencias", icon: Settings },
     { title: "Equipe", url: "/configuracoes?tab=equipe", icon: ShieldCheck },
     { title: "Auditoria", url: "/configuracoes?tab=auditoria", icon: History },
