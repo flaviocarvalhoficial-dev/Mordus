@@ -158,14 +158,14 @@ export function GlobalSearch() {
         <>
             <div
                 onClick={() => setOpen(true)}
-                className="flex-1 max-w-sm relative group mx-4 h-8 flex items-center cursor-pointer"
+                className="flex-1 max-w-sm relative group mx-4 h-9 flex items-center cursor-pointer"
             >
-                <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                <div className="w-full h-8 bg-secondary/50 border border-border/50 pl-8 pr-3 flex items-center text-[13px] text-muted-foreground hover:bg-secondary/70 transition-all rounded-lg">
+                <Search className="absolute left-3 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="w-full h-9 bg-secondary/40 border border-border/50 pl-10 pr-3 flex items-center text-[13px] text-muted-foreground hover:bg-secondary/60 transition-all rounded-full shadow-inner">
                     <span>Pesquisar no Mordus...</span>
-                    <div className="ml-auto flex items-center gap-1 opacity-50">
-                        <CommandIcon className="h-2.5 w-2.5" />
-                        <span className="text-[10px]">K</span>
+                    <div className="ml-auto flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] font-bold">CTRL</span>
+                        <span className="text-[10px] font-black">+ K</span>
                     </div>
                 </div>
             </div>

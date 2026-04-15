@@ -409,7 +409,7 @@ function MembersList() {
         </div>
         <PermissionGuard requireWrite>
           <Button
-            className="premium-button bg-primary text-primary-foreground h-11 px-8 text-xs font-bold gap-2"
+            className="px-8 text-xs font-bold gap-2"
             onClick={() => { setEditingId(null); setForm(emptyMember); setDialogOpen(true); setCurrentStep(1); }}
           >
             <UserPlus className="h-5 w-5" />Novo Membro
@@ -590,7 +590,7 @@ function MembersList() {
                               onKeyDown={(e) => e.key === 'Enter' && handleQuickDeptCreate()}
                               autoFocus
                             />
-                            <Button className="w-full h-8 text-[10px] font-bold gap-2" size="sm" onClick={handleQuickDeptCreate}>
+                            <Button variant="default" className="w-full text-[10px] font-bold gap-2" size="sm" onClick={handleQuickDeptCreate}>
                               <Save className="h-3 w-3" /> Salvar Departamento
                             </Button>
                           </div>
@@ -627,7 +627,7 @@ function MembersList() {
                               onKeyDown={(e) => e.key === 'Enter' && handleQuickRoleCreate()}
                               autoFocus
                             />
-                            <Button className="w-full h-8 text-[10px] font-bold gap-2" size="sm" onClick={handleQuickRoleCreate}>
+                            <Button variant="default" className="w-full text-[10px] font-bold gap-2" size="sm" onClick={handleQuickRoleCreate}>
                               <Save className="h-3 w-3" /> Salvar Cargo
                             </Button>
                           </div>
@@ -707,7 +707,8 @@ function MembersList() {
                               autoFocus
                             />
                             <Button
-                              className="w-full h-8 text-[10px] font-bold gap-2"
+                              variant="default"
+                              className="w-full text-[10px] font-bold gap-2"
                               size="sm"
                               onClick={handleQuickCongregationCreate}
                             >
@@ -785,7 +786,7 @@ function MembersList() {
             {currentStep > 1 && (
               <Button
                 variant="outline"
-                className="flex-1 h-11 font-bold group border-border/50 bg-background"
+                className="flex-1 font-bold group"
                 onClick={prevStep}
                 disabled={isSaving}
               >
@@ -796,7 +797,7 @@ function MembersList() {
 
             {currentStep < 3 ? (
               <Button
-                className="flex-[2] h-11 font-bold group shadow-lg shadow-primary/10"
+                className="flex-[2] font-bold group shadow-lg shadow-primary/10"
                 onClick={nextStep}
               >
                 Continuar
@@ -804,7 +805,7 @@ function MembersList() {
               </Button>
             ) : (
               <Button
-                className="flex-[2] h-11 font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all bg-gradient-to-r from-primary to-primary/80"
+                className="flex-[2] font-bold uppercase tracking-widest shadow-xl shadow-primary/20"
                 onClick={handleSave}
                 disabled={isSaving || uploading}
               >

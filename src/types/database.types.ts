@@ -336,6 +336,9 @@ export type Database = {
                     organization_id: string
                     total_amount: number
                     total_installments: number
+                    category_id: string | null
+                    payment_method_id: string | null
+                    updated_at: string | null
                 }
                 Insert: {
                     created_at?: string | null
@@ -344,6 +347,9 @@ export type Database = {
                     organization_id: string
                     total_amount: number
                     total_installments: number
+                    category_id?: string | null
+                    payment_method_id?: string | null
+                    updated_at?: string | null
                 }
                 Update: {
                     created_at?: string | null
@@ -352,6 +358,9 @@ export type Database = {
                     organization_id?: string
                     total_amount?: number
                     total_installments?: number
+                    category_id?: string | null
+                    payment_method_id?: string | null
+                    updated_at?: string | null
                 }
                 Relationships: [
                     {
@@ -374,6 +383,11 @@ export type Database = {
                     paid_at: string | null
                     purchase_id: string
                     status: string
+                    competence_date: string | null
+                    payment_date: string | null
+                    total_installments: number | null
+                    updated_at: string | null
+                    receipt_url: string | null
                 }
                 Insert: {
                     amount: number
@@ -385,6 +399,11 @@ export type Database = {
                     paid_at?: string | null
                     purchase_id: string
                     status?: string
+                    competence_date?: string | null
+                    payment_date?: string | null
+                    total_installments?: number | null
+                    updated_at?: string | null
+                    receipt_url?: string | null
                 }
                 Update: {
                     amount?: number
@@ -396,6 +415,11 @@ export type Database = {
                     paid_at?: string | null
                     purchase_id?: string
                     status?: string
+                    competence_date?: string | null
+                    payment_date?: string | null
+                    total_installments?: number | null
+                    updated_at?: string | null
+                    receipt_url?: string | null
                 }
                 Relationships: [
                     {
@@ -794,6 +818,11 @@ export type Database = {
                     receipt_url: string | null
                     status: string | null
                     type: string
+                    installment_id: string | null
+                    payment_method_id: string | null
+                    occasion: string | null
+                    competence_date: string | null
+                    notes: string | null
                 }
                 Insert: {
                     amount: number
@@ -808,6 +837,11 @@ export type Database = {
                     receipt_url?: string | null
                     status?: string | null
                     type: string
+                    installment_id?: string | null
+                    payment_method_id?: string | null
+                    occasion?: string | null
+                    competence_date?: string | null
+                    notes?: string | null
                 }
                 Update: {
                     amount?: number
@@ -822,6 +856,11 @@ export type Database = {
                     receipt_url?: string | null
                     status?: string | null
                     type?: string
+                    installment_id?: string | null
+                    payment_method_id?: string | null
+                    occasion?: string | null
+                    competence_date?: string | null
+                    notes?: string | null
                 }
                 Relationships: [
                     {

@@ -209,8 +209,8 @@ export default function Dashboard() {
                 <TransactionsDialog
                   onSuccess={refreshData}
                   trigger={
-                    <Button className="h-10 px-6 text-xs font-bold gap-2 premium-button bg-primary text-primary-foreground">
-                      <Plus className="h-4.5 w-4.5" />
+                    <Button className="px-6 text-xs font-bold gap-2">
+                      <Plus className="h-4 w-4" />
                       Novo Lançamento
                     </Button>
                   }
@@ -424,8 +424,8 @@ export default function Dashboard() {
 
                   </div>
                   <Link to="/lancamentos?tab=relatorios" className="block w-full mt-6">
-                    <Button variant="outline" className="w-full h-10 text-[10px] font-bold uppercase tracking-widest border-border/60 premium-button hover:bg-primary/5 hover:text-primary transition-all">
-                      <Eye className="h-4 w-4 mr-2" />
+                    <Button variant="outline" className="w-full text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                      <Eye className="h-4 w-4" />
                       Visualizar Relatório
                     </Button>
                   </Link>

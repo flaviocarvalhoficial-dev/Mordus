@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X, Settings2, Columns, Loader2, History, AlertTriangle, Milestone, CalendarClock, AlertCircle, Clock, CheckCircle2, MoreHorizontal, TrendingUp, TrendingDown, Wallet, HandCoins, Coins } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X, Settings2, Columns, Loader2, History, AlertTriangle, Milestone, CalendarClock, AlertCircle, Clock, CheckCircle2, MoreHorizontal, TrendingUp, TrendingDown, Wallet, HandCoins, Coins, PanelRightOpen, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TransactionsDialog } from "@/components/TransactionsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -31,8 +32,6 @@ import Reports from "./Reports";
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   categories?: { name: string; color: string | null } | null;
   payment_method_cat?: { name: string } | null;
-  receipt_url?: string | null;
-  occasion?: string | null;
   isInstallmentPending?: boolean;
   originalInstallment?: any;
 };
@@ -85,6 +84,7 @@ function TransactionsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showTotals, setShowTotals] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const [isObligationsOpen, setIsObligationsOpen] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const saved = localStorage.getItem('mordus_visible_columns');
     return saved ? JSON.parse(saved) : ["date", "description", "category", "status", "amount"];
@@ -179,7 +179,7 @@ function TransactionsList() {
       const { data, error } = await query.order("date", { ascending: false });
 
       if (error) throw error;
-      return data as Transaction[];
+      return (data as any) as Transaction[];
     },
     enabled: !!organization?.id,
   });
@@ -411,7 +411,6 @@ function TransactionsList() {
       isInstallmentPending: false
     })) as (Transaction & { isInstallmentPending: boolean; originalInstallment?: any })[];
 
-    // 2. Pegamos as parcelas que AINDA NÃO têm uma transação correspondente (Previsto)
     const pendingInstallments = installments
       .filter(inst => inst.status === 'PENDENTE' || inst.status === 'VENCIDA')
       .filter(inst => !transactions.some(tx => tx.installment_id === inst.id))
@@ -420,15 +419,23 @@ function TransactionsList() {
         date: inst.due_date,
         description: `[P ${String(inst.installment_number).padStart(2, '0')}/${String(inst.total_installments).padStart(2, '0')}] ${inst.purchase?.description}`,
         amount: Number(inst.amount),
-        type: 'expense' as const,
-        status: inst.status === 'VENCIDA' ? 'pending' : 'pending', // Tratamos como pending para o Switch
-        category_id: inst.purchase?.category_id,
-        payment_method_id: inst.purchase?.payment_method_id,
-        categories: categories.find(c => c.id === inst.purchase?.category_id) as any,
+        type: 'expense',
+        status: inst.status === 'VENCIDA' ? 'pending' : 'pending',
+        category_id: (inst.purchase as any)?.category_id || null,
+        payment_method_id: (inst.purchase as any)?.payment_method_id || null,
+        categories: categories.find(c => c.id === (inst.purchase as any)?.category_id) || null,
         isInstallmentPending: true,
         originalInstallment: inst,
-        created_at: inst.created_at
-      }));
+        created_at: inst.created_at || new Date().toISOString(),
+        organization_id: organization?.id || "",
+        payment_method: null,
+        receipt_url: inst.receipt_url || null,
+        competence_date: inst.competence_date || null,
+        occasion: null,
+        notes: null,
+        event_id: null,
+        installment_id: inst.id
+      } as unknown as Transaction));
 
     return [...baseTransactions, ...pendingInstallments];
   }, [transactions, installments, categories]);
@@ -523,18 +530,37 @@ function TransactionsList() {
       <div className="flex items-center justify-between pb-4 border-b border-border/40">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Fluxo de Caixa</h2>
-          <p className="section-header !mb-0 mt-1 opacity-60">Competência: {months.find(m => m.value === monthFilter)?.label || "Todos"} {yearFilter}</p>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">Competência: {months.find(m => m.value === monthFilter)?.label || "Todos"} {yearFilter}</p>
         </div>
-        <PermissionGuard requireWrite>
-          <TransactionsDialog
-            onSuccess={refreshData}
-            trigger={
-              <Button className="premium-button bg-primary text-primary-foreground h-11 px-8 text-xs font-bold gap-2">
-                <Plus className="h-5 w-5" />Novo Lançamento
-              </Button>
-            }
-          />
-        </PermissionGuard>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsObligationsOpen(true)}
+            className="text-[11px] uppercase tracking-widest flex items-center gap-2"
+          >
+            <Clock className="h-4 w-4" />
+            Obrigações
+            {(installments.length > 0 || overdueInstallments.length > 0) && (
+              <Badge className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center bg-primary text-primary-foreground border-none text-[9px] shadow-lg shadow-primary/20">
+                {installments.length + overdueInstallments.length}
+              </Badge>
+            )}
+          </Button>
+
+          <PermissionGuard requireWrite>
+            <TransactionsDialog
+              onSuccess={refreshData}
+              trigger={
+                <Button className="px-6 text-[11px] uppercase tracking-widest flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center">
+                    <Plus className="h-3 w-3" />
+                  </div>
+                  Novo Lançamento
+                </Button>
+              }
+            />
+          </PermissionGuard>
+        </div>
       </div>
 
       {/* KPI CARDS ROW */}
@@ -606,7 +632,13 @@ function TransactionsList() {
         </Card>
 
         {/* 5. CONTAS A PAGAR (PENDENT / OVERDUE) */}
-        <Card className="stat-card border-none">
+        <Card
+          onClick={() => setIsObligationsOpen(true)}
+          className="stat-card border-none cursor-pointer hover:bg-orange-500/5 transition-all group relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <PanelRightOpen className="h-3 w-3 text-orange-400" />
+          </div>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
@@ -614,211 +646,142 @@ function TransactionsList() {
               </div>
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Contas a pagar</span>
             </div>
-            <div className="text-xl font-black font-mono tabular-nums tracking-tight text-orange-600">
-              {formatCurrency(
-                sortedData.filter(tx => tx.status === 'pending' && tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0) +
-                overdueInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0)
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-
-      <Dialog open={!!viewingReceipt} onOpenChange={(o) => !o && setViewingReceipt(null)}>
-        <DialogContent className="sm:max-w-4xl bg-card p-0 overflow-hidden border-border/40 shadow-2xl rounded-[2rem] backdrop-blur-xl">
-          <DialogHeader className="p-8 border-b border-border/40 bg-secondary/10 flex flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner">
-                <FileCheck className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">Comprovante</DialogTitle>
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Documento de Lançamento</p>
-              </div>
-            </div>
-          </DialogHeader>
-
-          <div className="bg-secondary/5 relative">
-            <ScrollArea className="h-[60vh] w-full">
-              <div className="p-10 flex items-center justify-center min-h-full">
-                {viewingReceipt && (
-                  <div className="w-full flex items-center justify-center">
-                    {viewingReceipt.toLowerCase().includes('.pdf') ? (
-                      <div className="flex flex-col items-center gap-8 py-20 animate-in fade-in zoom-in-95 duration-500">
-                        <div className="h-32 w-32 rounded-[2.5rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/5">
-                          <FileText className="h-16 w-16 text-primary" />
-                        </div>
-                        <div className="text-center space-y-4">
-                          <p className="text-2xl font-bold text-foreground">Documento PDF</p>
-                          <p className="text-[13px] text-muted-foreground max-w-sm leading-relaxed mx-auto font-medium">Este arquivo está em formato PDF. Clique para baixar e visualizar o conteúdo completo.</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative group rounded-2xl overflow-hidden border border-border/40 shadow-2xl bg-background w-fit mx-auto animate-in fade-in zoom-in-95 duration-500">
-                        <img
-                          src={viewingReceipt}
-                          alt="Comprovante"
-                          className="max-h-[50vh] w-auto object-contain cursor-zoom-in"
-                          onClick={() => window.open(viewingReceipt, '_blank')}
-                        />
-                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center">
-                          <p className="text-white text-[10px] font-bold uppercase tracking-widest">Clique para ver tamanho original</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            <div className="flex items-end justify-between">
+              <div className="text-xl font-black font-mono tabular-nums tracking-tight text-orange-600">
+                {formatCurrency(
+                  sortedData.filter(tx => tx.status === 'pending' && tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0) +
+                  overdueInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0)
                 )}
               </div>
-            </ScrollArea>
-          </div>
+              <span className="text-[9px] font-black text-orange-500/60 uppercase tracking-widest bg-orange-500/5 px-2 py-0.5 rounded-full border border-orange-500/10">Ver lista</span>
+            </div>
+          </CardContent>
+        </Card>
 
-          <DialogFooter className="p-8 bg-secondary/10 border-t border-border/40 flex flex-row items-center justify-end gap-3">
-            <Button
-              variant="outline"
-              className="h-11 px-8 font-bold border-border/60 premium-button transition-all"
-              onClick={() => setViewingReceipt(null)}
-            >
-              Fechar
-            </Button>
-            {viewingReceipt && (
-              <Button
-                className="h-11 px-10 gap-3 premium-button shadow-xl shadow-primary/20 hover:scale-[1.02] bg-primary text-primary-foreground"
-                onClick={() => handleDownload(viewingReceipt)}
-              >
-                <Download className="h-4.5 w-4.5" />
-                Baixar Arquivo
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* SEÇÃO 1: PENDÊNCIAS ACUMULADAS (ARREARS) */}
-      {overdueInstallments.length > 0 && (
-        <Card className="bg-destructive/5 border-destructive/20 border-l-4 border-l-destructive shadow-none overflow-hidden rounded-[1.5rem]">
-          <CardHeader className="py-4 bg-destructive/10 px-6">
-            <div className="flex items-center justify-between">
+        {/* COMPONENTE SHEET UNIFICADO */}
+        <Sheet open={isObligationsOpen} onOpenChange={setIsObligationsOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-md p-0 border-l border-border/40 bg-card overflow-hidden rounded-none">
+            <SheetHeader className="p-6 border-b border-border/40 bg-secondary/5">
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-destructive/20 flex items-center justify-center border border-destructive/30">
-                  <AlertCircle className="h-4.5 w-4.5 text-destructive" />
+                <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                  <Clock className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-black text-destructive tracking-[0.2em] uppercase">Pendências de meses anteriores</h4>
-                  <p className="text-[10px] font-bold text-destructive/60 uppercase tracking-tighter mt-0.5">{overdueInstallments.length} pagamentos em atraso</p>
+                  <SheetTitle className="text-lg font-bold">Obrigações e Atrasos</SheetTitle>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-0.5">Gestão Financeira Prevista</p>
                 </div>
               </div>
-              <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 text-[9px] uppercase font-black px-3 py-1 rounded-full animate-pulse">Ação Necessária</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableBody>
-                {overdueInstallments.map((inst: any) => (
-                  <TableRow key={inst.id} className="hover:bg-destructive/10 border-b border-destructive/10 transition-colors h-14">
-                    <TableCell className="py-2 pl-6 w-[12%] text-[11px] font-mono text-destructive font-bold">{formatDate(inst.due_date)}</TableCell>
-                    <TableCell className="py-2 w-[38%]">
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-destructive/80 leading-tight">{inst.purchase?.description}</span>
-                        <span className="text-[9px] text-destructive/60 font-black uppercase tracking-wider mt-0.5">
-                          Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-2 w-[15%] text-center">
-                      <div className="flex items-center justify-center">
-                        <div className="h-1.5 w-1.5 rounded-full bg-destructive animate-ping absolute" />
-                        <Badge variant="outline" className="text-[9px] border-destructive/30 text-destructive font-black uppercase bg-destructive/5">VENCIDA</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-2 w-[18%] text-right font-mono font-black text-destructive pr-6">{formatCurrency(inst.amount)}</TableCell>
-                    <TableCell className="py-2 w-[12%] text-right pr-6">
-                      <button
-                        onClick={() => handlePayInstallment(inst)}
-                        className="px-4 py-1.5 rounded-full bg-destructive text-white hover:bg-destructive/90 transition-all text-[9px] font-black uppercase shadow-lg shadow-destructive/20"
-                      >
-                        PAGAR
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* SEÇÃO 2: PARCELAS DA COMPETÊNCIA (COMPACT DESIGN) */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
-          <h4 className="section-header !mb-0">Obrigações da Competência</h4>
-          <Badge variant="outline" className="text-[9px] font-black uppercase text-muted-foreground/40 border-border/40 px-3 py-1 rounded-full">Procurar Pagamento</Badge>
-        </div>
-
-        <Card className="stat-card border-none overflow-hidden border-l-4 border-l-primary/30">
-          <CardContent className="p-0">
-            {loadingInstallments ? (
-              <div className="p-12 text-center">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary opacity-40" />
-                <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-4">Carregando obrigações...</p>
-              </div>
-            ) : installments.length === 0 ? (
-              <div className="p-10 text-center flex flex-col items-center gap-2 bg-secondary/5 rounded-2xl">
-                <div className="h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center mb-2">
-                  <CalendarClock className="h-5 w-5 text-muted-foreground/40" />
-                </div>
-                <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">Nenhuma obrigação para este mês</p>
-              </div>
-            ) : (
-              <Table>
-                <TableBody>
-                  {installments.map((inst: any) => (
-                    <TableRow key={inst.id} className="group hover:bg-secondary/10 transition-colors border-b border-border/40 last:border-0 h-14">
-                      <TableCell className="py-2 pl-6 w-[12%] text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter whitespace-nowrap">
-                        {months.find(m => m.value === inst.competence_date.split('-')[1])?.label.substring(0, 3)}/{inst.competence_date.split('-')[0]}
-                      </TableCell>
-                      <TableCell className="py-2 w-[35%]">
-                        <div className="flex flex-col">
-                          <span className="text-[13px] font-bold leading-tight group-hover:text-primary transition-colors">{inst.purchase?.description}</span>
-                          <span className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-wider mt-0.5">
-                            Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-2 w-[18%] text-[11px] font-mono text-center text-muted-foreground/70 font-medium">Venc: {formatDate(inst.due_date)}</TableCell>
-                      <TableCell className="py-2 w-[15%] text-center">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[8px] font-black uppercase px-3 py-1 border-border/40 rounded-full",
-                            inst.status === 'PAGA' || inst.status === 'PAGA_COM_ATRASO'
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                              inst.status === 'VENCIDA'
-                                ? "bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_12px_rgba(var(--destructive),0.1)]"
-                                : "bg-orange-500/10 text-orange-600 border-orange-500/20"
-                          )}
-                        >
-                          {inst.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-2 w-[15%] text-right font-mono font-black text-foreground/80 pr-6">{formatCurrency(inst.amount)}</TableCell>
-                      <TableCell className="py-2 w-[10%] text-right pr-6">
-                        {inst.status !== 'PAGA' && inst.status !== 'PAGA_COM_ATRASO' && (
-                          <button
+            </SheetHeader>
+            <ScrollArea className="h-[calc(100vh-100px)]">
+              <div className="p-6 space-y-8">
+                {/* ATRASOS NA SIDEBAR */}
+                {overdueInstallments.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[11px] font-black text-destructive tracking-[0.2em] uppercase">Vencidos</h4>
+                      <Badge variant="outline" className="text-[9px] font-black bg-destructive/5 text-destructive border-destructive/20">{overdueInstallments.length}</Badge>
+                    </div>
+                    <div className="space-y-3">
+                      {overdueInstallments.map((inst: any) => (
+                        <div key={inst.id} className="p-4 rounded-3xl border border-destructive/20 bg-destructive/5 group hover:bg-destructive/10 transition-all">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-destructive/80 leading-tight">
+                                {inst.purchase?.description}
+                              </span>
+                              <span className="text-[9px] font-black text-destructive/40 uppercase tracking-widest mt-1">
+                                Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                              </span>
+                            </div>
+                            <Badge className="bg-destructive text-white border-none text-[8px] font-black px-2 py-0.5 rounded-full">VENCIDA</Badge>
+                          </div>
+                          <div className="flex items-center justify-between border-t border-destructive/10 pt-3 mt-3">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-destructive/40 font-black uppercase tracking-tighter">Vencimento</span>
+                              <span className="text-[11px] font-mono font-bold text-destructive/70">{formatDate(inst.due_date)}</span>
+                            </div>
+                            <div className="flex flex-col text-right">
+                              <span className="text-[9px] text-destructive/40 font-black uppercase tracking-tighter">Valor</span>
+                              <span className="text-[13px] font-mono font-black text-destructive">{formatCurrency(inst.amount)}</span>
+                            </div>
+                          </div>
+                          <Button
                             onClick={() => handlePayInstallment(inst)}
-                            className="px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all text-[9px] font-black uppercase border border-primary/20 shadow-sm"
+                            className="w-full mt-4 h-9 rounded-2xl bg-destructive text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-destructive/20 hover:bg-destructive/90"
                           >
-                            PAGAR
-                          </button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                            PAGAR ATRASO
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* COMPETÊNCIA ATUAL NA SIDEBAR */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[11px] font-black text-primary tracking-[0.2em] uppercase">Mês Atual</h4>
+                    <Badge variant="outline" className="text-[9px] font-black bg-primary/5 text-primary border-primary/20">{installments.length}</Badge>
+                  </div>
+                  {installments.length === 0 ? (
+                    <div className="p-8 text-center rounded-3xl border border-dashed border-border/40 flex flex-col items-center gap-2">
+                      <CalendarClock className="h-6 w-6 text-muted-foreground/20" />
+                      <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Sem obrigações pendentes</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {installments.map((inst: any) => (
+                        <div key={inst.id} className="p-4 rounded-3xl border border-border/40 bg-secondary/5 hover:bg-secondary/10 transition-all group">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold group-hover:text-primary transition-colors leading-tight">
+                                {inst.purchase?.description}
+                              </span>
+                              <span className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest mt-1">
+                                Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}
+                              </span>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-[8px] font-black uppercase px-2 py-0.5 border-border/40 rounded-full",
+                                inst.status === 'PAGA' || inst.status === 'PAGA_COM_ATRASO'
+                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                  inst.status === 'VENCIDA'
+                                    ? "bg-destructive/10 text-destructive border-destructive/20"
+                                    : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                              )}
+                            >
+                              {inst.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between border-t border-border/20 pt-3 mt-3">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-muted-foreground/50 font-black uppercase tracking-tighter">Vencimento</span>
+                              <span className="text-[11px] font-mono font-bold">{formatDate(inst.due_date)}</span>
+                            </div>
+                            <div className="flex flex-col text-right">
+                              <span className="text-[9px] text-muted-foreground/50 font-black uppercase tracking-tighter">Valor</span>
+                              <span className="text-[13px] font-mono font-black">{formatCurrency(inst.amount)}</span>
+                            </div>
+                          </div>
+                          {inst.status !== 'PAGA' && inst.status !== 'PAGA_COM_ATRASO' && (
+                            <Button
+                              onClick={() => handlePayInstallment(inst)}
+                              className="w-full mt-4 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                            >
+                              PAGAR AGORA
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* SEÇÃO 3: MOVIMENTAÇÕES (CASH FLOW / REALIZED) */}
@@ -1055,6 +1018,42 @@ function TransactionsList() {
             >
               Cancelar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIÁLOGO DE COMPROVANTE */}
+      <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90 border-none">
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <Button
+              variant="ghost"
+              className="absolute top-4 right-4 text-white hover:bg-white/10 z-50 h-8 w-8 p-0 rounded-full"
+              onClick={() => setViewingReceipt(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <img
+              src={viewingReceipt || ""}
+              alt="Comprovante"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            />
+            {viewingReceipt && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <Button
+                  onClick={() => handleDownload(viewingReceipt)}
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                >
+                  <Download className="h-3.5 w-3.5" /> Baixar Documento
+                </Button>
+                <Button
+                  onClick={() => window.open(viewingReceipt, '_blank')}
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Abrir Original
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
