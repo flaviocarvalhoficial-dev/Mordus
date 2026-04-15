@@ -633,6 +633,7 @@ export type Database = {
                     phone: string | null
                     pix_key: string | null
                     pix_key_type: string | null
+                    reminder_days: number | null
                     whatsapp: string | null
                     youtube: string | null
                 }
@@ -653,6 +654,7 @@ export type Database = {
                     phone?: string | null
                     pix_key?: string | null
                     pix_key_type?: string | null
+                    reminder_days?: number | null
                     whatsapp?: string | null
                     youtube?: string | null
                 }
@@ -673,6 +675,7 @@ export type Database = {
                     phone?: string | null
                     pix_key?: string | null
                     pix_key_type?: string | null
+                    reminder_days?: number | null
                     whatsapp?: string | null
                     youtube?: string | null
                 }

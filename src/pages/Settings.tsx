@@ -59,7 +59,8 @@ export default function Settings() {
     bank_name: "", bank_agency: "", bank_account: "",
     pix_key_type: "", pix_key: "",
     instagram: "", facebook: "", youtube: "", whatsapp: "",
-    closure_mode: "continuous"
+    closure_mode: "continuous",
+    reminder_days: 3
   });
 
   // Form states for Profile
@@ -84,7 +85,8 @@ export default function Settings() {
         facebook: (organization as any).facebook || "",
         youtube: (organization as any).youtube || "",
         whatsapp: (organization as any).whatsapp || "",
-        closure_mode: (organization as any).closure_mode || "continuous"
+        closure_mode: (organization as any).closure_mode || "continuous",
+        reminder_days: (organization as any).reminder_days ?? 3
       });
     }
   }, [organization]);
@@ -369,7 +371,7 @@ export default function Settings() {
                 <CardContent className="p-8 space-y-8">
                   <div className="flex flex-col md:flex-row items-center gap-8">
                     <div
-                      className="relative h-32 w-32 rounded-[2.5rem] bg-secondary/50 flex items-center justify-center border-2 border-border/40 overflow-hidden cursor-pointer group shadow-inner transition-all hover:scale-105 active:scale-95 ring-4 ring-transparent hover:ring-primary/10"
+                      className="relative h-32 w-32 rounded-full bg-secondary/50 flex items-center justify-center border-2 border-border/40 overflow-hidden cursor-pointer group shadow-inner transition-all hover:scale-105 active:scale-95 ring-4 ring-transparent hover:ring-primary/10"
                       onClick={() => document.getElementById("avatar-upload")?.click()}
                     >
                       {profile.avatar_url ? (
@@ -572,6 +574,28 @@ export default function Settings() {
                         onCheckedChange={(checked) => setOrgForm({ ...orgForm, closure_mode: checked ? 'flexible' : 'continuous' })}
                         className="data-[state=checked]:bg-emerald-500"
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-border/40">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4 text-primary" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">Alertas e Notificações</h4>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-4 bg-secondary/10 p-4 rounded-2xl border border-border/50">
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">Antecedência de Contas (dias)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="30"
+                          value={orgForm.reminder_days}
+                          onChange={(e) => setOrgForm({ ...orgForm, reminder_days: parseInt(e.target.value) || 0 })}
+                          className="h-11 bg-background border-border/60 focus-visible:ring-primary/20 rounded-xl font-bold"
+                          placeholder="Ex: 3"
+                        />
+                        <p className="text-[10px] text-muted-foreground font-medium italic leading-relaxed">Define quantos dias antes do vencimento uma conta aparecerá nos alertas da barra lateral.</p>
+                      </div>
                     </div>
                   </div>
 
@@ -869,7 +893,7 @@ export default function Settings() {
                           <tr key={m.id} className="hover:bg-secondary/5 transition-all group">
                             <td className="px-6 sm:px-8 py-5">
                               <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-secondary flex items-center justify-center overflow-hidden border border-border/40 shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border/40 shadow-sm group-hover:scale-105 transition-transform shrink-0">
                                   {m.avatar_url ? <img src={m.avatar_url} className="h-full w-full object-cover" /> : <User className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground/40" />}
                                 </div>
                                 <div className="min-w-0">

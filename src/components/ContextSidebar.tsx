@@ -24,6 +24,7 @@ import {
     useSidebar
 } from "@/components/ui/sidebar";
 import { CopilotSidebarAlert } from "@/components/Copilot/CopilotSidebarAlert";
+import { SidebarUpdates } from "./SidebarUpdates";
 
 interface SubItem {
     title: string;
@@ -236,23 +237,19 @@ export function ContextSidebar() {
                     </div>
                 </div>
 
-                <div className="px-4 pb-4 mt-auto space-y-3">
-                    <CopilotSidebarAlert />
 
-                    <div className="bg-secondary/20 border border-border/50 rounded-2xl p-4 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <TrendingUp className="h-12 w-12 text-primary" />
+                <div className="px-4 pb-6 mt-auto pt-6 space-y-6">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 px-2">
+                            <div className="h-px flex-1 bg-border/50" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 whitespace-nowrap">
+                                Insights & Alertas
+                            </span>
+                            <div className="h-px flex-1 bg-border/50" />
                         </div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status do Dia</span>
+                        <div className="space-y-3">
+                            <SidebarUpdates />
                         </div>
-                        <p className="text-[11px] font-medium text-foreground leading-tight">
-                            {context === 'secretaria' ? 'Não há aniversariantes hoje.' : 'Todas as contas estão em dia.'}
-                        </p>
-                        <Link to="/ajuda" className="flex items-center gap-1 text-[10px] text-primary font-bold mt-3 hover:gap-2 transition-all">
-                            VER DETALHES <ArrowRight className="h-3 w-3" />
-                        </Link>
                     </div>
                 </div>
             </div>

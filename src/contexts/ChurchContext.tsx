@@ -17,6 +17,7 @@ interface ChurchSettings {
     youtube: string;
     whatsapp: string;
   };
+  reminderDays: number;
 }
 
 interface ChurchContextType {
@@ -48,6 +49,7 @@ const defaultSettings: ChurchSettings = {
   displayName: "Mordus",
   cnpj: "",
   socialMedia: { instagram: "", facebook: "", youtube: "", whatsapp: "" },
+  reminderDays: 3,
 };
 
 const ChurchContext = createContext<ChurchContextType | null>(null);
@@ -131,6 +133,7 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
         youtube: (organization as any).youtube || "",
         whatsapp: (organization as any).whatsapp || "",
       },
+      reminderDays: (organization as any).reminder_days ?? 3,
     };
   }, [organization]);
 

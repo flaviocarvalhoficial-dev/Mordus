@@ -1,0 +1,435 @@
+﻿[
+    {
+        "filePath": "Y:\\CRIA├ç├âO DE MICRO SAAS\\Mordus\\src\\pages\\Transactions.tsx",
+        "messages": [
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 37,
+                "column": 25,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 37,
+                "endColumn": 28,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                2347,
+                                2350
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                2347,
+                                2350
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 80,
+                "column": 61,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 80,
+                "endColumn": 64,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                4225,
+                                4228
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                4225,
+                                4228
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 83,
+                "column": 61,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 83,
+                "endColumn": 64,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                4376,
+                                4379
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                4376,
+                                4379
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 343,
+                "column": 45,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 343,
+                "endColumn": 48,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                13986,
+                                13989
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                13986,
+                                13989
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 412,
+                "column": 82,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 412,
+                "endColumn": 85,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                16439,
+                                16442
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                16439,
+                                16442
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 427,
+                "column": 82,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 427,
+                "endColumn": 85,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                17343,
+                                17346
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                17343,
+                                17346
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 447,
+                "column": 17,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 447,
+                "endColumn": 20,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                18099,
+                                18102
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                18099,
+                                18102
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 448,
+                "column": 17,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 448,
+                "endColumn": 20,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                18120,
+                                18123
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                18120,
+                                18123
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 717,
+                "column": 49,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 717,
+                "endColumn": 52,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                31130,
+                                31133
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                31130,
+                                31133
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 775,
+                "column": 44,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 775,
+                "endColumn": 47,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                34814,
+                                34817
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                34814,
+                                34817
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 873,
+                "column": 63,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 873,
+                "endColumn": 66,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                41260,
+                                41263
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                41260,
+                                41263
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            },
+            {
+                "ruleId": "@typescript-eslint/no-explicit-any",
+                "severity": 1,
+                "message": "Unexpected any. Specify a different type.",
+                "line": 949,
+                "column": 66,
+                "nodeType": "TSAnyKeyword",
+                "messageId": "unexpectedAny",
+                "endLine": 949,
+                "endColumn": 69,
+                "suggestions": [
+                    {
+                        "messageId": "suggestUnknown",
+                        "fix": {
+                            "range": [
+                                47159,
+                                47162
+                            ],
+                            "text": "unknown"
+                        },
+                        "desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+                    },
+                    {
+                        "messageId": "suggestNever",
+                        "fix": {
+                            "range": [
+                                47159,
+                                47162
+                            ],
+                            "text": "never"
+                        },
+                        "desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+                    }
+                ]
+            }
+        ],
+        "suppressedMessages": [],
+        "errorCount": 0,
+        "fatalErrorCount": 0,
+        "warningCount": 12,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "source": "import { useState, useEffect, useMemo } from \"react\";\nimport { Plus, Search, Trash2, Pencil, Calendar, Type, ArrowUpAZ, ArrowDownAZ, ArrowUp01, ArrowUpDown, Banknote, ListFilter, Lock, FileBarChart, HelpCircle, ChevronRight, Home, ExternalLink, FileCheck, FileText, Download, X, Settings2, Columns, Loader2, History, AlertTriangle, Milestone, CalendarClock, AlertCircle, Clock, CheckCircle2, MoreHorizontal, TrendingUp, TrendingDown, Wallet, HandCoins, Coins } from \"lucide-react\";\nimport { cn } from \"@/lib/utils\";\nimport { useNavigate, useSearchParams } from \"react-router-dom\";\nimport { Card, CardContent, CardHeader } from \"@/components/ui/card\";\nimport { Button } from \"@/components/ui/button\";\nimport { Input } from \"@/components/ui/input\";\nimport { Badge } from \"@/components/ui/badge\";\nimport { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from \"@/components/ui/select\";\nimport { Switch } from \"@/components/ui/switch\";\nimport { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from \"@/components/ui/table\";\nimport { Separator } from \"@/components/ui/separator\";\nimport { Skeleton } from \"@/components/ui/skeleton\";\nimport { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from \"@/components/ui/dialog\";\nimport { TransactionsDialog } from \"@/components/TransactionsDialog\";\nimport { Tabs, TabsContent, TabsList, TabsTrigger } from \"@/components/ui/tabs\";\nimport { Popover, PopoverContent, PopoverTrigger } from \"@/components/ui/popover\";\nimport { ScrollArea } from \"@/components/ui/scroll-area\";\nimport { PermissionGuard } from \"@/components/PermissionGuard\";\nimport { toast } from \"sonner\";\nimport { supabase } from \"@/lib/supabase\";\nimport { useChurch } from \"@/contexts/ChurchContext\";\nimport { useTransactionModal } from \"@/contexts/TransactionModalContext\";\nimport type { Database } from \"@/types/database.types\";\nimport { TableToolbar } from \"@/components/TableToolbar\";\n\nimport Categories from \"./Categories\";\nimport Closures from \"./Closures\";\nimport Reports from \"./Reports\";\n\ntype Transaction = Database[\"public\"][\"Tables\"][\"transactions\"][\"Row\"] & {\n  categories?: { name: string; color: string | null } | null;\n  payment_method_cat?: { name: string } | null;\n  receipt_url?: string | null;\n  occasion?: string | null;\n  isInstallmentPending?: boolean;\n  originalInstallment?: any;\n};\n\nconst months = [\n  { value: \"all\", label: \"Todos os meses\" },\n  { value: \"01\", label: \"Janeiro\" }, { value: \"02\", label: \"Fevereiro\" }, { value: \"03\", label: \"Mar├ºo\" },\n  { value: \"04\", label: \"Abril\" }, { value: \"05\", label: \"Maio\" }, { value: \"06\", label: \"Junho\" },\n  { value: \"07\", label: \"Julho\" }, { value: \"08\", label: \"Agosto\" }, { value: \"09\", label: \"Setembro\" },\n  { value: \"10\", label: \"Outubro\" }, { value: \"11\", label: \"Novembro\" }, { value: \"12\", label: \"Dezembro\" },\n];\n\nconst currentYear = new Date().getFullYear();\nconst years = [\n  { value: \"all\", label: \"Todos os anos\" },\n  ...Array.from({ length: 5 }, (_, i) => {\n    const y = (currentYear - 2 + i).toString();\n    return { value: y, label: y };\n  }).reverse(),\n];\n\nfunction formatCurrency(value: number) {\n  return value.toLocaleString(\"pt-BR\", { style: \"currency\", currency: \"BRL\" });\n}\n\nfunction formatDate(dateStr: string) {\n  if (!dateStr) return \"-\";\n  // Usamos T12:00:00 para evitar que a convers├úo de fuso hor├írio mude o dia\n  return new Date(dateStr + \"T12:00:00\").toLocaleDateString(\"pt-BR\");\n}\n\nimport { useQuery, useQueryClient } from \"@tanstack/react-query\";\n\nfunction TransactionsList() {\n  const { organization } = useChurch();\n  const queryClient = useQueryClient();\n  const [searchParams, setSearchParams] = useSearchParams();\n  const { openNewTransaction, openEditTransaction } = useTransactionModal();\n\n  const [typeFilter, setTypeFilter] = useState(\"all\");\n  const [categoryFilter, setCategoryFilter] = useState(\"all\");\n  const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());\n  const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));\n  const [sortField, setSortField] = useState<\"date\" | \"description\" | \"amount\" | \"created_at\">(() => {\n    return (localStorage.getItem('mordus_tx_sort_field') as any) || \"date\";\n  });\n  const [sortOrder, setSortOrder] = useState<\"desc\" | \"asc\">(() => {\n    return (localStorage.getItem('mordus_tx_sort_order') as any) || \"desc\";\n  });\n  const [searchQuery, setSearchQuery] = useState(\"\");\n  const [showTotals, setShowTotals] = useState(false);\n  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);\n  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {\n    const saved = localStorage.getItem('mordus_visible_columns');\n    return saved ? JSON.parse(saved) : [\"date\", \"description\", \"category\", \"status\", \"amount\"];\n  });\n  const [deleteModalOpen, setDeleteModalOpen] = useState(false);\n  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);\n  const [isDeleting, setIsDeleting] = useState(false);\n  const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null);\n\n  useEffect(() => {\n    localStorage.setItem('mordus_visible_columns', JSON.stringify(visibleColumns));\n  }, [visibleColumns]);\n\n  const refreshData = () => {\n    queryClient.invalidateQueries({ queryKey: [\"transactions\"] });\n    queryClient.invalidateQueries({ queryKey: [\"categories\"] });\n    queryClient.invalidateQueries({ queryKey: [\"installments\"] });\n    queryClient.invalidateQueries({ queryKey: [\"overdue-installments\"] });\n    queryClient.invalidateQueries({ queryKey: [\"previous-balance\"] });\n    queryClient.invalidateQueries({ queryKey: [\"dashboard-transactions\"] });\n  };\n\n  useEffect(() => {\n    localStorage.setItem('mordus_tx_sort_field', sortField);\n    localStorage.setItem('mordus_tx_sort_order', sortOrder);\n  }, [sortField, sortOrder]);\n\n  const toggleColumn = (col: string) => {\n    setVisibleColumns(prev => {\n      if (prev.includes(col)) {\n        if (prev.length <= 3) {\n          toast.error(\"M├¡nimo de 3 colunas permitido\");\n          return prev;\n        }\n        return prev.filter(c => c !== col);\n      }\n      if (prev.length >= 8) {\n        toast.error(\"Limite de 8 colunas atingido\");\n        return prev;\n      }\n      return [...prev, col];\n    });\n  };\n\n  const handleDownload = async (url: string) => {\n    try {\n      const response = await fetch(url);\n      const blob = await response.blob();\n      const blobUrl = window.URL.createObjectURL(blob);\n      const a = document.createElement('a');\n      a.href = blobUrl;\n      const fileName = url.split('/').pop() || 'comprovante';\n      a.download = fileName;\n      document.body.appendChild(a);\n      a.click();\n      window.URL.revokeObjectURL(blobUrl);\n      document.body.removeChild(a);\n    } catch (error) {\n      // Se falhar o fetch (CORS), abre em nova aba como fallback\n      window.open(url, '_blank');\n    }\n  };\n\n  // Transactions Query (CAIXA / REALIZADO)\n  const { data: transactions = [], isLoading: loadingTransactions } = useQuery({\n    queryKey: [\"transactions\", organization?.id, yearFilter, monthFilter, typeFilter, categoryFilter, searchQuery],\n    queryFn: async () => {\n      if (!organization?.id) return [];\n      let query = supabase\n        .from(\"transactions\")\n        .select(`*, categories!category_id(name, color), payment_method_cat:categories!payment_method_id(name)`)\n        .eq(\"organization_id\", organization.id);\n\n      if (yearFilter !== \"all\") {\n        if (monthFilter === \"all\") {\n          query = query.gte(\"date\", `${yearFilter}-01-01`).lte(\"date\", `${yearFilter}-12-31`);\n        } else {\n          const lastDay = new Date(Number(yearFilter), Number(monthFilter), 0).getDate();\n          query = query.gte(\"date\", `${yearFilter}-${monthFilter}-01`)\n            .lte(\"date\", `${yearFilter}-${monthFilter}-${String(lastDay).padStart(2, '0')}`);\n        }\n      }\n\n      if (typeFilter !== 'all') {\n        query = query.eq('type', typeFilter);\n      }\n\n      if (categoryFilter !== 'all') {\n        query = query.eq('category_id', categoryFilter);\n      }\n\n      const { data, error } = await query.order(\"date\", { ascending: false });\n\n      if (error) throw error;\n      return data as Transaction[];\n    },\n    enabled: !!organization?.id,\n  });\n\n  // Categories Query\n  const { data: categories = [] } = useQuery({\n    queryKey: [\"categories\", organization?.id],\n    queryFn: async () => {\n      if (!organization?.id) return [];\n      const { data, error } = await supabase\n        .from(\"categories\")\n        .select(\"id, name, type\")\n        .eq(\"organization_id\", organization.id);\n      if (error) throw error;\n      return data;\n    },\n    enabled: !!organization?.id,\n    staleTime: 1000 * 60 * 15,\n  });\n\n  // Installments Query (COMPET├èNCIA / OBRIGA├ç├òES)\n  const { data: installments = [], isLoading: loadingInstallments } = useQuery({\n    queryKey: [\"installments\", organization?.id, yearFilter, monthFilter, typeFilter, categoryFilter],\n    queryFn: async () => {\n      if (!organization?.id) return [];\n      let query = supabase\n        .from(\"installments\")\n        .select(`*, purchase:installment_purchases(description, category_id, payment_method_id)`)\n        .eq(\"organization_id\", organization.id);\n\n      // Filtramos por compet├¬ncia\n      if (yearFilter !== \"all\") {\n        if (monthFilter === \"all\") {\n          query = query.gte(\"competence_date\", `${yearFilter}-01-01`).lte(\"competence_date\", `${yearFilter}-12-31`);\n        } else {\n          const lastDay = new Date(Number(yearFilter), Number(monthFilter), 0).getDate();\n          query = query.gte(\"competence_date\", `${yearFilter}-${monthFilter}-01`)\n            .lte(\"competence_date\", `${yearFilter}-${monthFilter}-${String(lastDay).padStart(2, '0')}`);\n        }\n      }\n\n      const { data, error } = await query.order(\"due_date\", { ascending: true });\n      if (error) throw error;\n      return data;\n    },\n    enabled: !!organization?.id,\n  });\n\n  // Pend├¬ncias Acumuladas (ATRASOS)\n  const { data: overdueInstallments = [] } = useQuery({\n    queryKey: [\"overdue-installments\", organization?.id],\n    queryFn: async () => {\n      if (!organization?.id) return [];\n      const { data, error } = await supabase\n        .from(\"installments\")\n        .select(`*, purchase:installment_purchases(description, category_id, payment_method_id)`)\n        .eq(\"organization_id\", organization.id)\n        .in(\"status\", [\"PENDENTE\", \"VENCIDA\"])\n        .lt(\"due_date\", new Date().toISOString().split('T')[0])\n        .order(\"due_date\", { ascending: true });\n\n      if (error) throw error;\n      return data;\n    },\n    enabled: !!organization?.id,\n  });\n\n  // Saldo Anterior (Acumulado at├® o m├¬s selecionado)\n  const { data: previousBalance = 0, isLoading: loadingPreviousBalance } = useQuery({\n    queryKey: [\"previous-balance\", organization?.id, yearFilter, monthFilter],\n    queryFn: async () => {\n      if (!organization?.id || yearFilter === \"all\" || monthFilter === \"all\") return 0;\n\n      const startDate = `${yearFilter}-${monthFilter}-01`;\n\n      const { data, error } = await supabase\n        .from(\"transactions\")\n        .select(\"type, amount\")\n        .eq(\"organization_id\", organization.id)\n        .eq(\"status\", \"completed\") // Apenas transa├º├Áes confirmadas impactam o saldo real\n        .lt(\"date\", startDate);\n\n      if (error) throw error;\n\n      return data.reduce((acc, tx) => {\n        if (tx.type === 'income') return acc + Number(tx.amount);\n        if (tx.type === 'expense') return acc - Number(tx.amount);\n        return acc;\n      }, 0);\n    },\n    enabled: !!organization?.id && yearFilter !== \"all\" && monthFilter !== \"all\",\n  });\n\n  const loading = loadingTransactions || loadingInstallments || loadingPreviousBalance;\n\n  useEffect(() => {\n    if (searchParams.get(\"new\") === \"true\") {\n      openNewTransaction();\n      const params = new URLSearchParams(searchParams);\n      params.delete(\"new\");\n      setSearchParams(params, { replace: true });\n    }\n  }, [searchParams, openNewTransaction, setSearchParams]);\n\n  const openEdit = (tx: Transaction) => {\n    openEditTransaction(tx);\n  };\n\n  const openCreate = () => {\n    openNewTransaction();\n  };\n\n  const handleDeleteClick = (tx: Transaction) => {\n    if (tx.installment_id || tx.description.startsWith(\"[P \")) {\n      setTxToDelete(tx);\n      setDeleteModalOpen(true);\n    } else {\n      if (confirm(\"Deseja realmente excluir este lan├ºamento?\")) {\n        confirmDelete(tx.id);\n      }\n    }\n  };\n\n  const confirmDelete = async (id: string, deleteAllFromBatch = false) => {\n    setIsDeleting(true);\n    try {\n      if (deleteAllFromBatch && txToDelete) {\n        if (txToDelete.installment_id) {\n          // Se for do novo sistema, deletamos o purchase (deleta cascata parcelas e limpa FK em transactions)\n          const { data: inst } = await supabase.from(\"installments\").select(\"purchase_id\").eq(\"id\", txToDelete.installment_id).single();\n          if (inst?.purchase_id) {\n            await supabase.from(\"installment_purchases\").delete().eq(\"id\", inst.purchase_id);\n          }\n        } else {\n          // Sistema antigo (baseado em descri├º├úo)\n          const cleanDesc = txToDelete.description.replace(/^\\[P \\d+\\/\\d+\\] /, \"\");\n          await supabase\n            .from(\"transactions\")\n            .delete()\n            .eq(\"organization_id\", organization!.id)\n            .ilike(\"description\", `%${cleanDesc}`)\n            .gte(\"date\", txToDelete.date);\n        }\n        toast.success(\"Todas as parcelas futuras foram removidas\");\n      } else {\n        const { error } = await supabase.from(\"transactions\").delete().eq(\"id\", id);\n        if (error) throw error;\n        toast.success(\"Lan├ºamento removido\");\n      }\n\n      setDeleteModalOpen(false);\n      setTxToDelete(null);\n      refreshData();\n    } catch (err) {\n      toast.error(\"Erro ao excluir lan├ºamento\");\n    } finally {\n      setIsDeleting(false);\n    }\n  };\n\n  const handlePayInstallment = async (inst: any) => {\n    if (confirm(`Deseja marcar esta parcela de ${formatCurrency(inst.amount)} como PAGA?`)) {\n      try {\n        const { error: instError } = await supabase\n          .from(\"installments\")\n          .update({\n            status: 'PAGA',\n            payment_date: new Date().toISOString()\n          })\n          .eq(\"id\", inst.id);\n\n        if (instError) throw instError;\n\n        // Criar o lan├ºamento no caixa\n        const { error: txError } = await supabase.from(\"transactions\").insert([{\n          organization_id: organization!.id,\n          type: 'expense',\n          category_id: inst.purchase?.category_id || null,\n          amount: inst.amount,\n          date: new Date().toISOString().split('T')[0],\n          description: `[P ${String(inst.installment_number).padStart(2, '0')}/${String(inst.total_installments).padStart(2, '0')}] ${inst.purchase?.description}`,\n          payment_method: \"Dinheiro\", // Default ou pegar do purchase?\n          payment_method_id: inst.purchase?.payment_method_id || null,\n          installment_id: inst.id,\n          competence_date: inst.competence_date,\n          status: 'completed'\n        }]);\n\n        if (txError) throw txError;\n\n        toast.success(\"Pagamento registrado com sucesso!\");\n        refreshData();\n      } catch (err) {\n        toast.error(\"Erro ao registrar pagamento\");\n      }\n    }\n  };\n\n  const handleToggleStatus = async (tx: Transaction) => {\n    setIsUpdatingStatus(tx.id);\n    const newStatus = tx.status === 'completed' || !tx.status ? 'pending' : 'completed';\n    try {\n      const { error } = await supabase\n        .from(\"transactions\")\n        .update({ status: newStatus })\n        .eq(\"id\", tx.id);\n\n      if (error) throw error;\n\n      // Se houver parcelas vinculadas, talvez atualizar o status da parcela tamb├®m?\n      // Por agora, apenas o caixa\n\n      const label = newStatus === 'completed'\n        ? (tx.type === 'income' ? 'Recebido' : 'Pago')\n        : 'Pendente';\n      toast.success(`Lan├ºamento marcado como ${label}`);\n      refreshData();\n    } catch (err) {\n      toast.error(\"Erro ao atualizar status\");\n    } finally {\n      setIsUpdatingStatus(null);\n    }\n  };\n\n  const unifiedData = useMemo(() => {\n    // 1. Pegamos todas as transa├º├Áes (Realizado/Manual)\n    const baseTransactions = transactions.map(tx => ({\n      ...tx,\n      isInstallmentPending: false\n    })) as (Transaction & { isInstallmentPending: boolean; originalInstallment?: any })[];\n\n    // 2. Pegamos as parcelas que AINDA N├âO t├¬m uma transa├º├úo correspondente (Previsto)\n    const pendingInstallments = installments\n      .filter(inst => inst.status === 'PENDENTE' || inst.status === 'VENCIDA')\n      .filter(inst => !transactions.some(tx => tx.installment_id === inst.id))\n      .map(inst => ({\n        id: inst.id,\n        date: inst.due_date,\n        description: `[P ${String(inst.installment_number).padStart(2, '0')}/${String(inst.total_installments).padStart(2, '0')}] ${inst.purchase?.description}`,\n        amount: Number(inst.amount),\n        type: 'expense' as const,\n        status: inst.status === 'VENCIDA' ? 'pending' : 'pending', // Tratamos como pending para o Switch\n        category_id: inst.purchase?.category_id,\n        payment_method_id: inst.purchase?.payment_method_id,\n        categories: categories.find(c => c.id === inst.purchase?.category_id) as any,\n        isInstallmentPending: true,\n        originalInstallment: inst,\n        created_at: inst.created_at\n      }));\n\n    return [...baseTransactions, ...pendingInstallments];\n  }, [transactions, installments, categories]);\n\n  const filtered = useMemo(() => {\n    return unifiedData.filter((tx) => {\n      if (typeFilter !== \"all\" && tx.type !== typeFilter) return false;\n      if (categoryFilter !== \"all\" && tx.category_id !== categoryFilter) return false;\n      if (searchQuery && !tx.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;\n      return true;\n    });\n  }, [unifiedData, typeFilter, categoryFilter, searchQuery]);\n\n  const sortedData = useMemo(() => {\n    return [...filtered].sort((a, b) => {\n      let aVal: any;\n      let bVal: any;\n\n      if (sortField === \"date\") {\n        aVal = new Date(a.date + \"T12:00:00\").getTime();\n        bVal = new Date(b.date + \"T12:00:00\").getTime();\n        // Se a data for igual, usamos created_at como crit├®rio de desempate\n        if (aVal === bVal) {\n          aVal = new Date(a.created_at).getTime();\n          bVal = new Date(b.created_at).getTime();\n        }\n      } else if (sortField === \"created_at\") {\n        aVal = new Date(a.created_at).getTime();\n        bVal = new Date(b.created_at).getTime();\n      } else if (sortField === \"description\") {\n        aVal = a.description.toLowerCase();\n        bVal = b.description.toLowerCase();\n      } else if (sortField === \"amount\") {\n        aVal = Number(a.amount);\n        bVal = Number(b.amount);\n      }\n\n      if (aVal < bVal) return sortOrder === \"asc\" ? -1 : 1;\n      if (aVal > bVal) return sortOrder === \"asc\" ? 1 : -1;\n      return 0;\n    });\n  }, [filtered, sortField, sortOrder]);\n\n  const totals = useMemo(() => {\n    return sortedData.reduce((acc, tx) => {\n      // Ignora pendentes no c├ílculo dos totais da lista\n      if (tx.status === 'pending') return acc;\n\n      if (tx.type === 'income') acc.income += tx.amount;\n      else acc.expense += tx.amount;\n      return acc;\n    }, { income: 0, expense: 0 });\n  }, [sortedData]);\n\n  const kpis = useMemo(() => {\n    return sortedData.reduce((acc, tx) => {\n      const isIncome = tx.type === 'income';\n      const isExpense = tx.type === 'expense';\n      const isCompleted = tx.status === 'completed' || !tx.status;\n      const catName = tx.categories?.name?.toLowerCase() || '';\n\n      if (isCompleted) {\n        if (isIncome) {\n          acc.totalIncome += tx.amount;\n          if (catName.includes('oferta')) {\n            acc.ofertasValue += tx.amount;\n            acc.ofertasCount += 1;\n          }\n          if (catName.includes('d├¡zimo')) {\n            acc.dizimosValue += tx.amount;\n            acc.dizimosCount += 1;\n          }\n        } else if (isExpense) {\n          acc.totalExpense += tx.amount;\n        }\n      }\n\n      return acc;\n    }, {\n      totalIncome: 0,\n      totalExpense: 0,\n      ofertasValue: 0,\n      ofertasCount: 0,\n      dizimosValue: 0,\n      dizimosCount: 0\n    });\n  }, [sortedData]);\n\n\n  return (\n    <div className=\"space-y-6\">\n      <div className=\"flex items-center justify-between pb-4 border-b border-border/40\">\n        <div>\n          <h2 className=\"text-2xl font-bold tracking-tight\">Fluxo de Caixa</h2>\n          <p className=\"section-header !mb-0 mt-1 opacity-60\">Compet├¬ncia: {months.find(m => m.value === monthFilter)?.label || \"Todos\"} {yearFilter}</p>\n        </div>\n        <PermissionGuard requireWrite>\n          <TransactionsDialog\n            onSuccess={refreshData}\n            trigger={\n              <Button className=\"premium-button bg-primary text-primary-foreground h-11 px-8 text-xs font-bold gap-2\">\n                <Plus className=\"h-5 w-5\" />Novo Lan├ºamento\n              </Button>\n            }\n          />\n        </PermissionGuard>\n      </div>\n\n      {/* KPI CARDS ROW */}\n      <div className=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5\">\n        {/* 1. SALDO ANTERIOR */}\n        <Card className=\"stat-card border-none\">\n          <CardContent className=\"p-5\">\n            <div className=\"flex items-center gap-2 mb-4\">\n              <div className=\"h-8 w-8 rounded-lg bg-secondary/50 flex items-center justify-center border border-border/20\">\n                <History className=\"h-4 w-4 text-muted-foreground/60\" />\n              </div>\n              <span className=\"text-[10px] font-black uppercase tracking-widest text-muted-foreground/80\">Saldo anterior</span>\n            </div>\n            <div className={cn(\n              \"text-xl font-black font-mono tabular-nums tracking-tight\",\n              previousBalance < 0 ? \"text-destructive\" : \"text-foreground\"\n            )}>\n              {formatCurrency(previousBalance)}\n            </div>\n          </CardContent>\n        </Card>\n\n        {/* 2. TOTAL ENTRADAS */}\n        <Card className=\"stat-card border-none\">\n          <CardContent className=\"p-5\">\n            <div className=\"flex items-center gap-2 mb-4\">\n              <div className=\"h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20\">\n                <TrendingUp className=\"h-4 w-4 text-emerald-500\" />\n              </div>\n              <span className=\"text-[10px] font-black uppercase tracking-widest text-muted-foreground/80\">Total entradas</span>\n            </div>\n            <div className=\"text-xl font-black font-mono tabular-nums tracking-tight text-foreground\">\n              {formatCurrency(kpis.totalIncome)}\n            </div>\n          </CardContent>\n        </Card>\n\n        {/* 3. TOTAL SA├ìDAS */}\n        <Card className=\"stat-card border-none\">\n          <CardContent className=\"p-5\">\n            <div className=\"flex items-center gap-2 mb-4\">\n              <div className=\"h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center border border-destructive/20\">\n                <TrendingDown className=\"h-4 w-4 text-destructive\" />\n              </div>\n              <span className=\"text-[10px] font-black uppercase tracking-widest text-muted-foreground/80\">Total sa├¡das</span>\n            </div>\n            <div className=\"text-xl font-black font-mono tabular-nums tracking-tight text-foreground\">\n              {formatCurrency(kpis.totalExpense)}\n            </div>\n          </CardContent>\n        </Card>\n\n        {/* 4. SALDO EM CAIXA (PRIMARY HIGHLIGHT) */}\n        <Card className=\"stat-card border-none ring-2 ring-primary/40 bg-gradient-to-br from-card to-primary/5\">\n          <CardContent className=\"p-5\">\n            <div className=\"flex items-center gap-2 mb-4\">\n              <div className=\"h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20\">\n                <Wallet className=\"h-4 w-4 text-primary\" />\n              </div>\n              <span className=\"text-[10px] font-black uppercase tracking-widest text-foreground font-bold\">Saldo em caixa</span>\n            </div>\n            <div className={cn(\n              \"text-xl font-black font-mono tabular-nums tracking-tight\",\n              (previousBalance + (kpis.totalIncome - kpis.totalExpense)) < 0 ? \"text-destructive\" : \"text-primary\"\n            )}>\n              {formatCurrency(previousBalance + (kpis.totalIncome - kpis.totalExpense))}\n            </div>\n          </CardContent>\n        </Card>\n\n        {/* 5. CONTAS A PAGAR (PENDENT / OVERDUE) */}\n        <Card className=\"stat-card border-none\">\n          <CardContent className=\"p-5\">\n            <div className=\"flex items-center gap-2 mb-4\">\n              <div className=\"h-8 w-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20\">\n                <AlertCircle className=\"h-4 w-4 text-orange-500\" />\n              </div>\n              <span className=\"text-[10px] font-black uppercase tracking-widest text-muted-foreground/80\">Contas a pagar</span>\n            </div>\n            <div className=\"text-xl font-black font-mono tabular-nums tracking-tight text-orange-600\">\n              {formatCurrency(\n                sortedData.filter(tx => tx.status === 'pending' && tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0) +\n                overdueInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0)\n              )}\n            </div>\n          </CardContent>\n        </Card>\n      </div>\n\n\n      <Dialog open={!!viewingReceipt} onOpenChange={(o) => !o && setViewingReceipt(null)}>\n        <DialogContent className=\"sm:max-w-4xl bg-card p-0 overflow-hidden border-border/40 shadow-2xl rounded-[2rem] backdrop-blur-xl\">\n          <DialogHeader className=\"p-8 border-b border-border/40 bg-secondary/10 flex flex-row items-center justify-between space-y-0\">\n            <div className=\"flex items-center gap-4\">\n              <div className=\"h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner\">\n                <FileCheck className=\"h-6 w-6 text-primary\" />\n              </div>\n              <div>\n                <DialogTitle className=\"text-2xl font-bold tracking-tight\">Comprovante</DialogTitle>\n                <p className=\"text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5\">Documento de Lan├ºamento</p>\n              </div>\n            </div>\n          </DialogHeader>\n\n          <div className=\"bg-secondary/5 relative\">\n            <ScrollArea className=\"h-[60vh] w-full\">\n              <div className=\"p-10 flex items-center justify-center min-h-full\">\n                {viewingReceipt && (\n                  <div className=\"w-full flex items-center justify-center\">\n                    {viewingReceipt.toLowerCase().includes('.pdf') ? (\n                      <div className=\"flex flex-col items-center gap-8 py-20 animate-in fade-in zoom-in-95 duration-500\">\n                        <div className=\"h-32 w-32 rounded-[2.5rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/5\">\n                          <FileText className=\"h-16 w-16 text-primary\" />\n                        </div>\n                        <div className=\"text-center space-y-4\">\n                          <p className=\"text-2xl font-bold text-foreground\">Documento PDF</p>\n                          <p className=\"text-[13px] text-muted-foreground max-w-sm leading-relaxed mx-auto font-medium\">Este arquivo est├í em formato PDF. Clique para baixar e visualizar o conte├║do completo.</p>\n                        </div>\n                      </div>\n                    ) : (\n                      <div className=\"relative group rounded-2xl overflow-hidden border border-border/40 shadow-2xl bg-background w-fit mx-auto animate-in fade-in zoom-in-95 duration-500\">\n                        <img\n                          src={viewingReceipt}\n                          alt=\"Comprovante\"\n                          className=\"max-h-[50vh] w-auto object-contain cursor-zoom-in\"\n                          onClick={() => window.open(viewingReceipt, '_blank')}\n                        />\n                        <div className=\"absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center\">\n                          <p className=\"text-white text-[10px] font-bold uppercase tracking-widest\">Clique para ver tamanho original</p>\n                        </div>\n                      </div>\n                    )}\n                  </div>\n                )}\n              </div>\n            </ScrollArea>\n          </div>\n\n          <DialogFooter className=\"p-8 bg-secondary/10 border-t border-border/40 flex flex-row items-center justify-end gap-3\">\n            <Button\n              variant=\"outline\"\n              className=\"h-11 px-8 font-bold border-border/60 premium-button transition-all\"\n              onClick={() => setViewingReceipt(null)}\n            >\n              Fechar\n            </Button>\n            {viewingReceipt && (\n              <Button\n                className=\"h-11 px-10 gap-3 premium-button shadow-xl shadow-primary/20 hover:scale-[1.02] bg-primary text-primary-foreground\"\n                onClick={() => handleDownload(viewingReceipt)}\n              >\n                <Download className=\"h-4.5 w-4.5\" />\n                Baixar Arquivo\n              </Button>\n            )}\n          </DialogFooter>\n        </DialogContent>\n      </Dialog>\n\n      {/* SE├ç├âO 1: PEND├èNCIAS ACUMULADAS (ARREARS) */}\n      {overdueInstallments.length > 0 && (\n        <Card className=\"bg-destructive/5 border-destructive/20 border-l-4 border-l-destructive shadow-none overflow-hidden rounded-[1.5rem]\">\n          <CardHeader className=\"py-4 bg-destructive/10 px-6\">\n            <div className=\"flex items-center justify-between\">\n              <div className=\"flex items-center gap-3\">\n                <div className=\"h-8 w-8 rounded-full bg-destructive/20 flex items-center justify-center border border-destructive/30\">\n                  <AlertCircle className=\"h-4.5 w-4.5 text-destructive\" />\n                </div>\n                <div>\n                  <h4 className=\"text-[11px] font-black text-destructive tracking-[0.2em] uppercase\">Pend├¬ncias de meses anteriores</h4>\n                  <p className=\"text-[10px] font-bold text-destructive/60 uppercase tracking-tighter mt-0.5\">{overdueInstallments.length} pagamentos em atraso</p>\n                </div>\n              </div>\n              <Badge variant=\"outline\" className=\"bg-destructive/10 text-destructive border-destructive/30 text-[9px] uppercase font-black px-3 py-1 rounded-full animate-pulse\">A├º├úo Necess├íria</Badge>\n            </div>\n          </CardHeader>\n          <CardContent className=\"p-0\">\n            <Table>\n              <TableBody>\n                {overdueInstallments.map((inst: any) => (\n                  <TableRow key={inst.id} className=\"hover:bg-destructive/10 border-b border-destructive/10 transition-colors h-14\">\n                    <TableCell className=\"py-2 pl-6 w-[12%] text-[11px] font-mono text-destructive font-bold\">{formatDate(inst.due_date)}</TableCell>\n                    <TableCell className=\"py-2 w-[38%]\">\n                      <div className=\"flex flex-col\">\n                        <span className=\"text-[13px] font-bold text-destructive/80 leading-tight\">{inst.purchase?.description}</span>\n                        <span className=\"text-[9px] text-destructive/60 font-black uppercase tracking-wider mt-0.5\">\n                          Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}\n                        </span>\n                      </div>\n                    </TableCell>\n                    <TableCell className=\"py-2 w-[15%] text-center\">\n                      <div className=\"flex items-center justify-center\">\n                        <div className=\"h-1.5 w-1.5 rounded-full bg-destructive animate-ping absolute\" />\n                        <Badge variant=\"outline\" className=\"text-[9px] border-destructive/30 text-destructive font-black uppercase bg-destructive/5\">VENCIDA</Badge>\n                      </div>\n                    </TableCell>\n                    <TableCell className=\"py-2 w-[18%] text-right font-mono font-black text-destructive pr-6\">{formatCurrency(inst.amount)}</TableCell>\n                    <TableCell className=\"py-2 w-[12%] text-right pr-6\">\n                      <button\n                        onClick={() => handlePayInstallment(inst)}\n                        className=\"px-4 py-1.5 rounded-full bg-destructive text-white hover:bg-destructive/90 transition-all text-[9px] font-black uppercase shadow-lg shadow-destructive/20\"\n                      >\n                        PAGAR\n                      </button>\n                    </TableCell>\n                  </TableRow>\n                ))}\n              </TableBody>\n            </Table>\n          </CardContent>\n        </Card>\n      )}\n\n      {/* SE├ç├âO 2: PARCELAS DA COMPET├èNCIA (COMPACT DESIGN) */}\n      <div className=\"space-y-4\">\n        <div className=\"flex items-center justify-between px-1\">\n          <h4 className=\"section-header !mb-0\">Obriga├º├Áes da Compet├¬ncia</h4>\n          <Badge variant=\"outline\" className=\"text-[9px] font-black uppercase text-muted-foreground/40 border-border/40 px-3 py-1 rounded-full\">Procurar Pagamento</Badge>\n        </div>\n\n        <Card className=\"stat-card border-none overflow-hidden border-l-4 border-l-primary/30\">\n          <CardContent className=\"p-0\">\n            {loadingInstallments ? (\n              <div className=\"p-12 text-center\">\n                <Loader2 className=\"h-6 w-6 animate-spin mx-auto text-primary opacity-40\" />\n                <p className=\"text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest mt-4\">Carregando obriga├º├Áes...</p>\n              </div>\n            ) : installments.length === 0 ? (\n              <div className=\"p-10 text-center flex flex-col items-center gap-2 bg-secondary/5 rounded-2xl\">\n                <div className=\"h-10 w-10 rounded-full bg-secondary/50 flex items-center justify-center mb-2\">\n                  <CalendarClock className=\"h-5 w-5 text-muted-foreground/40\" />\n                </div>\n                <p className=\"text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest\">Nenhuma obriga├º├úo para este m├¬s</p>\n              </div>\n            ) : (\n              <Table>\n                <TableBody>\n                  {installments.map((inst: any) => (\n                    <TableRow key={inst.id} className=\"group hover:bg-secondary/10 transition-colors border-b border-border/40 last:border-0 h-14\">\n                      <TableCell className=\"py-2 pl-6 w-[12%] text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tighter whitespace-nowrap\">\n                        {months.find(m => m.value === inst.competence_date.split('-')[1])?.label.substring(0, 3)}/{inst.competence_date.split('-')[0]}\n                      </TableCell>\n                      <TableCell className=\"py-2 w-[35%]\">\n                        <div className=\"flex flex-col\">\n                          <span className=\"text-[13px] font-bold leading-tight group-hover:text-primary transition-colors\">{inst.purchase?.description}</span>\n                          <span className=\"text-[10px] text-muted-foreground/60 font-black uppercase tracking-wider mt-0.5\">\n                            Parcela {String(inst.installment_number).padStart(2, '0')}/{String(inst.total_installments).padStart(2, '0')}\n                          </span>\n                        </div>\n                      </TableCell>\n                      <TableCell className=\"py-2 w-[18%] text-[11px] font-mono text-center text-muted-foreground/70 font-medium\">Venc: {formatDate(inst.due_date)}</TableCell>\n                      <TableCell className=\"py-2 w-[15%] text-center\">\n                        <Badge\n                          variant=\"outline\"\n                          className={cn(\n                            \"text-[8px] font-black uppercase px-3 py-1 border-border/40 rounded-full\",\n                            inst.status === 'PAGA' || inst.status === 'PAGA_COM_ATRASO'\n                              ? \"bg-emerald-500/10 text-emerald-600 border-emerald-500/20\" :\n                              inst.status === 'VENCIDA'\n                                ? \"bg-destructive/10 text-destructive border-destructive/20 shadow-[0_0_12px_rgba(var(--destructive),0.1)]\"\n                                : \"bg-orange-500/10 text-orange-600 border-orange-500/20\"\n                          )}\n                        >\n                          {inst.status}\n                        </Badge>\n                      </TableCell>\n                      <TableCell className=\"py-2 w-[15%] text-right font-mono font-black text-foreground/80 pr-6\">{formatCurrency(inst.amount)}</TableCell>\n                      <TableCell className=\"py-2 w-[10%] text-right pr-6\">\n                        {inst.status !== 'PAGA' && inst.status !== 'PAGA_COM_ATRASO' && (\n                          <button\n                            onClick={() => handlePayInstallment(inst)}\n                            className=\"px-4 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all text-[9px] font-black uppercase border border-primary/20 shadow-sm\"\n                          >\n                            PAGAR\n                          </button>\n                        )}\n                      </TableCell>\n                    </TableRow>\n                  ))}\n                </TableBody>\n              </Table>\n            )}\n          </CardContent>\n        </Card>\n      </div>\n\n      {/* SE├ç├âO 3: MOVIMENTA├ç├òES (CASH FLOW / REALIZED) */}\n      <div className=\"space-y-3 pt-2\">\n        <div className=\"flex items-center justify-between px-1\">\n          <h3 className=\"text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2\">\n            <div className=\"h-2 w-2 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.4)]\" /> Movimenta├º├Áes do Caixa (Realizado)\n          </h3>\n          {showTotals && sortedData.length > 0 && (\n            <div className=\"flex items-center gap-2 px-3 py-1 bg-success/5 border border-success/20 rounded-lg\">\n              <span className=\"text-[10px] font-bold text-success\">REALIZADO NO PER├ìODO: {formatCurrency(totals.income - totals.expense)}</span>\n            </div>\n          )}\n        </div>\n\n        <Card className=\"bg-card border-border shadow-sm overflow-hidden\">\n          <CardHeader className=\"pb-3 bg-secondary/5\">\n            <div className=\"flex flex-col gap-3\">\n              <div className=\"flex items-center gap-4\">\n                <div className=\"relative flex-1\">\n                  <Search className=\"absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground\" />\n                  <Input placeholder=\"Buscar por descri├º├úo...\" className=\"pl-9 h-9 text-xs\" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />\n                </div>\n              </div>\n              <div className=\"flex flex-wrap gap-2 items-center\">\n                <Select value={typeFilter} onValueChange={setTypeFilter}>\n                  <SelectTrigger className=\"w-40 h-8 text-xs\"><SelectValue placeholder=\"Tipo\" /></SelectTrigger>\n                  <SelectContent>\n                    <SelectItem value=\"all\">Todos</SelectItem>\n                    <SelectItem value=\"income\">Entradas</SelectItem>\n                    <SelectItem value=\"expense\">Sa├¡das</SelectItem>\n                  </SelectContent>\n                </Select>\n                <Select value={categoryFilter} onValueChange={setCategoryFilter}>\n                  <SelectTrigger className=\"w-52 h-8 text-xs\"><SelectValue placeholder=\"Categoria\" /></SelectTrigger>\n                  <SelectContent>\n                    <SelectItem value=\"all\">Categorias</SelectItem>\n                    {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}\n                  </SelectContent>\n                </Select>\n                <Select value={yearFilter} onValueChange={setYearFilter}>\n                  <SelectTrigger className=\"w-36 h-8 text-xs\"><SelectValue placeholder=\"Ano\" /></SelectTrigger>\n                  <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>\n                </Select>\n                <Select value={monthFilter} onValueChange={setMonthFilter}>\n                  <SelectTrigger className=\"w-44 h-8 text-xs\"><SelectValue placeholder=\"M├¬s\" /></SelectTrigger>\n                  <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>\n                </Select>\n\n                <TableToolbar\n                  sortField={sortField}\n                  onSortFieldChange={(v) => setSortField(v as any)}\n                  sortOrder={sortOrder}\n                  onSortOrderChange={setSortOrder}\n                  sortOptions={[\n                    { field: 'date', label: 'Ordenar por Data', icon: <Calendar /> },\n                    { field: 'created_at', label: '├Ültimo Registro', icon: <History /> },\n                    { field: 'description', label: 'Ordenar por Descri├º├úo', icon: <Type /> },\n                    { field: 'amount', label: 'Ordenar por Valor', icon: <ArrowUp01 /> },\n                  ]}\n                  visibleColumns={visibleColumns}\n                  onToggleColumn={toggleColumn}\n                  columnOptions={[\n                    { id: \"date\", label: \"Data\" },\n                    { id: \"description\", label: \"Descri├º├úo\" },\n                    { id: \"category\", label: \"Categoria\" },\n                    { id: \"status\", label: \"Status (Pago/Pendente)\" },\n                    { id: \"receipt\", label: \"Comprovante\" },\n                    { id: \"method\", label: \"Meio de Pagamento\" },\n                    { id: \"amount\", label: \"Valor\" },\n                    { id: \"occasion\", label: \"Ocasi├úo Principal\" },\n                  ]}\n                />\n              </div>\n            </div>\n          </CardHeader>\n          <CardContent className=\"p-0\">\n            <ScrollArea className=\"h-[calc(100vh-600px)] w-full\">\n              <Table className=\"border-collapse border border-border/50\">\n                <TableHeader className=\"sticky top-0 bg-secondary/20 backdrop-blur-sm z-10 border-b border-border\">\n                  <TableRow className=\"hover:bg-transparent\">\n                    {visibleColumns.includes(\"date\") && <TableHead className=\"w-[10%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Data</TableHead>}\n                    {visibleColumns.includes(\"description\") && <TableHead className=\"w-[25%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Descri├º├úo</TableHead>}\n                    {visibleColumns.includes(\"category\") && <TableHead className=\"w-[12%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Categoria</TableHead>}\n                    {visibleColumns.includes(\"status\") && <TableHead className=\"w-[10%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Status</TableHead>}\n                    {visibleColumns.includes(\"receipt\") && <TableHead className=\"w-[8%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Doc</TableHead>}\n                    {visibleColumns.includes(\"method\") && <TableHead className=\"w-[12%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Meio</TableHead>}\n                    {visibleColumns.includes(\"occasion\") && <TableHead className=\"w-[15%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Ocasi├úo</TableHead>}\n                    {visibleColumns.includes(\"amount\") && <TableHead className=\"w-[12%] text-[11px] font-semibold text-muted-foreground text-center border-r border-border/50\">Valor</TableHead>}\n                    <TableHead className=\"w-[6%] text-[11px] font-semibold text-muted-foreground text-center\">A├º├Áes</TableHead>\n                  </TableRow>\n                </TableHeader>\n                <TableBody>\n                  {loadingTransactions ? (\n                    Array.from({ length: 5 }).map((_, i) => (\n                      <TableRow key={i}><TableCell colSpan={visibleColumns.length + 1}><Skeleton className=\"h-6 w-full\" /></TableCell></TableRow>\n                    ))\n                  ) : (\n                    <>\n                      {sortedData.map((tx) => {\n                        const isHighlighted = searchParams.get(\"highlight\") === tx.id;\n                        return (\n                          <TableRow\n                            key={tx.id}\n                            className={cn(\n                              \"group transition-colors odd:bg-transparent even:bg-secondary/10 hover:bg-secondary/20 border-b border-border/50\",\n                              isHighlighted && \"animate-highlight-orange z-20\"\n                            )}\n                          >\n                            {visibleColumns.includes(\"date\") && <TableCell className=\"font-mono text-[13px] tabular-nums whitespace-nowrap text-center border-r border-border/50 py-2\">{formatDate(tx.date)}</TableCell>}\n                            {visibleColumns.includes(\"description\") && <TableCell className=\"text-[13px] font-medium text-center border-r border-border/50 py-2\">{tx.description}</TableCell>}\n                            {visibleColumns.includes(\"category\") && (\n                              <TableCell className=\"text-center border-r border-border/50 py-2\">\n                                <Badge variant=\"outline\" className=\"text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70\">\n                                  {tx.categories?.name || \"Geral\"}\n                                </Badge>\n                              </TableCell>\n                            )}\n                            {visibleColumns.includes(\"status\") && (\n                              <TableCell className=\"text-center border-r border-border/50 py-2\">\n                                <div className=\"flex items-center justify-center gap-2\">\n                                  <Switch\n                                    checked={tx.status === 'completed' || !tx.status}\n                                    onCheckedChange={() => {\n                                      if (tx.isInstallmentPending) {\n                                        handlePayInstallment(tx.originalInstallment);\n                                      } else {\n                                        handleToggleStatus(tx as any);\n                                      }\n                                    }}\n                                    disabled={isUpdatingStatus === tx.id}\n                                    className=\"data-[state=checked]:bg-success scale-75\"\n                                  />\n                                  <span className={cn(\n                                    \"text-[10px] font-bold min-w-[70px] text-left uppercase\",\n                                    tx.status === 'completed' || !tx.status ? \"text-success\" : \"text-orange-600\"\n                                  )}>\n                                    {tx.isInstallmentPending ? \"PREVISTO\" : (\n                                      tx.status === 'completed' || !tx.status\n                                        ? (tx.type === 'income' ? \"RECEBIDO\" : \"PAGO\")\n                                        : (tx.type === 'income' ? \"A RECEBER\" : \"A PAGAR\")\n                                    )}\n                                  </span>\n                                </div>\n                              </TableCell>\n                            )}\n                            {visibleColumns.includes(\"receipt\") && (\n                              <TableCell className=\"text-center border-r border-border/50 py-2\">\n                                {tx.receipt_url && (\n                                  <button\n                                    onClick={(e) => { e.stopPropagation(); setViewingReceipt(tx.receipt_url || null); }}\n                                    className=\"inline-flex items-center justify-center w-6 h-5 rounded-full border border-border/50 bg-transparent text-muted-foreground hover:bg-secondary/20 transition-all\"\n                                    title=\"Ver Comprovante\"\n                                  >\n                                    <FileCheck className=\"h-3 w-3\" />\n                                  </button>\n                                )}\n                              </TableCell>\n                            )}\n                            {visibleColumns.includes(\"method\") && (\n                              <TableCell className=\"text-center border-r border-border/50 py-2\">\n                                <Badge variant=\"outline\" className=\"text-[12px] font-medium px-2 py-0 h-6 leading-none border-border/50 text-foreground/70\">\n                                  {tx.payment_method_cat?.name || tx.payment_method || \"-\"}\n                                </Badge>\n                              </TableCell>\n                            )}\n                            {visibleColumns.includes(\"occasion\") && (\n                              <TableCell className=\"text-[13px] text-center border-r border-border/50 py-2\">\n                                {tx.occasion || \"-\"}\n                              </TableCell>\n                            )}\n                            {visibleColumns.includes(\"amount\") && (\n                              <TableCell className={`font-semibold font-mono text-[13px] tabular-nums text-center border-r border-border/50 py-3 ${tx.type === \"income\" ? \"text-success\" : \"text-destructive\"}`}>\n                                {tx.type === \"income\" ? \"+\" : \"-\"}{formatCurrency(tx.amount)}\n                              </TableCell>\n                            )}\n                            <TableCell className=\"py-2\">\n                              <PermissionGuard requireWrite>\n                                <div className=\"flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-center\">\n                                  <button onClick={() => openEdit(tx)} className=\"p-1 px-1.5 rounded-md hover:bg-secondary text-muted-foreground transition-colors\"><Pencil className=\"h-3 w-3\" /></button>\n                                  <button onClick={() => handleDeleteClick(tx)} className=\"p-1 px-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors\"><Trash2 className=\"h-3 w-3\" /></button>\n                                </div>\n                              </PermissionGuard>\n                            </TableCell>\n                          </TableRow>\n                        );\n                      })}\n                      {!loadingTransactions && sortedData.length === 0 && (\n                        <TableRow><TableCell colSpan={visibleColumns.length + 1} className=\"text-center text-muted-foreground py-10 italic\">Nenhum lan├ºamento encontrado</TableCell></TableRow>\n                      )}\n                    </>\n                  )}\n                </TableBody>\n              </Table>\n            </ScrollArea>\n          </CardContent>\n        </Card>\n      </div>\n\n      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>\n        <DialogContent className=\"sm:max-w-[400px] bg-card p-6 border-border rounded-[2.5rem] shadow-2xl\">\n          <DialogHeader className=\"items-center text-center pb-4\">\n            <div className=\"h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4\">\n              <Trash2 className=\"h-6 w-6 text-destructive\" />\n            </div>\n            <DialogTitle className=\"text-lg font-bold\">Excluir Parcelamento</DialogTitle>\n            <p className=\"text-xs text-muted-foreground mt-2\">\n              Este lan├ºamento faz parte de um conjunto de parcelas. Como deseja prosseguir?\n            </p>\n          </DialogHeader>\n\n          <div className=\"grid gap-3 pt-2\">\n            <Button\n              variant=\"outline\"\n              className=\"h-12 rounded-2xl font-bold text-xs hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 border-border/50\"\n              onClick={() => confirmDelete(txToDelete!.id, false)}\n              disabled={isDeleting}\n            >\n              {isDeleting ? <Loader2 className=\"h-4 w-4 animate-spin mr-2\" /> : null}\n              Excluir apenas esta parcela\n            </Button>\n            <Button\n              className=\"h-12 rounded-2xl font-bold text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90\"\n              onClick={() => confirmDelete(txToDelete!.id, true)}\n              disabled={isDeleting}\n            >\n              {isDeleting ? <Loader2 className=\"h-4 w-4 animate-spin mr-2\" /> : null}\n              Excluir esta e todas as parcelas futuras\n            </Button>\n            <Button\n              variant=\"ghost\"\n              className=\"h-10 rounded-2xl font-bold text-xs text-muted-foreground\"\n              onClick={() => setDeleteModalOpen(false)}\n            >\n              Cancelar\n            </Button>\n          </div>\n        </DialogContent>\n      </Dialog>\n    </div>\n  );\n}\n\nexport default function Transactions() {\n  const { organization } = useChurch();\n  const navigate = useNavigate();\n  const [searchParams, setSearchParams] = useSearchParams();\n  const activeTab = searchParams.get(\"tab\") || \"movimentacoes\";\n\n  if (!organization) return <div className=\"p-8 text-center text-muted-foreground\">Carregando dados...</div>;\n\n  return (\n    <>\n      <PermissionGuard\n        requireFinance\n        fallback={\n          <div className=\"h-[60vh] flex flex-col items-center justify-center text-center space-y-4\">\n            <div className=\"h-16 w-16 rounded-3xl bg-destructive/10 flex items-center justify-center\">\n              <Lock className=\"h-8 w-8 text-destructive\" />\n            </div>\n            <div>\n              <h2 className=\"text-xl font-bold\">Acesso Restrito</h2>\n              <p className=\"text-muted-foreground text-sm max-w-xs\">Voc├¬ n├úo tem permiss├úo para acessar o m├│dulo financeiro. Entre em contato com o administrador.</p>\n            </div>\n          </div>\n        }\n      >\n        <div className=\"animate-fade-in space-y-6 print:space-y-0 print:m-0 print:p-0\">\n          <div className=\"flex items-center justify-between pb-2 border-b border-border/50 print:hidden\">\n            <div className=\"flex items-center gap-4 text-left\">\n              <div className=\"h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-sm shrink-0\">\n                <Banknote className=\"h-5 w-5 text-primary\" />\n              </div>\n              <div className=\"flex flex-col text-left items-start\">\n                <div className=\"flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-70\">\n                  <Home className=\"h-2.5 w-2.5\" />\n                  <ChevronRight className=\"h-2.5 w-2.5 opacity-30\" />\n                  Tesouraria\n                  <ChevronRight className=\"h-2.5 w-2.5 opacity-30\" />\n                  {organization.name}\n                </div>\n                <h1 className=\"text-xl font-semibold text-foreground tracking-tight capitalize mt-0.5\">\n                  {activeTab === 'movimentacoes' ? 'Lan├ºamentos' :\n                    activeTab === 'fechamento' ? 'Fechamentos' :\n                      activeTab.replace(/-/g, ' ')}\n                </h1>\n              </div>\n            </div>\n          </div>\n\n          <Tabs\n            value={searchParams.get(\"tab\") || \"movimentacoes\"}\n            onValueChange={(v) => setSearchParams({ tab: v })}\n            className=\"w-full\"\n          >\n\n            <TabsContent value=\"movimentacoes\" className=\"mt-0 focus-visible:ring-0 outline-none\">\n              <TransactionsList />\n            </TabsContent>\n            <TabsContent value=\"categorias\" className=\"mt-0 focus-visible:ring-0 outline-none\">\n              <Categories />\n            </TabsContent>\n            <TabsContent value=\"fechamento\" className=\"mt-0 focus-visible:ring-0 outline-none\">\n              <Closures />\n            </TabsContent>\n            <TabsContent value=\"relatorios\" className=\"mt-0 focus-visible:ring-0 outline-none\">\n              <Reports />\n            </TabsContent>\n          </Tabs>\n        </div>\n      </PermissionGuard>\n    </>\n  );\n}\n",
+        "usedDeprecatedRules": []
+    }
+]
