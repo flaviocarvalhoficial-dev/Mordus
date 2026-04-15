@@ -172,9 +172,11 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
   const isLeader = profile?.role === "leader";
   const isViewer = profile?.role === "viewer";
 
-  const canManageFinances = isAdmin || isTreasurer;
-  const canManageSecretariat = isAdmin || isSecretary;
-  const canAccessSecretariat = canManageSecretariat || isLeader;
+  // If profile hasn't loaded a role yet, default to full access (avoid blank sidebar)
+  const hasRole = !!profile?.role;
+  const canManageFinances = !hasRole || isAdmin || isTreasurer;
+  const canManageSecretariat = !hasRole || isAdmin || isSecretary;
+  const canAccessSecretariat = !hasRole || canManageSecretariat || isLeader;
   const canWrite = !isViewer;
 
   const loading = authLoading || (!!user && profileLoading);

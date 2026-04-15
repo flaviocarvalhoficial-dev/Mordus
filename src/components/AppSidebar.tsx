@@ -58,17 +58,22 @@ export function AppSidebar() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const currentPath = location.pathname;
-  const { settings, user, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
+  const { settings, user, profile, logout, isAdmin, canManageFinances, canManageSecretariat, canAccessSecretariat } = useChurch();
   const { openNewTransaction } = useTransactionModal();
 
   const mainItems = useMemo(() => {
+    // While profile is still loading, show all items (avoids silent disappearance)
+    const profileLoaded = !!profile;
+    const showFinances = !profileLoaded || canManageFinances;
+    const showSecretariat = !profileLoaded || canAccessSecretariat;
+
     const items = [
       { title: "Painel Geral", url: "/", icon: LayoutDashboard, visible: true },
-      { title: "Tesouraria", url: "/lancamentos", icon: CircleDollarSign, visible: canManageFinances },
-      { title: "Secretaria", url: "/membros?tab=membros", icon: Users, visible: canAccessSecretariat },
+      { title: "Tesouraria", url: "/lancamentos", icon: CircleDollarSign, visible: showFinances },
+      { title: "Secretaria", url: "/membros?tab=membros", icon: Users, visible: showSecretariat },
     ];
     return items.filter(item => item.visible);
-  }, [canManageFinances, canAccessSecretariat]);
+  }, [canManageFinances, canAccessSecretariat, profile]);
 
   const isActive = (url: string) => {
     const path = url.split(/[?#]/)[0];
