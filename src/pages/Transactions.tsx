@@ -98,6 +98,15 @@ function TransactionsList() {
     localStorage.setItem('mordus_visible_columns', JSON.stringify(visibleColumns));
   }, [visibleColumns]);
 
+  const refreshData = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
+    queryClient.invalidateQueries({ queryKey: ["installments"] });
+    queryClient.invalidateQueries({ queryKey: ["overdue-installments"] });
+    queryClient.invalidateQueries({ queryKey: ["previous-balance"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
+  };
+
   useEffect(() => {
     localStorage.setItem('mordus_tx_sort_field', sortField);
     localStorage.setItem('mordus_tx_sort_order', sortOrder);
@@ -323,9 +332,7 @@ function TransactionsList() {
 
       setDeleteModalOpen(false);
       setTxToDelete(null);
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["installments"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
+      refreshData();
     } catch (err) {
       toast.error("Erro ao excluir lançamento");
     } finally {
@@ -364,8 +371,7 @@ function TransactionsList() {
         if (txError) throw txError;
 
         toast.success("Pagamento registrado com sucesso!");
-        queryClient.invalidateQueries({ queryKey: ["transactions"] });
-        queryClient.invalidateQueries({ queryKey: ["installments"] });
+        refreshData();
       } catch (err) {
         toast.error("Erro ao registrar pagamento");
       }
@@ -390,9 +396,7 @@ function TransactionsList() {
         ? (tx.type === 'income' ? 'Recebido' : 'Pago')
         : 'Pendente';
       toast.success(`Lançamento marcado como ${label}`);
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["installments"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-transactions"] });
+      refreshData();
     } catch (err) {
       toast.error("Erro ao atualizar status");
     } finally {
