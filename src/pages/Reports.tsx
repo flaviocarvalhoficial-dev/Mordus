@@ -36,10 +36,11 @@ interface ReportTemplateProps {
   totalIncome: number;
   totalExpense: number;
   balance: number;
+  initialBalance: number;
   periodLabel: string;
 }
 
-const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, balance, periodLabel }: ReportTemplateProps) => (
+const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, balance, initialBalance, periodLabel }: ReportTemplateProps) => (
   <div className="report-paper flex flex-col justify-between print:m-0 print:p-[20mm] bg-white">
     <div className="w-full">
       <div className="text-center border-b-2 border-primary/20 pb-8 mb-12 pt-4 relative">
@@ -53,9 +54,14 @@ const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, b
           <span>Emitido em: {new Date().toLocaleDateString("pt-BR")}</span>
         </div>
       </div>
-      {/* ... rest of the template ... */}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className={`grid gap-4 ${initialBalance !== 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        {initialBalance !== 0 && (
+          <div className="p-4 rounded-xl border border-border bg-secondary/10">
+            <p className="text-[11px] text-muted-foreground uppercase font-medium">S. Anterior</p>
+            <p className="text-lg font-bold font-mono text-muted-foreground mt-1">{formatCurrency(initialBalance)}</p>
+          </div>
+        )}
         <div className="p-4 rounded-xl border border-border bg-secondary/10">
           <p className="text-[11px] text-muted-foreground uppercase font-medium">Entradas</p>
           <p className="text-lg font-bold font-mono text-success mt-1">{formatCurrency(totalIncome)}</p>
@@ -67,6 +73,9 @@ const ReportTemplate = ({ organization, reportData, totalIncome, totalExpense, b
         <div className="p-4 rounded-xl border border-border bg-secondary/5 print:bg-secondary/5">
           <p className="text-[11px] text-muted-foreground uppercase font-medium tracking-wider">Saldo Final</p>
           <p className={`text-xl font-bold font-mono mt-1 ${balance >= 0 ? "text-success" : "text-destructive"}`}>{formatCurrency(balance)}</p>
+          {initialBalance !== 0 && (
+            <p className="text-[9px] text-muted-foreground/60 mt-1 italic">Inclui saldo anterior de {formatCurrency(initialBalance)}</p>
+          )}
         </div>
       </div>
 
@@ -113,6 +122,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState<Transaction[]>([]);
+  const [initialBalance, setInitialBalance] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
     to: new Date(),
@@ -131,10 +141,23 @@ export default function Reports() {
       const from = dateRange.from.toISOString().split('T')[0];
       const to = (dateRange.to || dateRange.from).toISOString().split('T')[0];
 
+      // Buscar o saldo herdado: último fechamento cujo end_date seja ANTES de 'from'
+      const { data: closureData } = await supabase
+        .from("monthly_closures")
+        .select("final_balance, end_date")
+        .eq("organization_id", organization.id)
+        .lt("end_date", from)
+        .order("end_date", { ascending: false })
+        .limit(1);
+
+      const inherited = closureData && closureData.length > 0 ? Number(closureData[0].final_balance || 0) : 0;
+      setInitialBalance(inherited);
+
       const { data, error } = await supabase
         .from("transactions")
         .select(`*, categories!category_id(name)`)
         .eq("organization_id", organization.id)
+        .eq("status", "completed")
         .gte("date", from)
         .lte("date", to)
         .order("date", { ascending: false });
@@ -197,7 +220,8 @@ export default function Reports() {
 
   const totalIncome = reportData.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const totalExpense = reportData.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const balance = totalIncome - totalExpense;
+  // Saldo real = saldo herdado + entradas do período - saídas do período
+  const balance = initialBalance + totalIncome - totalExpense;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -271,6 +295,7 @@ export default function Reports() {
             totalIncome={totalIncome}
             totalExpense={totalExpense}
             balance={balance}
+            initialBalance={initialBalance}
             periodLabel={getPeriodLabel()}
           />
         </div>
@@ -292,6 +317,7 @@ export default function Reports() {
               totalIncome={totalIncome}
               totalExpense={totalExpense}
               balance={balance}
+              initialBalance={initialBalance}
               periodLabel={getPeriodLabel()}
             />
           </div>

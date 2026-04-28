@@ -49,6 +49,8 @@ export default function Closures() {
   const [selectedMonth, setSelectedMonth] = useState(String(currentMonth).padStart(2, "0"));
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [lastClosure, setLastClosure] = useState<Closure | null>(null);
+  const [immediatePrevious, setImmediatePrevious] = useState<Closure | null>(null);
+  const [closedClosure, setClosedClosure] = useState<Closure | null>(null);
   const [hasRetroactiveUnclosed, setHasRetroactiveUnclosed] = useState(false);
 
   const [currentPeriodStats, setCurrentPeriodStats] = useState({
@@ -114,8 +116,11 @@ export default function Closures() {
 
     // Buscamos se existe algum fechamento que termina ANTES desse mês selecionado
     // Como closures está ordenado por end_date desc, vamos filtrar
-    const previousClosures = closures.filter(c => new Date(c.end_date) < targetStartDate);
-    const immediatePrevious = previousClosures.length > 0 ? previousClosures[0] : null;
+    const previousClosures = closures.filter(
+      c => new Date(c.end_date + "T12:00:00") < targetStartDate
+    );
+    const contextualPrevious = previousClosures.length > 0 ? previousClosures[0] : null;
+    setImmediatePrevious(contextualPrevious);
 
     const isFlexible = (organization as any)?.closure_mode === 'flexible';
     let startDateStr = "";
@@ -123,9 +128,9 @@ export default function Closures() {
     if (isFlexible) {
       // Modo Flexível: O início é sempre o dia 1 do mês selecionado
       startDateStr = targetStartDateStr;
-    } else if (immediatePrevious) {
+    } else if (contextualPrevious) {
       // Modo Contínuo: O início é o dia seguinte ao último fechamento
-      const lastEnd = new Date(immediatePrevious.end_date + "T12:00:00");
+      const lastEnd = new Date(contextualPrevious.end_date + "T12:00:00");
       lastEnd.setDate(lastEnd.getDate() + 1);
       startDateStr = lastEnd.toISOString().split('T')[0];
     } else {
@@ -135,26 +140,36 @@ export default function Closures() {
 
     // O fim é sempre o último dia do mês selecionado
     const lastDay = new Date(Number(selectedYear), Number(selectedMonth), 0);
-    const endDateStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+    const endDateStr =
+      lastDay.getFullYear() +
+      '-' + String(lastDay.getMonth() + 1).padStart(2, '0') +
+      '-' + String(lastDay.getDate()).padStart(2, '0');
 
-    // O saldo inicial deste período deve vir do último fechamento ANTES dele
-    const initialBalance = immediatePrevious?.final_balance || 0;
+    // O saldo inicial deste período deve vir do último fechamento contextual ANTES dele
+    const initialBalance = contextualPrevious?.final_balance || 0;
 
-    // Proteção: Verificar se este mês (especificamente este range) já está coberto por algum fechamento
-    const alreadyClosed = closures.find(c => c.end_date === endDateStr);
+    // FIX: Comparação normalizada por timestamp para evitar falha de formato/fuso
+    const endTs = new Date(endDateStr + "T12:00:00").getTime();
+    const alreadyClosed = closures.find(
+      c => new Date(c.end_date + "T12:00:00").getTime() === endTs
+    );
 
     if (alreadyClosed) {
+      // Mês já fechado: exibe os dados reais do fechamento gravado no banco
+      setClosedClosure(alreadyClosed);
       setCurrentPeriodStats({
-        income: 0,
-        expense: 0,
+        income: alreadyClosed.total_income || 0,
+        expense: alreadyClosed.total_expense || 0,
         count: 0,
-        initial: 0,
+        initial: alreadyClosed.initial_balance || 0,
         start: alreadyClosed.start_date,
         end: alreadyClosed.end_date,
-        error: `Este período (${months.find(m => m.value === selectedMonth)?.label}/${selectedYear}) já foi fechado.`
+        error: null
       });
       return;
     }
+    // Período em aberto: limpa o estado de fechado
+    setClosedClosure(null);
 
     try {
       const { data, error } = await supabase
@@ -177,8 +192,9 @@ export default function Closures() {
       };
 
       data?.forEach(tx => {
-        // REGRA DE CAIXA: Apenas itens 'completed' (pagos) entram no fechamento
-        if (tx.status === 'completed' || !tx.status) {
+        // FIX: Apenas transações explicitamente 'completed' entram no fechamento
+        // Transações com status null/pending/cancelled são ignoradas
+        if (tx.status === 'completed') {
           if (tx.type === "income") {
             stats.income += tx.amount;
           } else {
@@ -305,66 +321,106 @@ export default function Closures() {
         </Card>
       )}
 
-      <Card className={`bg-card border-border border-l-4 ${isDifferentMonth ? 'border-l-orange-500/40' : 'border-l-primary/40'}`}>
-        <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-3">
-            <Unlock className={`h-4 w-4 ${isDifferentMonth ? 'text-orange-500' : 'text-primary'}`} />
-            <div>
-              <CardTitle className="text-sm font-semibold">
-                Período em Aberto {isDifferentMonth && <span className="text-orange-500 ml-1 text-[10px] uppercase font-black">(Seleção)</span>}
-              </CardTitle>
-              {currentPeriodStats.start && (
+      {/* Card: Período Fechado (somente leitura com dados reais do banco) */}
+      {closedClosure ? (
+        <Card className="bg-card border-border border-l-4 border-l-muted-foreground/30">
+          <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-3">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <CardTitle className="text-sm font-semibold text-muted-foreground">Período Fechado</CardTitle>
                 <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                  {formatDate(currentPeriodStats.start)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(currentPeriodStats.end)}
+                  {formatDate(closedClosure.start_date)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(closedClosure.end_date)}
                 </p>
-              )}
+              </div>
             </div>
-          </div>
-          <Badge variant="secondary" className={`${isDifferentMonth ? 'bg-orange-500/15 text-orange-600' : 'bg-success/15 text-success'} border-0 text-[10px]`}>
-            {isDifferentMonth ? 'Revisando Período' : 'Aguardando Fechamento'}
-          </Badge>
-        </CardHeader>
-        <CardContent className="pb-4 pt-2">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1"><Wallet className="h-3 w-3" /> Saldo Anterior</p>
-              {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-muted-foreground">{formatCurrency(currentPeriodStats.initial)}</p>}
+            <Badge variant="secondary" className="bg-muted text-muted-foreground border-0 text-[10px] uppercase font-black">
+              Encerrado
+            </Badge>
+          </CardHeader>
+          <CardContent className="pb-4 pt-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1"><Wallet className="h-3 w-3" /> S. Anterior</p>
+                <p className="text-lg font-bold font-mono text-muted-foreground">{formatCurrency(Number(closedClosure.initial_balance || 0))}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Entradas</p>
+                <p className="text-lg font-bold font-mono text-success">{formatCurrency(Number(closedClosure.total_income || 0))}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Saídas</p>
+                <p className="text-lg font-bold font-mono text-destructive">{formatCurrency(Number(closedClosure.total_expense || 0))}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-primary uppercase font-bold">Saldo Final</p>
+                <p className={`text-lg font-bold font-mono ${Number(closedClosure.final_balance) >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                  {formatCurrency(Number(closedClosure.final_balance || 0))}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold">Entradas</p>
-              {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-success">{formatCurrency(currentPeriodStats.income)}</p>}
+            <div className="mt-4 p-2 bg-muted/30 border border-border/50 rounded-md text-[10px] text-muted-foreground flex items-center gap-2 italic">
+              <Lock className="h-3 w-3 shrink-0" />
+              Este período foi encerrado em {closedClosure.closed_at ? new Date(closedClosure.closed_at).toLocaleDateString('pt-BR') : '—'}. Para reabrir, exclua o fechamento no histórico abaixo.
             </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold">Saídas</p>
-              {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-destructive">{formatCurrency(currentPeriodStats.expense)}</p>}
+          </CardContent>
+        </Card>
+      ) : (
+        /* Card: Período em Aberto */
+        <Card className={`bg-card border-border border-l-4 ${isDifferentMonth ? 'border-l-orange-500/40' : 'border-l-primary/40'}`}>
+          <CardHeader className="py-4 flex flex-row items-center justify-between space-y-0">
+            <div className="flex items-center gap-3">
+              <Unlock className={`h-4 w-4 ${isDifferentMonth ? 'text-orange-500' : 'text-primary'}`} />
+              <div>
+                <CardTitle className="text-sm font-semibold">
+                  Período em Aberto {isDifferentMonth && <span className="text-orange-500 ml-1 text-[10px] uppercase font-black">(Seleção)</span>}
+                </CardTitle>
+                {currentPeriodStats.start && (
+                  <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                    {formatDate(currentPeriodStats.start)} <ArrowRight className="h-3 w-3 inline mx-1 opacity-40" /> {formatDate(currentPeriodStats.end)}
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] text-primary uppercase font-bold">Saldo Projetado</p>
-              {loading ? <Skeleton className="h-6 w-24" /> : <p className={`text-lg font-bold font-mono ${saldoProjetado >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(saldoProjetado)}</p>}
+            <Badge variant="secondary" className={`${isDifferentMonth ? 'bg-orange-500/15 text-orange-600' : 'bg-success/15 text-success'} border-0 text-[10px]`}>
+              {isDifferentMonth ? 'Revisando Período' : 'Aguardando Fechamento'}
+            </Badge>
+          </CardHeader>
+          <CardContent className="pb-4 pt-2">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1"><Wallet className="h-3 w-3" /> Saldo Anterior</p>
+                {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-muted-foreground">{formatCurrency(currentPeriodStats.initial)}</p>}
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Entradas</p>
+                {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-success">{formatCurrency(currentPeriodStats.income)}</p>}
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Saídas</p>
+                {loading ? <Skeleton className="h-6 w-24" /> : <p className="text-lg font-bold font-mono text-destructive">{formatCurrency(currentPeriodStats.expense)}</p>}
+              </div>
+              <div>
+                <p className="text-[10px] text-primary uppercase font-bold">Saldo Projetado</p>
+                {loading ? <Skeleton className="h-6 w-24" /> : <p className={`text-lg font-bold font-mono ${saldoProjetado >= 0 ? 'text-primary' : 'text-destructive'}`}>{formatCurrency(saldoProjetado)}</p>}
+              </div>
+              <div className="flex flex-col justify-end">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full px-6" onClick={handleClosePeriod} disabled={isClosingId === "current" || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
+                  {isClosingId === "current" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
+                  Finalizar Mês
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col justify-end">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-full px-6" onClick={handleClosePeriod} disabled={isClosingId === "current" || currentPeriodStats.error !== null || (currentPeriodStats.count === 0 && currentPeriodStats.initial === 0)}>
-                {isClosingId === "current" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5 mr-2" />}
-                Finalizar Mês
-              </Button>
-            </div>
-          </div>
 
-          {currentPeriodStats.error && (
-            <div className="mt-4 p-2 bg-destructive/10 border border-destructive/20 rounded-md text-[10px] text-destructive flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-              <AlertTriangle className="h-3.5 w-3.5" />
-              {currentPeriodStats.error}
-            </div>
-          )}
-
-          {!currentPeriodStats.error && lastClosure && currentPeriodStats.start && new Date(currentPeriodStats.start) > new Date(lastClosure.end_date) && (
-            <div className="mt-4 p-2 bg-secondary/10 border border-border rounded-md text-[10px] text-muted-foreground flex items-center gap-2 italic">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              Este fechamento iniciará exatamente onde o último parou ({formatDate(lastClosure.end_date)}).
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {immediatePrevious && currentPeriodStats.start && (
+              <div className="mt-4 p-2 bg-secondary/10 border border-border rounded-md text-[10px] text-muted-foreground flex items-center gap-2 italic">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                Este fechamento iniciará exatamente onde o último parou ({formatDate(immediatePrevious.end_date)}). Saldo transportado: {formatCurrency(immediatePrevious.final_balance || 0)}.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="pt-4">
         <h3 className="text-[12px] font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
