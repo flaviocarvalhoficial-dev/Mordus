@@ -1,25 +1,26 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle, Lock, BookOpen, AlertTriangle, ArrowRight, Wallet, History, Verified, Sparkles, ShieldCheck, Globe, Users, Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Support() {
     return (
         <div className="animate-fade-in space-y-16 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Hero Section - Storytelling Intro */}
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-[#FDFCFB] dark:bg-zinc-900/40 p-8 md:p-12 border border-orange-100 dark:border-orange-500/10 shadow-sm">
+            <div className="relative overflow-hidden rounded-xl bg-card p-8 md:p-12 border border-orange-100 dark:border-orange-500/10 shadow-sm">
                 <div className="relative z-10 max-w-3xl">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
                         <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-0 uppercase text-[10px] tracking-[0.2em] font-black px-4 py-1">
                             Manual de Excelência
                         </Badge>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-[#1A1A1A] dark:text-white tracking-tight leading-tight mb-6">
+                    <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight leading-tight mb-6">
                         Domine a Arte da <span className="text-orange-500">Mordomia Moderna</span>
                     </h1>
 
-                    <div className="space-y-6 text-[#4A4A4A] dark:text-zinc-400">
+                    <div className="space-y-6 text-muted-foreground">
                         <p className="text-lg font-medium leading-relaxed">
                             Aprenda a dominar o Mordus e entenda como nossa inteligência financeira ajuda a manter a saúde e a transparência da sua instituição.
                         </p>
@@ -49,9 +50,9 @@ export default function Support() {
                     { icon: Globe, title: "Transparência Total", desc: "Relatórios claros que geram confiança para toda a membresia." },
                     { icon: BookOpen, title: "Legado Digital", desc: "Histórico inalterável para as futuras gerações da instituição." }
                 ].map((item, i) => (
-                    <div key={i} className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-border/60 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-500/30 transition-colors group">
+                    <div key={i} className="p-6 rounded-xl bg-card border border-border/60 hover:border-orange-200 dark:hover:border-orange-500/30 transition-colors group">
                         <item.icon className="h-6 w-6 text-orange-500 mb-4 group-hover:scale-110 transition-transform" />
-                        <h4 className="font-bold text-sm text-[#1A1A1A] dark:text-white mb-2">{item.title}</h4>
+                        <h4 className="font-bold text-sm text-foreground mb-2">{item.title}</h4>
                         <p className="text-[12px] text-muted-foreground leading-relaxed">{item.desc}</p>
                     </div>
                 ))}
@@ -66,7 +67,7 @@ export default function Support() {
                             <Badge className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 border-0 uppercase text-[9px] tracking-[0.2em] font-black px-3 py-0.5 mb-2">
                                 Enciclopédia Mordus
                             </Badge>
-                            <h2 className="text-3xl font-black text-[#1A1A1A] dark:text-white">Conheça os Módulos</h2>
+                            <h2 className="text-3xl font-black text-foreground">Conheça os Módulos</h2>
                             <p className="text-sm text-muted-foreground max-w-xl">
                                 Uma visão profunda sobre como cada engrenagem do Mordus trabalha para a sua instituição.
                             </p>
@@ -81,7 +82,7 @@ export default function Support() {
                                     </div>
                                     Gestão de Membros e Secretaria
                                 </h3>
-                                <div className="bg-slate-50/50 dark:bg-zinc-900/40 rounded-3xl p-8 border border-slate-100 dark:border-white/5 space-y-6">
+                                <div className="bg-slate-50/50 dark:bg-zinc-900/40 rounded-xl p-8 border border-slate-100 dark:border-white/5 space-y-6">
                                     <p className="text-[13px] text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
                                         A Secretaria no Mordus é um organismo vivo de informações eclesiásticas:
                                     </p>
@@ -112,7 +113,7 @@ export default function Support() {
                                     </div>
                                     Inteligência Financeira
                                 </h3>
-                                <Card className="rounded-[2rem] p-8 border-slate-100 dark:border-white/5 shadow-sm bg-white dark:bg-zinc-900 space-y-8 overflow-hidden relative">
+                                <Card className="rounded-xl p-8 border-slate-100 dark:border-white/5 shadow-sm bg-card space-y-8 overflow-hidden relative">
                                     <p className="text-[13px] text-slate-600 dark:text-zinc-400 leading-relaxed relative z-10">
                                         Nosso sistema financeiro é construído sobre o pilar da <strong>Auditabilidade Contínua</strong>:
                                     </p>
@@ -138,7 +139,7 @@ export default function Support() {
                             <Badge className="bg-orange-50 text-orange-600 hover:bg-orange-50 border-0 uppercase text-[9px] tracking-[0.2em] font-black px-3 py-0.5 mb-2">
                                 Passo a Passo
                             </Badge>
-                            <h2 className="text-2xl font-black text-[#1A1A1A] dark:text-white">Processos de Fechamento</h2>
+                            <h2 className="text-2xl font-black text-foreground">Processos de Fechamento</h2>
                             <p className="text-sm text-muted-foreground max-w-xl">
                                 Guia prático para as operações mais críticas do sistema.
                             </p>
@@ -147,18 +148,18 @@ export default function Support() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <div className="group cursor-pointer bg-white dark:bg-zinc-900 rounded-[2rem] p-8 border border-border/60 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden">
+                                    <div className="group cursor-pointer bg-card rounded-xl p-8 border border-border/60 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden">
                                         <History className="h-6 w-6 text-orange-600 mb-4" />
-                                        <h3 className="text-lg font-bold text-[#1A1A1A] dark:text-white mb-2">Fechamento Retroativo</h3>
+                                        <h3 className="text-lg font-bold text-foreground mb-2">Fechamento Retroativo</h3>
                                         <p className="text-[12px] text-muted-foreground leading-relaxed">Consertar meses anteriores sem quebrar o presente.</p>
                                         <div className="mt-4 text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
                                             Abrir Tutorial <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-md rounded-[2.5rem] p-8 border-none ring-1 ring-black/5 dark:ring-white/5 shadow-2xl bg-white dark:bg-zinc-900 transition-colors">
+                                <DialogContent className="max-w-md rounded-xl p-8 shadow-lg bg-card transition-colors">
                                     <DialogHeader>
-                                        <DialogTitle className="text-xl font-black dark:text-white">Fechamento Retroativo</DialogTitle>
+                                        <DialogTitle className="text-xl font-black">Fechamento Retroativo</DialogTitle>
                                         <DialogDescription className="text-xs">Regularize meses passados com segurança.</DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-6 pt-6">
@@ -171,7 +172,7 @@ export default function Support() {
                                             <div key={i} className="flex gap-4">
                                                 <div className="h-6 w-6 rounded-full bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 flex items-center justify-center text-[10px] font-black shrink-0">{i + 1}</div>
                                                 <div className="space-y-0.5 font-sans">
-                                                    <p className="text-[13px] font-bold text-[#1A1A1A] dark:text-white">{s.t}</p>
+                                                    <p className="text-[13px] font-bold text-foreground">{s.t}</p>
                                                     <p className="text-[12px] text-muted-foreground leading-relaxed">{s.d}</p>
                                                 </div>
                                             </div>
@@ -182,22 +183,22 @@ export default function Support() {
 
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <div className="group cursor-pointer bg-white dark:bg-zinc-900 rounded-[2rem] p-8 border border-border/60 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden">
+                                    <div className="group cursor-pointer bg-card rounded-xl p-8 border border-border/60 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden">
                                         <History className="h-6 w-6 text-orange-600 mb-4" />
-                                        <h3 className="text-lg font-bold text-[#1A1A1A] dark:text-white mb-2">Transporte de Saldo</h3>
+                                        <h3 className="text-lg font-bold text-foreground mb-2">Transporte de Saldo</h3>
                                         <p className="text-[12px] text-muted-foreground leading-relaxed">A mágica da integridade contínua do Mordus.</p>
                                         <div className="mt-4 text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
                                             Entenda a lógica <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
                                 </DialogTrigger>
-                                <DialogContent className="max-w-md rounded-[2.5rem] p-8 border-none ring-1 ring-black/5 dark:ring-white/5 shadow-2xl bg-white dark:bg-zinc-900 transition-colors">
+                                <DialogContent className="max-w-md rounded-xl p-8 shadow-lg bg-card transition-colors">
                                     <DialogHeader>
-                                        <DialogTitle className="text-xl font-black dark:text-white">Transporte de Saldo</DialogTitle>
+                                        <DialogTitle className="text-xl font-black">Transporte de Saldo</DialogTitle>
                                         <DialogDescription className="text-xs">A matemática por trás do seu caixa.</DialogDescription>
                                     </DialogHeader>
                                     <div className="space-y-6 pt-6">
-                                        <div className="bg-orange-50/50 dark:bg-orange-500/10 p-6 rounded-2xl text-center space-y-2 border border-orange-100 dark:border-orange-500/20 font-sans">
+                                        <div className="bg-orange-50/50 dark:bg-orange-500/10 p-6 rounded-xl text-center space-y-2 border border-orange-100 dark:border-orange-500/20 font-sans">
                                             <p className="text-[10px] font-black uppercase text-orange-700/60 dark:text-orange-500/60">Fórmula Mordus</p>
                                             <p className="text-xl font-black text-orange-900 dark:text-orange-400 tracking-tight">SI + E - S = SF</p>
                                         </div>
@@ -213,7 +214,7 @@ export default function Support() {
                     {/* 3. FAQ Section */}
                     <section id="faq" className="space-y-8 pt-10 border-t border-border/50 dark:border-white/5">
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-black text-[#1A1A1A] dark:text-white flex items-center gap-3 font-sans uppercase tracking-tight">
+                            <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
                                 <span className="h-8 w-8 rounded-xl bg-orange-500/10 flex items-center justify-center">
                                     <HelpCircle className="h-4 w-4 text-orange-600" />
                                 </span>
@@ -229,8 +230,8 @@ export default function Support() {
                                 { q: "O 'Saldo Projetado' é confiável?", a: "Sim. Ele é o resultado matemático instantâneo do último saldo fechado somado a tudo que foi inserido no período atual (entradas e saídas)." },
                                 { q: "Existe limite de usuários para suporte?", a: "Não. Administradores podem definir quem tem permissão para acessar este guia e solicitar ajuda especializada." }
                             ].map((item, idx) => (
-                                <AccordionItem key={idx} value={`tab-${idx}`} className="border border-border/80 dark:border-white/5 rounded-2xl px-6 bg-white dark:bg-zinc-900 overflow-hidden transition-all hover:border-orange-200 dark:hover:border-orange-500/20 font-sans">
-                                    <AccordionTrigger className="text-[13px] font-bold py-5 hover:no-underline dark:text-white">{item.q}</AccordionTrigger>
+                                <AccordionItem key={idx} value={`tab-${idx}`} className="border border-border/80 rounded-xl px-6 bg-card overflow-hidden transition-all hover:border-orange-200 dark:hover:border-orange-500/20 font-sans">
+                                    <AccordionTrigger className="text-[13px] font-bold py-5 hover:no-underline">{item.q}</AccordionTrigger>
                                     <AccordionContent className="text-[12px] text-muted-foreground pb-6 leading-relaxed">{item.a}</AccordionContent>
                                 </AccordionItem>
                             ))}
@@ -240,9 +241,9 @@ export default function Support() {
 
                 {/* Sidebar Contextual - Fixed Navigation Index */}
                 <div className="lg:col-span-4 space-y-6">
-                    <Card className="rounded-[2rem] bg-orange-500/5 dark:bg-orange-500/10 border-orange-100 dark:border-orange-500/20 shadow-none p-8 relative overflow-hidden group">
+                    <Card className="rounded-xl bg-orange-500/5 dark:bg-orange-500/10 border-orange-100 dark:border-orange-500/20 shadow-none p-8 relative overflow-hidden group">
                         <div className="relative z-10 space-y-6">
-                            <div className="h-10 w-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
+                            <div className="h-10 w-10 rounded-xl bg-orange-500 text-primary-foreground flex items-center justify-center shadow-lg shadow-orange-500/20">
                                 <AlertTriangle className="h-5 w-5" />
                             </div>
                             <div className="space-y-3">
@@ -254,14 +255,14 @@ export default function Support() {
                         </div>
                     </Card>
 
-                    <div className="p-8 rounded-[2rem] bg-gradient-to-br from-slate-900 to-slate-800 dark:from-zinc-950 dark:to-zinc-900 text-white space-y-6 transition-colors font-sans">
+                    <div className="p-8 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-zinc-950 dark:to-zinc-900 text-primary-foreground space-y-6 transition-colors font-sans">
                         <h4 className="text-lg font-bold leading-tight">Ajuda especializada?</h4>
                         <p className="text-[12px] text-slate-400 dark:text-zinc-500 leading-relaxed">
                             Nossa equipe de suporte está pronta para auxiliar sua instituição.
                         </p>
-                        <button className="w-full py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 transition-colors text-white font-black text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                        <Button className="w-full py-4 h-auto rounded-full font-black text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20">
                             Falar com Suporte
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

@@ -552,7 +552,7 @@ function TransactionsList() {
               onSuccess={refreshData}
               trigger={
                 <Button className="px-6 text-[11px] uppercase tracking-widest flex items-center gap-2">
-                  <div className="h-5 w-5 rounded-full bg-white/20 flex items-center justify-center">
+                  <div className="h-5 w-5 rounded-full bg-primary-foreground/20 flex items-center justify-center">
                     <Plus className="h-3 w-3" />
                   </div>
                   Novo Lançamento
@@ -1028,7 +1028,7 @@ function TransactionsList() {
           <div className="relative w-full h-full flex items-center justify-center p-4">
             <Button
               variant="ghost"
-              className="absolute top-4 right-4 text-white hover:bg-white/10 z-50 h-8 w-8 p-0 rounded-full"
+              className="absolute top-4 right-4 text-primary-foreground hover:bg-primary-foreground/10 z-50 h-8 w-8 p-0 rounded-full"
               onClick={() => setViewingReceipt(null)}
             >
               <X className="h-4 w-4" />
@@ -1036,19 +1036,19 @@ function TransactionsList() {
             <img
               src={viewingReceipt || ""}
               alt="Comprovante"
-              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-lg"
             />
             {viewingReceipt && (
               <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
                 <Button
                   onClick={() => handleDownload(viewingReceipt)}
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                  className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border border-primary-foreground/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
                 >
                   <Download className="h-3.5 w-3.5" /> Baixar Documento
                 </Button>
                 <Button
                   onClick={() => window.open(viewingReceipt, '_blank')}
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                  className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border border-primary-foreground/20 backdrop-blur-md rounded-full h-9 px-6 text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
                 >
                   <ExternalLink className="h-3.5 w-3.5" /> Abrir Original
                 </Button>

@@ -181,7 +181,7 @@ export function ContextSidebar() {
                         <div className="bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20 rounded-2xl p-4">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-[#1A1A1A] dark:text-white">Leitura Móvel</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-foreground">Leitura Móvel</span>
                             </div>
                             <p className="text-[10px] font-medium text-muted-foreground leading-relaxed">
                                 Use o índice para saltar entre os tópicos essenciais.

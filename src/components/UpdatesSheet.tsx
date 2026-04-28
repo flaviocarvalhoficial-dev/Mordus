@@ -156,7 +156,7 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
             <SheetContent className="w-full sm:max-w-md p-0 flex flex-col border-l border-border/50 bg-background/95 backdrop-blur-xl">
                 <SheetHeader className="p-6 border-b border-border/50 bg-secondary/10">
                     <div className="flex items-center gap-3 mb-1">
-                        <div className="h-10 w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
                             <Clock className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -263,7 +263,7 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="p-8 text-center bg-secondary/5 rounded-2xl border-2 border-dashed border-border/50">
+                                            <div className="p-8 text-center bg-secondary/5 rounded-xl border-2 border-dashed border-border/50">
                                                 <AlertCircle className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                                                 <p className="text-xs text-muted-foreground font-medium">Nenhum lançamento recente</p>
                                             </div>
@@ -273,7 +273,7 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
 
                                 {/* Treasury Alert/Tip */}
                                 {!treasuryData.isClosed && (
-                                    <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex gap-3">
+                                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex gap-3">
                                         <AlertCircle className="h-5 w-5 text-orange-500 shrink-0" />
                                         <div>
                                             <h5 className="text-[12px] font-bold text-orange-600">Lembrete de Fechamento</h5>
@@ -354,7 +354,7 @@ export function UpdatesSheet({ open, onOpenChange, defaultTab = "treasury", lock
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="p-8 text-center bg-secondary/5 rounded-2xl border-2 border-dashed border-border/50">
+                                            <div className="p-8 text-center bg-secondary/5 rounded-xl border-2 border-dashed border-border/50">
                                                 <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
                                                 <p className="text-xs text-muted-foreground font-medium">Nenhum registro recente</p>
                                             </div>

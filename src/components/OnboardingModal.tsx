@@ -46,10 +46,10 @@ export function OnboardingModal() {
       if (profileError) throw profileError;
 
       const defaultCategories = [
-        { name: "Oferta", type: "income", color: "#10b981", organization_id: org.id },
-        { name: "Dízimo", type: "income", color: "#10b981", organization_id: org.id },
-        { name: "Água", type: "expense", color: "#f43f5e", organization_id: org.id },
-        { name: "Energia", type: "expense", color: "#f43f5e", organization_id: org.id },
+        { name: "Oferta", type: "income", color: "success", organization_id: org.id },
+        { name: "Dízimo", type: "income", color: "success", organization_id: org.id },
+        { name: "Água", type: "expense", color: "destructive", organization_id: org.id },
+        { name: "Energia", type: "expense", color: "destructive", organization_id: org.id },
       ];
 
       await (supabase.from("categories") as any).insert(defaultCategories);

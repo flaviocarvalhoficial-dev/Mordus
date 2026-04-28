@@ -306,5 +306,5 @@
 
 .animate-highlight-orange {
   animation: soft-pulse-orange 3s ease-in-out infinite;
-  border-left: 4px solid #f97316 !important;
+  border-left: 4px solid hsl(var(--accent-orange)) !important;
 }
