@@ -69,17 +69,33 @@ export function ChurchProvider({ children }: { children: ReactNode }) {
 
   // Auth Sync
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    // Attempt to restore session; if the refresh token is invalid, clear it silently
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        // Corrupt / expired session — wipe storage so Supabase stops retrying
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("sb-")) localStorage.removeItem(key);
+        });
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
       setAuthLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-      if (!session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // TOKEN_REFRESHED failure surfaces as SIGNED_OUT with no session
+      if (event === "SIGNED_OUT" || !session) {
+        setUser(null);
         queryClient.clear();
+        // Clear any stale Supabase keys to prevent repeated 401/429 retries
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("sb-")) localStorage.removeItem(key);
+        });
+      } else {
+        setUser(session.user);
       }
+      setAuthLoading(false);
     });
 
     return () => subscription.unsubscribe();
